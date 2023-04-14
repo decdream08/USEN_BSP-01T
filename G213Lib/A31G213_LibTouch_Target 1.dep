@@ -1,0 +1,15 @@
+Dependencies for Project 'A31G213_LibTouch', Target 'Target 1': (DO NOT MODIFY !)
+F (.\source\touch.c)(0x5EF429DF)(-c --cpu Cortex-M0+ -D__MICROLIB --li -g -O0 --apcs=interwork -I..\..\Core\CMSIS\Include -I..\..\Core\Device\ABOV\A31G21x\Include -I..\..\G213Common -I..\..\Drivers\include -I..\..\G213Lib\header-I C:\Keil_v5\ARM\RV31\INC-I C:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="513" -D__NO_EMBEDDED_ASM-o ..\..\g213lib\touch.o --omf_browse ..\..\g213lib\touch.crf --depend ..\..\g213lib\touch.d)
+I (..\..\Drivers\include\A31G21x_hal_pcu.h)(0x5EBB5981)
+I (..\..\Core\Device\ABOV\A31G21x\Include\A31G21x.h)(0x5EA8E2F6)
+I (..\..\Core\CMSIS\Include\core_cm0plus.h)(0x5A1383AA)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x5475E4F0)
+I (..\..\Core\CMSIS\Include\core_cmInstr.h)(0x5A1383AC)
+I (..\..\Core\CMSIS\Include\cmsis_armcc.h)(0x5A1383AC)
+I (..\..\Core\CMSIS\Include\core_cmFunc.h)(0x5A1383AC)
+I (..\..\Core\Device\ABOV\A31G21x\Include\system_A31G21x.h)(0x5E3BCA38)
+I (..\..\Drivers\include\A31G21x_hal_aa_types.h)(0x5E394D26)
+I (C:\Keil_v5\ARM\ARMCC\include\math.h)(0x5475E4EE)
+I (..\..\G213Lib\header\userTimer.h)(0x5E956C7B)
+I (..\..\G213Lib\header\touch.h)(0x5EF40181)
+I (..\..\G213Common\common.h)(0x5EF4297A)
