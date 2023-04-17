@@ -377,7 +377,7 @@ typedef enum {
 
 //Variable
 #ifdef VERSION_INFORMATION_SUPPORT
-char MCU_Version[6] = "230413"; //MCU Version Info
+char MCU_Version[6] = "230417"; //MCU Version Info
 #ifdef SPP_EXTENSION_V50_ENABLE
 char BT_Version[7]; //MCU Version Info
 #endif
@@ -3238,8 +3238,35 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 #ifdef MASTER_MODE_ONLY
 					bPolling_Get_Data |= BCRF_GET_PAIRED_DEVICE_LIST; //For init sequence (Init Sequnece : Broadcaster -0) //Last -5
 #else //MASTER_MODE_ONLY
+#if defined(NEW_TWS_MASTER_SLAVE_LINK) && defined(SW1_KEY_TWS_MODE) && defined(FLASH_SELF_WRITE_ERASE) //2023-04-17_2 : To make New TWS Connection, we need to skip GET_PAIRED_DEVICE_LIST(for Last connection) and execute SET_CONNECTABLE_MODE when first TWS connection under TWS master mode.
+					if(Get_Cur_Master_Slave_Mode() == Switch_Master_Mode)
+					{
+						if(Get_Cur_LR_Stereo_Mode() == Switch_LR_Mode)
+						{
+							Flash_Read(FLASH_SAVE_START_ADDR, uFlash_Read_Buf, FLASH_SAVE_DATA_END);
+					
+							if(uFlash_Read_Buf[FLASH_SAVE_SET_DEVICE_ID_0] != 0x00 && uFlash_Read_Buf[FLASH_SAVE_SET_DEVICE_ID_0] != 0xff) //we don't to execute this when SET_DEVICE_ID is 0xffffffffffff(6Byte)
+							{
+#ifdef BT_DEBUG_MSG
+								_DBG("\n\rTry to get GET_PAIRED_DEVICE_LIST for last connection !!!");
+#endif
+								bPolling_Get_Data |= BCRF_GET_PAIRED_DEVICE_LIST; //For init sequence (Init Sequnece : Broadcaster -0) //Last -5
+							}
+							else
+							{
+#ifdef BT_DEBUG_MSG
+								_DBG("\n\rTry to do New TWS Connection - 1 instead of GET_PAIRED_DEVICE_LIST");
+#endif
+								bPolling_Get_Data |= BCRF_SET_CONNECTABLE_MODE; //To keep connectable mode when BT is not connected with Peer Device
+							}
+						}
+						else
+							bPolling_Get_Data |= BCRF_GET_PAIRED_DEVICE_LIST; //For init sequence (Init Sequnece : Broadcaster -0) //Last -5
+					}
+#else //#if defined(TWS_MODE_ENABLE) && defined(SW1_KEY_TWS_MODE) && defined(FLASH_SELF_WRITE_ERASE)
 					if(Get_Cur_Master_Slave_Mode() == Switch_Master_Mode)
 						bPolling_Get_Data |= BCRF_GET_PAIRED_DEVICE_LIST; //For init sequence (Init Sequnece : Broadcaster -0) //Last -5
+#endif //#if defined(TWS_MODE_ENABLE) && defined(SW1_KEY_TWS_MODE) && defined(FLASH_SELF_WRITE_ERASE)
 					else //Slave Mode
 					{
 #if defined(TWS_MODE_ENABLE) && defined(SW1_KEY_TWS_MODE)
@@ -5429,14 +5456,35 @@ Bool MB3021_BT_Module_CMD_Execute(uint8_t major_id, uint8_t minor_id, uint8_t *d
 						if(Get_Cur_LR_Stereo_Mode() == Switch_LR_Mode)
 #endif
 						{
-							if(Get_Cur_Master_Slave_Mode() == Switch_Slave_Mode)
+							if(Get_Cur_Master_Slave_Mode() == Switch_Slave_Mode) //TWS Slave
 								bPolling_Get_Data |= BCRF_TWS_SET_DISCOVERABLE_MODE; //For TWS Slave
 							else
-							{
+							{//TWS Master
+#if defined(NEW_TWS_MASTER_SLAVE_LINK) && defined(SW1_KEY_TWS_MODE) && defined(FLASH_SELF_WRITE_ERASE) //2023-04-17_3 : To make New TWS Connection, we need to send TWS_CMD when first TWS connection under TWS master mode.
+								Flash_Read(FLASH_SAVE_START_ADDR, uFlash_Read_Buf, FLASH_SAVE_DATA_END);
+								_DBG("\n\r@@@ G1  !!!");
+								if(uFlash_Read_Buf[FLASH_SAVE_SET_DEVICE_ID_0] == 0x00 || uFlash_Read_Buf[FLASH_SAVE_SET_DEVICE_ID_0] == 0xff) //we don't to execute this when SET_DEVICE_ID is 0xffffffffffff(6Byte)
+								{
+#ifdef BT_DEBUG_MSG
+									_DBG("\n\rExecute new TWS link start - MB3021_BT_Module_TWS_Start_Master_Slave_Grouping() !!!");
+#endif
+									MB3021_BT_TWS_Master_Slave_Grouping_Start();
+								}
+								else
+								{
+									if(Aux_In_Exist() && BTWS_Master_Slave_Connect < TWS_Get_Slave_Information_Done && BTWS_LIAC < TWS_Status_Master_LIAC) //2023-03-15_2 : When master is TWS Aux mode and BT is connecting with peer device, if user disconnect BT connection on peer device, MCU sends connection and discovery again & again, forever. So, we need to add condition to send disovery. //BTWS_LIAC != TWS_Status_Master_Mode_Control) //2023-02-21_2
+									{
+										bPolling_Get_Data |= BCRF_TWS_SET_DISCOVERABLE_MODE; //2022-11-17_2 : Under Aux mode, TWS Setting
+									}
+									else
+										bPolling_Get_Data |= BCRF_SET_DISCOVERABLE_MODE;
+								}
+#else //#if defined(TWS_MODE_ENABLE) && defined(SW1_KEY_TWS_MODE) && defined(FLASH_SELF_WRITE_ERASE)
 								if(Aux_In_Exist() && BTWS_Master_Slave_Connect < TWS_Get_Slave_Information_Done && BTWS_LIAC < TWS_Status_Master_LIAC) //2023-03-15_2 : When master is TWS Aux mode and BT is connecting with peer device, if user disconnect BT connection on peer device, MCU sends connection and discovery again & again, forever. So, we need to add condition to send disovery. //BTWS_LIAC != TWS_Status_Master_Mode_Control) //2023-02-21_2
 								{
 									bPolling_Get_Data |= BCRF_TWS_SET_DISCOVERABLE_MODE; //2022-11-17_2 : Under Aux mode, TWS Setting
 								}
+#endif //#if defined(TWS_MODE_ENABLE) && defined(SW1_KEY_TWS_MODE) && defined(FLASH_SELF_WRITE_ERASE)
 							}
 						}
 						else
@@ -5468,7 +5516,10 @@ Bool MB3021_BT_Module_CMD_Execute(uint8_t major_id, uint8_t minor_id, uint8_t *d
 				_DBG("\n\rRes: MINOR_ID_SET_DISCOVERABLE_MODE");
 #endif
 #ifdef TWS_MODE_ENABLE
-					if(BTWS_LIAC == TWS_Status_Master_LIAC && Get_Cur_LR_Stereo_Mode() == Switch_LR_Mode
+					if(Get_Cur_LR_Stereo_Mode() == Switch_LR_Mode
+#ifndef NEW_TWS_MASTER_SLAVE_LINK //2023-04-17_8 : To make New TWS Connection, we need to send TWS_MODE_CONTROL after SET_DISCOVERABLE_MODE under TWS Master reset.
+					 && BTWS_LIAC == TWS_Status_Master_LIAC
+#endif //NEW_TWS_MASTER_SLAVE_LINK
 #ifdef BT_GENERAL_MODE_KEEP_ENABLE //2022-12-27
 					&& !BKeep_Connectable
 #endif
@@ -5484,7 +5535,8 @@ Bool MB3021_BT_Module_CMD_Execute(uint8_t major_id, uint8_t minor_id, uint8_t *d
 							if(BTWS_Master_Slave_Grouping || (uFlash_Read_Buf[FLASH_SAVE_SET_DEVICE_ID_0] != 0x00 && uFlash_Read_Buf[FLASH_SAVE_SET_DEVICE_ID_0] != 0xff))
 #endif
 							{
-								if(Is_TWS_Master_Slave_Connect() != TWS_Get_Information_Ready && Get_Cur_Master_Slave_Mode() == Switch_Master_Mode) //2023-03-08_2 : Added condtion to avoid sending TWS CMD again even though TWS Mode under Master Mode
+								if(Get_Cur_Master_Slave_Mode() == Switch_Master_Mode && Is_TWS_Master_Slave_Connect() != TWS_Get_Information_Ready
+									) //2023-03-08_2 : Added condtion to avoid sending TWS CMD again even though TWS Mode under Master Mode
 									bPolling_Get_Data |= BCRF_INFORM_HOST_MODE;
 								else
 									bPolling_Get_Data |= BCRF_TWS_MODE_CONTROL;
@@ -5612,6 +5664,11 @@ Bool MB3021_BT_Module_CMD_Execute(uint8_t major_id, uint8_t minor_id, uint8_t *d
 #endif
 								}
 #endif //TWS_MODE_ENABLE
+#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-04-17_6 : To make New TWS Connection, we need to set BCRF_SET_DISCOVERABLE_MODE instead of BCRF_SET_LAST_CONNECTION when the last connection information is only TWS slave address.
+								if(uLast_Connected_TWS_Device_Address[0] != 0x00)
+									bPolling_Get_Data |= BCRF_SET_CONNECTABLE_MODE;//BCRF_SET_DISCOVERABLE_MODE;
+								else
+#endif
 								bPolling_Get_Data |= BCRF_SET_LAST_CONNECTION; //For Last Connection //For init sequence (Init Sequnece : Broadcaster -0-1) //Last -6
 #ifdef AVRCP_ENABLE
 								BBT_Is_Last_Connection_for_AVRCP = TRUE;

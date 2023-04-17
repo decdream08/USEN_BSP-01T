@@ -383,3 +383,11 @@
   - Under BAP-01, Aux mode shoud be accepted BT short key. //2023-04-13_1 (BAP-01 USEN#23/USEN#24)
   - Under Aux mode, when broadcast master/slave grouping, we need to make mute off. //2023-04-13_2 (BAP-01 USEN#23/USEN#24)
   - Changed BAP-01 Spec which BAP-01 should be supported LED display for Master/Slave grouping under aux mode also. //2023-04-13_3 (BAP-01 USEN#23/USEN#24)
+
+## 86. 2023-04-17 (BSP-01T)
+  - To make new spec which is new tws master slave link. Please refer to "NEW_TWS_MASTER_SLAVE_LINK". //2023-04-17_1
+  - To make New TWS Connection, we need to skip GET_PAIRED_DEVICE_LIST(for Last connection) and execute SET_CONNECTABLE_MODE when first TWS connection under TWS master mode. //2023-04-17_2
+  - To make New TWS Connection, we need to send TWS_CMD when first TWS connection under TWS master mode. //2023-04-17_3
+  - To make New TWS Connection, we need to disable timer action to close TWS Master/Slave Grouping. //2023-04-17_4
+  - To make New TWS Connection, we need to reset after 5sec since TWS Master sent SET_DEVICE_IDE to TWS Slave. //2023-04-17_5
+  - To make New TWS Connection, we need to set BCRF_SET_DISCOVERABLE_MODE instead of BCRF_SET_LAST_CONNECTION when the last connection information is only TWS slave address. //2023-04-17_6

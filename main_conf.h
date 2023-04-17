@@ -34,9 +34,9 @@ extern "C"
 // Define Model *************************************************************/
 //#define LGD_BT_SPK				(1)
 //#define LGD_SOUND_BAR			(1)
-//#define USEN_BT_SPK_TI				(1) //BSP-02
+#define USEN_BT_SPK_TI				(1) //BSP-02
 //#define USEN_BT_SPK_ESMT		(1) //BSP-01
-#define USEN_BAP					(1) //BAP-01
+//#define USEN_BAP					(1) //BAP-01
 
 // Custom Mode ****************************************************/
 //#define PRIVATE_CUSTOM_MODE					(1) //2023-01-17
@@ -168,6 +168,10 @@ extern "C"
 #endif //USEN_BT_SPK_TI
 #endif //MB3021_ENABLE
 #endif //UART_10_ENABLE
+
+#ifdef TWS_MODE_ENABLE
+#define NEW_TWS_MASTER_SLAVE_LINK			(1) //2023-04-17_1 : To make new spec which is new tws master slave link.
+#endif
 
 // Amp **************/
 #ifdef I2C_0_ENABLE
