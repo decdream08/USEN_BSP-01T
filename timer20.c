@@ -965,8 +965,9 @@ void TIMER20_IRQHandler_IT(void)
 				//Changed factory_reset_cmd_recovery_flag value from 0 to 1 when factory_reset_cmd_recovery_flag timer is finished.
 				//This is for Factory Reset Recovery.
 				BT_hw_reset_cmd_recovery_flag = 1;//factory_reset_cmd_recovery_flag = 0; 
-
+#ifdef MB3021_ENABLE
 				MB3021_BT_Module_HW_Reset(); //HW Reset
+#endif
 			}
 			else
 				BT_hw_reset_cmd_recovery_flag++;
@@ -1006,7 +1007,9 @@ void TIMER20_IRQHandler_IT(void)
 				}
 				else //factory_reset_firmware_version
 				{
+#ifdef MB3021_ENABLE
 					MB3021_BT_Module_HW_Reset(); //HW Reset
+#endif
 				}
 #endif //LR_360_FACTORY_ENABLE
 #endif //MB3021_ENABLE
