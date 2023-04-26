@@ -383,7 +383,6 @@
   - Under BAP-01, Aux mode shoud be accepted BT short key. //2023-04-13_1 (BAP-01 USEN#23/USEN#24)
   - Under Aux mode, when broadcast master/slave grouping, we need to make mute off. //2023-04-13_2 (BAP-01 USEN#23/USEN#24)
   - Changed BAP-01 Spec which BAP-01 should be supported LED display for Master/Slave grouping under aux mode also. //2023-04-13_3 (BAP-01 USEN#23/USEN#24)
-<<<<<<< HEAD
 
 ## 2023-04-18 (BAP-01)
   - Added Grouping LED display condition under Aux Mode to avoid display LED under other case(BT connection disconnect from Peer Device and White LED is blinking). This is side effect from "2023-04-13" solution. //2023-04-18_1
@@ -414,9 +413,4 @@
   - When TWS Slave is disconnected with TWS Master, it should display disconnection status using BT Status Blue LED. //2023-04-26_19
   - To play Aux under TWS Master need to send "BCRF_TWS_SET_DISCOVERABLE_MODE". //2023-04-26_20
   - Under TWS Mode, changed some condition for response of MINOR_ID_SET_DISCOVERABLE_MODE. //2023-04-26_21
-  
-=======
-  
-## 2023-04-25 (BAP-01)
-  - To keep EQ Mode for Amp_Init, we need to use cur_EQ_Mode under BAP-01. //2023-04-25_1
->>>>>>> master
+
