@@ -88,6 +88,26 @@ typedef enum {
 } A2DP_PTS_Event;
 #endif
 
+#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-04-26_15 : To make current status of Peer device(A2DP) and TWS Slave device
+typedef enum {
+	PEER_DEVICE_NONE,
+	PEER_DEVICE_DISCOVERABLE_CONNECTABLE_MODE_1,
+	PEER_DEVICE_DISCOVERABLE_CONNECTABLE_MODE_2,
+	PEER_DEVICE_PAIRED,
+	PEER_DEVICE_DISCONNECTED
+} Peer_Device_Connection_Status;
+
+typedef enum {
+	TWS_SLAVE_NONE_CONNECTION,
+	TWS_SLAVE_DISCOVERABLE_CONNECTABLE_MODE_1,
+	TWS_SLAVE_DISCOVERABLE_CONNECTABLE_MODE_2,
+	TWS_SLAVE_GROUGPING_MODE,
+	TWS_SLAVE_CONNECTTED_WITH_MASTER,
+	TWS_SLAVE_DISCONNECTED_WITH_MASTER,
+} TWS_Slave_Connection_Status;
+
+#endif
+
 #ifdef TWS_MODE_ENABLE
 #ifdef TWS_MASTER_SLAVE_GROUPING //2023-02-20_2
 typedef enum {
@@ -105,15 +125,25 @@ typedef enum {
 	TWS_Get_Information_Ready,
 	TWS_Get_Slave_Name,
 	TWS_Get_Slave_Address,
+#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-04-25_2
+	TWS_Get_Slave_Connected,
+	TWS_Get_Slave_Disconnection,
+#else
 	TWS_Get_Slave_Information_Done,
+#endif
 } TWS_Connect_Status; //Just check whether current status is TWS connection or not
 #endif
 
 typedef enum {
-	TWS_Status_Master_Ready,
-	TWS_Status_Master_GIAC,
-	TWS_Status_Master_LIAC,
-	TWS_Status_Master_Mode_Control
+	TWS_Status_Master_Ready, //Init, TWS Fail, MINOR_ID_ACL_OPENED_IND - No device
+	TWS_Status_Master_GIAC, //Last connection OK, Discoverable setting under BKeep_Connectable = 1 & LIAC, Discoverable setting
+#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-04-26_9 : Changed TWS Satus sequence
+	TWS_Status_Master_Mode_Control, //TWS CMD Sending - Master/Slave grouping start, response of MINOR_ID_SET_DISCOVERABLE_MODE
+	TWS_Status_Master_LIAC //BCRF_TWS_SET_DISCOVERABLE_MODE
+#else //NEW_TWS_MASTER_SLAVE_LINK
+	TWS_Status_Master_LIAC, //BCRF_TWS_SET_DISCOVERABLE_MODE
+	TWS_Status_Master_Mode_Control //TWS CMD Sending - Master/Slave grouping start, response of MINOR_ID_SET_DISCOVERABLE_MODE
+#endif //NEW_TWS_MASTER_SLAVE_LINK
 }TWS_Status;
 
 extern TWS_Status BTWS_LIAC;
@@ -124,10 +154,17 @@ extern Bool bIs_USEN_Device; //Check if current connected device is USEN MUSIC L
 #endif
 
 //Function
+#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-04-26_15 : To make current status of Peer device(A2DP)
+void Set_Peer_Device_Status(Peer_Device_Connection_Status Status);
+#endif
+
 #ifdef TWS_MASTER_SLAVE_COM_ENABLE
 TWS_Connect_Status Is_TWS_Master_Slave_Connect(void); //TRUE : TWS Mode / FALSE : Not TWS Mode(But it's not Broadcast Mode and may just TWS Mode Ready)
 #endif
 #ifdef TWS_MODE_ENABLE
+#if defined(NEW_TWS_MASTER_SLAVE_LINK) && defined(FLASH_SELF_WRITE_ERASE) //2023-04-26_8 : To check whether SPK has the history of TWS connection or not
+Bool Read_TWS_Connection_From_Flash(void);
+#endif
 void MB3021_BT_Module_Set_Discoverable_Mode(void);
 void MB3021_BT_Module_TWS_Set_Discoverable_Mode(void);
 void MB3021_BT_Module_TWS_Mode_Exit(void);

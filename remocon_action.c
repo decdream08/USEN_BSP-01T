@@ -627,7 +627,12 @@ void Remocon_Power_Key_Action_Toggle(uint8_t Input_Key) //For only Power Key inp
 			//Set_Status_LED_Mode(STATUS_POWER_ON_MODE); //Fixed LED display NG(White LED is fast blinking) under no pairing mode when user push factory reset --> Power Off/On
 #ifdef BT_MODULE_ENABLE
 			if(Get_Connection_State())
+			{
 				Set_Status_LED_Mode(STATUS_BT_PAIRED_MODE);
+#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-04-26_15 : To make current status of Peer device(A2DP)
+				Set_Peer_Device_Status(PEER_DEVICE_PAIRED);
+#endif
+			}
 			else
 				Set_Status_LED_Mode(Get_Return_Status_LED_Mode()); //Fixed LED display NG(White LED is fast blinking) under no pairing mode when user push factory reset --> Power Off/On
 #endif
@@ -999,7 +1004,12 @@ void Remocon_Power_Key_Action(Bool Power_on, Bool Slave_Sync, Bool Vol_Sync) //F
 			//Set_Status_LED_Mode(STATUS_POWER_ON_MODE); //Fixed LED display NG(White LED is fast blinking) under no pairing mode when user push factory reset --> Power Off/On
 #ifdef BT_MODULE_ENABLE
 			if(Get_Connection_State())
+			{
 				Set_Status_LED_Mode(STATUS_BT_PAIRED_MODE);
+#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-04-26_15 : To make current status of Peer device(A2DP)
+				Set_Peer_Device_Status(PEER_DEVICE_PAIRED);
+#endif
+			}
 			else
 				Set_Status_LED_Mode(Get_Return_Status_LED_Mode()); //Fixed LED display NG(White LED is fast blinking) under no pairing mode when user push factory reset --> Power Off/On
 #endif

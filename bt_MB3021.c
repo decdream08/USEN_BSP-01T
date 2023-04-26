@@ -377,7 +377,7 @@ typedef enum {
 
 //Variable
 #ifdef VERSION_INFORMATION_SUPPORT
-char MCU_Version[6] = "230417"; //MCU Version Info
+char MCU_Version[6] = "230426"; //MCU Version Info
 #ifdef SPP_EXTENSION_V50_ENABLE
 char BT_Version[7]; //MCU Version Info
 #endif
@@ -385,7 +385,7 @@ char BT_Version[7]; //MCU Version Info
 
 Bool BBT_Init_OK = FALSE;
 Bool BSPP_Ready_OK = FALSE;
-Bool BBT_Is_Connected = FALSE;
+Bool BBT_Is_Connected = FALSE; //To check whether A2DP(Peer Device) is connected or not
 Bool BMaster_Send_BLE_Remote_Data = FALSE; //To avoid init sequence action when BLE data is sent
 Bool B_SSP_REBOOT_KEY_In = FALSE; //To send Reboot BLE DATA and execute Reboot
 Bool B_SSP_FACTORY_RESET_KEY_In = FALSE; //To send FACTORY RESET KEY and execute it.
@@ -396,7 +396,7 @@ Bool BBT_Is_Last_Connection_for_AVRCP = FALSE;
 Bool BBT_Need_Sequence = FALSE;
 #endif
 #if defined(BT_DISCONNECT_CONNECTABLE_ENABLE) || defined(BT_CLEAR_CONNECTABLE_MODE)
-Bool BKeep_Connectable = FALSE; //To avoid BA_MODE_CONTROL execution by sequnece
+Bool BKeep_Connectable = FALSE; //To avoid BA_MODE_CONTROL execution by sequnece. When this flag is set, it's disconnected with peerdevice.
 #endif
 #ifdef TWS_MASTER_SLAVE_COM_ENABLE
 //Bool BTWS_Master_Slave_Connect = FALSE; //2023-02-21_2 //Just check whether current status is TWS connection or not
@@ -415,6 +415,11 @@ Bool B_Master_Is_BAP = FALSE; //2023-01-09_2 : To disable BLE_VOLUME_KEY using B
 
 #ifdef TWS_MODE_ENABLE
 TWS_Status BTWS_LIAC = TWS_Status_Master_Ready;
+#endif
+
+#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-04-26_15 : To make current status of Peer device(A2DP) and TWS Slave device
+Peer_Device_Connection_Status Peer_Device_Status = PEER_DEVICE_NONE;
+TWS_Slave_Connection_Status TWS_Slave_Status = TWS_SLAVE_NONE_CONNECTION;
 #endif
 
 uint8_t uPaired_Device_Count = 0; //First time, we use this to chech if last conection is available and second time, we use this to check if current connection is last connection.
@@ -541,6 +546,29 @@ uint8_t MB3021_BT_Module_Send_cmd(uint32_t code32); //Just in case of Request Le
 uint8_t MB3021_BT_Module_Send_cmd_param(uint32_t code32, uint8_t *param);
 
 void MB3021_BT_Module_Send_Data_Packcet(uint8_t *param, uint16_t size); //size / param - without checksum
+
+#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-04-26_15 : To make current status of Peer device(A2DP)
+void Set_Peer_Device_Status(Peer_Device_Connection_Status Status)
+{
+	Peer_Device_Status = Status;
+}
+
+#ifdef FLASH_SELF_WRITE_ERASE //2023-04-26_8 : To check whether SPK has the history of TWS connection or not
+Bool Read_TWS_Connection_From_Flash(void)
+{	
+	Bool Ret_Val;
+
+	Flash_Read(FLASH_SAVE_START_ADDR, uFlash_Read_Buf, FLASH_SAVE_DATA_END);
+	
+	if(uFlash_Read_Buf[FLASH_SAVE_SET_DEVICE_ID_0] != 0x00 && uFlash_Read_Buf[FLASH_SAVE_SET_DEVICE_ID_0] != 0xff)
+		Ret_Val = TRUE; //SPK has TWS connection.
+	else
+		Ret_Val = FALSE; //SPK doesn't have TWS connection.
+
+	return Ret_Val;
+}
+#endif
+#endif
 
 #ifdef BT_ALWAYS_GENERAL_MODE //2023-03-13_1 : Just check whether input is BT Long Key or Factory Reset Key
 Bool Is_Delete_PDL_by_Factory_Reset(void)
@@ -1309,6 +1337,10 @@ void MB3021_BT_Module_Value_Init(void)
 #ifdef PRODUCT_LINE_TEST_MASTER_ID2_FIXED
 	B_Auto_FactoryRST_On = FALSE; //2023-04-03_1
 #endif
+#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-04-26_15 : To make current status of Peer device(A2DP) and TWS Slave device
+	Peer_Device_Status = PEER_DEVICE_NONE;
+	TWS_Slave_Status = TWS_SLAVE_NONE_CONNECTION;
+#endif
 
 }
 
@@ -1387,6 +1419,7 @@ void MB3021_BT_Module_Input_Key_Init(void) //To Do!!! - Need to change later usi
 #endif
 
 #ifdef BT_DEBUG_MSG
+	_DBG("\n\r");
 #ifdef SLAVE_ADD_MUTE_DELAY_ENABLE
 	for(i=0; i<9;i++)
 #else
@@ -1613,6 +1646,9 @@ void MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_Key_Sync_With_Slave Input_
 			uBuf[5] = BLE_DATA_PRODUCT_ID_LOW_BYTE;
 		}
 
+#ifdef BT_DEBUG_MSG
+		_DBG("\n\r");
+#endif
 #ifdef SLAVE_ADD_MUTE_DELAY_ENABLE
 		for(i=0; i<9; i++)
 #else
@@ -2806,7 +2842,11 @@ static void MB3021_BT_Module_Remote_Data_Receive(uint8_t source_type, uint8_t da
 #endif
 										}								
 										else if(data[6] == 0x00)
+										{
+#ifdef BT_DEBUG_MSG
 											_DBG("\n\rFactory Reset Off 1 - To Do !!!");
+#endif
+										}
 										else
 											BRet = FALSE;
 									}
@@ -3238,7 +3278,7 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 #ifdef MASTER_MODE_ONLY
 					bPolling_Get_Data |= BCRF_GET_PAIRED_DEVICE_LIST; //For init sequence (Init Sequnece : Broadcaster -0) //Last -5
 #else //MASTER_MODE_ONLY
-#if defined(NEW_TWS_MASTER_SLAVE_LINK) && defined(SW1_KEY_TWS_MODE) && defined(FLASH_SELF_WRITE_ERASE) //2023-04-17_2 : To make New TWS Connection, we need to skip GET_PAIRED_DEVICE_LIST(for Last connection) and execute SET_CONNECTABLE_MODE when first TWS connection under TWS master mode.
+#if defined(NEW_TWS_MASTER_SLAVE_LINK) && defined(SW1_KEY_TWS_MODE) && defined(FLASH_SELF_WRITE_ERASE) //2023-04-26_2 : To make New TWS Connection, we need to skip GET_PAIRED_DEVICE_LIST(for Last connection) and execute SET_CONNECTABLE_MODE when first TWS connection under TWS master mode.
 					if(Get_Cur_Master_Slave_Mode() == Switch_Master_Mode)
 					{
 						if(Get_Cur_LR_Stereo_Mode() == Switch_LR_Mode)
@@ -3296,7 +3336,13 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 #endif
 #if defined(TWS_MODE_ENABLE) && defined(SW1_KEY_TWS_MODE)
 					//Add cnodition BTWS_Master_Slave_Connect to avoid Master recognize peer device as slave after android device reboot when Master device updates tws slave address //2022-12-22
-					if(Get_Cur_LR_Stereo_Mode() == Switch_LR_Mode && BTWS_LIAC == TWS_Status_Master_Mode_Control && BTWS_Master_Slave_Connect < TWS_Get_Slave_Name
+					if(Get_Cur_LR_Stereo_Mode() == Switch_LR_Mode && BTWS_LIAC == TWS_Status_Master_Mode_Control 
+#if defined(NEW_TWS_MASTER_SLAVE_LINK) && defined(FLASH_SELF_WRITE_ERASE) //2023-04-26_8 : To get DEVICE NAME over MINOR_ID_REMOTE_DEVICE_NAME_IND, Added TWS condition.
+						&& ((!Read_TWS_Connection_From_Flash() && BTWS_Master_Slave_Connect < TWS_Get_Slave_Name) //2023-04-26_8 : During TWS Grouping
+						|| (Read_TWS_Connection_From_Flash())) //2023-04-26_8 : After TWS Grouping
+#else
+						&& BTWS_Master_Slave_Connect < TWS_Get_Slave_Name
+#endif
 					&& (strncmp(strUSEN_Device_Name_2, (char *)data+7, 15) == 0) //2023-04-03_2 : TWS Device is only availible
 					) //2023-02-21_2 : Change Condition for BTWS_Master_Slave_Connect
 					{
@@ -3310,12 +3356,20 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 #endif
 						for(i=0;i<6;i++) //Save Remote BT Device Name //6 Byte
 						{
+#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-04-26_11 : Changed IO_CAPABILITY_MODE condition. so, we need to update uBT_Remote_Device_Address in here.
+							uBT_Remote_Device_Address[i] = uBT_TWS_Remote_Device_Address[i] = data[i+1]; //Save Remote BT Device Address
+#else //NEW_TWS_MASTER_SLAVE_LINK
 							uBT_TWS_Remote_Device_Address[i] = data[i+1]; //Save Remote BT Device Address
+#endif //NEW_TWS_MASTER_SLAVE_LINK
+							
 #ifdef DEVICE_NAME_CHECK_PAIRING_DEBUG_MSG
 							_DBH(uBT_TWS_Remote_Device_Address[i]);
 #endif
 						}
 							
+#ifdef DEVICE_NAME_CHECK_PAIRING_DEBUG_MSG
+						_DBG("\n\r");
+#endif							
 						uBT_Remote_Device_Name_Size = data_length-7 ;
 	
 						for(i=0;i<uBT_Remote_Device_Name_Size;i++) //Save Remote BT Device Name //N Byte
@@ -3593,7 +3647,7 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 					BBT_Is_Routed = FALSE;
 
 #ifdef TWS_MODE_ENABLE
-					if(strncmp(uBT_TWS_Remote_Device_Address, (char *)data, 6) == 0) //OK //Compare saved TWS address and current BT address
+					if(strncmp(uBT_TWS_Remote_Device_Address, (char *)data, 6) == 0) //TWS device Closed//Compare saved TWS address and current BT address
 					{
 						BTWS_Master_Slave_Connect = TWS_Get_Information_Ready; //TWS Device is disconnected
 #if defined(TWS_MODE_ENABLE) && defined(TAS5806MD_ENABLE)
@@ -3618,74 +3672,114 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 #endif
 						}
 #if defined(TWS_MODE_ENABLE) && defined(SW1_KEY_TWS_MODE) //Move to here to only work TWS on disconnection case //2022-12-22
+#ifdef NEW_TWS_MASTER_SLAVE_LINK
+						if(Get_Cur_LR_Stereo_Mode() == Switch_LR_Mode) //2023-04-26_18 : Changed conditon, to recover disconnection for TWS Slave //2023-03-30_2 : Add ConnTermLocalHost(0x16)//TimeOut/OectUser //2022-11-07
+#else //NEW_TWS_MASTER_SLAVE_LINK
 						if(Get_Cur_LR_Stereo_Mode() == Switch_LR_Mode && BTWS_LIAC == TWS_Status_Master_Mode_Control /*&& (data[6] == 0x08 || data[6] == 0x13 || data[6] == 0x16)*/) //2023-03-30_2 : Add ConnTermLocalHost(0x16)//TimeOut/OectUser //2022-11-07
+#endif //NEW_TWS_MASTER_SLAVE_LINK
 						{	
 #ifdef BT_DEBUG_MSG
 							_DBG("\n\r+++ Dis-connected with TWS Device Recovery");
 #endif
 #ifdef TWS_MASTER_SLAVE_COM_ENABLE
+#ifdef NEW_TWS_MASTER_SLAVE_LINK
+							BTWS_Master_Slave_Connect = TWS_Get_Slave_Disconnection; //TWS Device is disconnected
+#else //NEW_TWS_MASTER_SLAVE_LINK
 							BTWS_Master_Slave_Connect = TWS_Get_Information_Ready;
+#endif //NEW_TWS_MASTER_SLAVE_LINK
+#endif
+							TIMER20_tws_mode_recovery_flag_Start(); //To Recovery TWS Mode Connection
+
+#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-04-26_19 : When TWS Slave is disconnected with TWS Master, it should display disconnection status using BT Status Blue LED.
+							if(Get_Cur_Master_Slave_Mode() == Switch_Slave_Mode)
+								Set_Status_LED_Mode(STATUS_BT_FAIL_OR_DISCONNECTION_MODE);
+#endif
+						}
+#endif
+					}
+					else //A2DP or other device Closed //2023-03-08_1
+#endif
+#ifdef NEW_TWS_MASTER_SLAVE_LINK
+					{
+#endif
+#ifndef MASTER_MODE_ONLY
+						if(Get_Cur_Master_Slave_Mode() == Switch_Master_Mode) //2023-03-08_1 : Sometimes, Some peerdevice send only MINOR_ID_ACL_CLOSED_IND on disconnection. so we need to add recovery code here.
+#endif
+						{
+#ifdef BT_GENERAL_MODE_KEEP_ENABLE_DEBUG_MSG
+							_DBG("\n\rA2DP Device is disconnected(MINOR_ID_ACL_CLOSED_IND) !!!");
+							_DBG("\n\rCur Addr : ");
+							for(i=0;i<6;i++)
+							_DBH(data[i]);
+
+							_DBG("\n\rA2DP Addr : ");
+							for(i=0;i<6;i++)
+							_DBH(uBT_Cur_A2DP_Device_Address[i]);
+#endif
+
+#ifdef TWS_MODE_ENABLE							
+							if(!(Get_Cur_LR_Stereo_Mode() == Switch_LR_Mode && BBT_Is_Connected && strncmp(uBT_Cur_A2DP_Device_Address, (char *)data, 6))) //2023-04-03_2: When TWS slave is conected, we don't need to display BT STATUS LED on TWS Master.
+#endif
+							{
+								BBT_Is_Connected = FALSE; //2023-03-29_1 : When user disconnects BSP-01 in BT Menu on Peerdevice, If user executes power off->on over power button, Master has BT LED On(It should be blinking).
+								bPolling_Get_BT_Profile_State |= BT_PROFILE_STATE_READY;
+							}
+
+#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-04-26_13 : If the address of closed device is A2DP, we need to make "BBT_Is_Connected = FALSE"
+							if(!strncmp(uBT_Cur_A2DP_Device_Address, (char *)data, 6))
+							{
+								BBT_Is_Connected = FALSE;
+								Peer_Device_Status = PEER_DEVICE_DISCONNECTED;
+							}
+#endif
+
+						}
+#ifdef DEVICE_NAME_CHECK_PAIRING //Disconnect BT
+						//uPaired_Device_Count = 0;
+						uBT_Remote_Device_Name_Size = 0;
+			
+						for(i=0; i<6; i++)
+						{
+							uBT_Remote_Device_Address[i] = 0;
+#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-04-26_13 : When A2DP device is disconnected, we need to clear the adress of cur A2DP device address and Last connection device address
+							if(!BBT_Is_Connected)
+#endif
+							{
+								uBT_Cur_A2DP_Device_Address[i] = 0;
+								uLast_Connected_Device_Address[i] = 0;
+							}
+						}
+#else
+#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-04-26_13 : When A2DP device is disconnected, we need to clear the adress of cur A2DP device address and Last connection device address
+						if(!BBT_Is_Connected)
+#endif
+						{
+							for(i=0; i<6; i++) //Clear variable upon Disconnecting
+							{
+								uBT_Cur_A2DP_Device_Address[i] = 0;
+								uLast_Connected_Device_Address[i] = 0;
+							}
+						}
+#endif
+
+#if 0 //defined(TWS_MODE_ENABLE) && defined(SW1_KEY_TWS_MODE) //Move to upside //2022-12-22
+						if(Get_Cur_LR_Stereo_Mode() == Switch_LR_Mode && BTWS_LIAC == TWS_Status_Master_Mode_Control && (data[6] == 0x08 || data[6] == 0x13)) //TimeOut/OectUser //2022-11-07
+						{	
+#ifdef TWS_MASTER_SLAVE_COM_ENABLE
+							BTWS_Master_Slave_Connect = FALSE;
 #endif
 							TIMER20_tws_mode_recovery_flag_Start(); //To Recovery TWS Mode Connection
 						}
 #endif
+#ifdef NEW_TWS_MASTER_SLAVE_LINK
 					}
-					else //2023-03-08_1
-#endif
-#ifndef MASTER_MODE_ONLY
-					if(Get_Cur_Master_Slave_Mode() == Switch_Master_Mode) //2023-03-08_1 : Sometimes, Some peerdevice send only MINOR_ID_ACL_CLOSED_IND on disconnection. so we need to add recovery code here.
-#endif
-					{
-#ifdef BT_GENERAL_MODE_KEEP_ENABLE_DEBUG_MSG
-						_DBG("\n\rA2DP Device is disconnected(MINOR_ID_ACL_CLOSED_IND) !!!");
-#endif
-#ifdef TWS_MODE_ENABLE
-						for(i=0; i<6; i++)
-						{
-							Address_buf[i] = data[i];
-						}
-												
-						if(!(Get_Cur_LR_Stereo_Mode() == Switch_LR_Mode && BBT_Is_Connected && strncmp(uBT_Cur_A2DP_Device_Address, Address_buf, 6))) //2023-04-03_2: When TWS slave is conected, we don't need to display BT STATUS LED on TWS Master.
-#endif
-						{
-							BBT_Is_Connected = FALSE; //2023-03-29_1 : When user disconnects BSP-01 in BT Menu on Peerdevice, If user executes power off->on over power button, Master has BT LED On(It should be blinking).
-							bPolling_Get_BT_Profile_State |= BT_PROFILE_STATE_READY;
-						}
-					}
-
-#ifdef DEVICE_NAME_CHECK_PAIRING //Disconnect BT
-					//uPaired_Device_Count = 0;
-					uBT_Remote_Device_Name_Size = 0;
-		
-					for(i=0; i<6; i++)
-					{
-						uBT_Remote_Device_Address[i] = 0;
-						uBT_Cur_A2DP_Device_Address[i] = 0;
-						uLast_Connected_Device_Address[i] = 0;
-					}
-#else
-					for(i=0; i<6; i++) //Clear variable upon Disconnecting
-					{
-						uBT_Cur_A2DP_Device_Address[i] = 0;
-						uLast_Connected_Device_Address[i] = 0;
-					}
-#endif
-
-#if 0 //defined(TWS_MODE_ENABLE) && defined(SW1_KEY_TWS_MODE) //Move to upside //2022-12-22
-				if(Get_Cur_LR_Stereo_Mode() == Switch_LR_Mode && BTWS_LIAC == TWS_Status_Master_Mode_Control && (data[6] == 0x08 || data[6] == 0x13)) //TimeOut/OectUser //2022-11-07
-				{	
-#ifdef TWS_MASTER_SLAVE_COM_ENABLE
-					BTWS_Master_Slave_Connect = FALSE;
-#endif
-					TIMER20_tws_mode_recovery_flag_Start(); //To Recovery TWS Mode Connection
-				}
 #endif
 				break;
 
 				default:
 					break;
 			}
-			break;
+			break;			
 			
 		case MAJOR_ID_A2DP_CONTROL: //0x10
 			switch(minor_id)
@@ -3731,6 +3825,7 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 						bPolling_Get_BT_Profile_State |= BT_PROFILE_STATE_READY;
 						BBT_Is_Routed = FALSE;
 					}
+#ifndef NEW_TWS_MASTER_SLAVE_LINK //2023-04-26_13 : To clear BT related address in ACL_CLOSE
 #ifdef DEVICE_NAME_CHECK_PAIRING //Disconnect BT
 					//uPaired_Device_Count = 0;
 					uBT_Remote_Device_Name_Size = 0;
@@ -3746,7 +3841,7 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 						uBT_Cur_A2DP_Device_Address[i] = 0;
 					}
 #endif
-
+#endif //NEW_TWS_MASTER_SLAVE_LINK
 				}
 				else if(data[6] == 0x02) //0x10 : 0x00 //Connecting
 				{
@@ -3792,7 +3887,7 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 						bPolling_Get_BT_Profile_State |= BT_PROFILE_STATE_DISCONNECTING;
 						BBT_Is_Routed = FALSE;
 					}
-					
+#ifndef NEW_TWS_MASTER_SLAVE_LINK //2023-04-26_13 : To clear BT related address in ACL_CLOSE
 #ifdef DEVICE_NAME_CHECK_PAIRING
 					uBT_Remote_Device_Name_Size = 0;
 
@@ -3807,6 +3902,7 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 						uBT_Cur_A2DP_Device_Address[i] = 0;
 					}
 #endif
+#endif //NEW_TWS_MASTER_SLAVE_LINK
 				}
 
 #ifdef TWS_MODE_ENABLE //2022-11-17_3 : the BBT_Is_Connected should be TRUE Under A2DP but not Under TWS.
@@ -3845,13 +3941,23 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 #ifdef TWS_MASTER_SLAVE_COM_ENABLE //2023-02-22_3 : After reboot, TWS Master sends data but TWS Slave ignore it due to AMP initializing. So, we need to send it again for recovery.
 										TWS_Power_Init_Master_Send_Data_Start();
 #endif
+#ifdef NEW_TWS_MASTER_SLAVE_LINK
+										BTWS_Master_Slave_Connect = TWS_Get_Slave_Connected; //2023-04-26_10 : Moved to upper side and When SPK get the information of TWS connection, we set "BTWS_Master_Slave_Connect = TWS_Get_Slave_Connected" for after TWS Grouping.
+#endif
 									}
 									else //First TWS Connection
+									{
+#ifdef NEW_TWS_MASTER_SLAVE_LINK
+										BTWS_Master_Slave_Connect = TWS_Get_Slave_Address; //2023-04-26_10 : Moved to upper side and When SPK get the information of TWS connection, we set "BTWS_Master_Slave_Connect = TWS_Get_Slave_Address" during TWS Grouping
+#endif
 										bPolling_Get_Data |= BCRF_TWS_SET_DEVICE_ID_SAVE;
+									}
 #endif
 									//2023-02-21_2 : To recovery, SPK can't get TWS Address.
 									strncpy(uBT_Cur_TWS_Device_Address, (char *)data, 6); //Compare saved TWS address and current BT address
-									BTWS_Master_Slave_Connect = TWS_Get_Slave_Address; //2023-02-21_2
+#ifndef NEW_TWS_MASTER_SLAVE_LINK //2023-04-26_10
+									BTWS_Master_Slave_Connect = TWS_Get_Slave_Address; //2023-04-26_10 : Moved to upper side and devided to two types //2023-02-21_2
+#endif
 
 #ifdef TWS_MASTER_SLAVE_GROUPING //2023-01-18_1 : To avoid click noise when Master is connected with Slave under TWS mode
 #ifdef AD82584F_USE_POWER_DOWN_MUTE
@@ -3888,7 +3994,7 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 #else //TWS_MODE_ENABLE
 				if(data[6] == 0x03) //0x10 : 0x00
 				{
-					if((data[7] & 0x03) == 0x01)
+					if((data[7] & 0x03) == 0x01) //NORMAL A2DP
 					{
 						BBT_Is_Connected = TRUE;
 					}
@@ -3960,7 +4066,7 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 						break;
 						case 0x2: //0x10 : 0x01 //Opened
 #ifdef TWS_MODE_ENABLE
-#ifdef SW1_KEY_TWS_MODE //2022-12-06_1 : Under connection with PC, TWS master mode working shuld be use this line when last connection
+#ifdef SW1_KEY_TWS_MODE //2022-12-06_1 : Under connection with PC, TWS master mode working should be use this line when last connection
 						if(Get_Cur_Master_Slave_Mode() == Switch_Master_Mode && Get_Cur_LR_Stereo_Mode() == Switch_LR_Mode && BTWS_LIAC == TWS_Status_Master_GIAC)
 						{
 							bPolling_Get_Data |= BCRF_TWS_SET_DISCOVERABLE_MODE; 
@@ -4138,6 +4244,12 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 						bPolling_Get_BT_Profile_State |= BT_PROFILE_STATE_DISCONNECTING;
 						BBT_Is_Connected = FALSE;
 					}
+
+#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-04-26_15 : To make current status of Peer device(A2DP) and TWS Slave device
+					Peer_Device_Status = PEER_DEVICE_NONE;
+					TWS_Slave_Status = TWS_SLAVE_NONE_CONNECTION;
+#endif
+
 					break;					
 					
 				default:
@@ -4183,8 +4295,11 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 						if(strncmp(uBT_TWS_Remote_Device_Address, (char *)data, 6) == 0) //OK //Compare saved TWS address and current BT address
 						{
 							strncpy(uBT_Cur_TWS_Device_Address, uBT_TWS_Remote_Device_Address, 6); //Saved current TWS address
-							
+#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-04-26_10							
+							BTWS_Master_Slave_Connect = TWS_Get_Slave_Connected;
+#else //NEW_TWS_MASTER_SLAVE_LINK
 							BTWS_Master_Slave_Connect = TWS_Get_Slave_Information_Done;
+#endif //NEW_TWS_MASTER_SLAVE_LINK
 #ifdef BT_DEBUG_MSG
 							_DBG("\n\r+++ Connected with TWS Device");
 #endif
@@ -4205,6 +4320,15 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 						}
 						else
 						{
+#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-04-26_17 : To save TWS Master address under TWS Slave mode.
+							if(Get_Cur_Master_Slave_Mode() == Switch_Slave_Mode)
+							{
+								strncpy(uBT_TWS_Remote_Device_Address, (char *)data, 6);
+#ifdef BT_DEBUG_MSG
+								_DBG("\n\r+++ Slave is connected with TWS Master");
+#endif
+							}
+#endif
 							//BTWS_Master_Slave_Connect = FALSE; //Can't set this variable to FALSE here !!! Because A2DP come here also.
 						}
 					}
@@ -4672,6 +4796,9 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 							{
 								FlashSave_SET_DEVICE_ID((FLASH_SAVE_SET_DEVICE_ID_0+i-1), data[i+6]);
 							}
+#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-04-26_7 : Slave connection To make New TWS Connection, we need to reset after 5sec since TWS Master sent SET_DEVICE_IDE to TWS Slave
+							TIMER20_TWS_Grouping_send_flag_start();
+#endif
 #ifdef BT_DEBUG_MSG
 							_DBG("\n\rFlash Save Data :");
 
@@ -5453,33 +5580,55 @@ Bool MB3021_BT_Module_CMD_Execute(uint8_t major_id, uint8_t minor_id, uint8_t *d
 					{
 #ifdef TWS_MODE_ENABLE
 #ifdef SW1_KEY_TWS_MODE
-						if(Get_Cur_LR_Stereo_Mode() == Switch_LR_Mode)
+						if(Get_Cur_LR_Stereo_Mode() == Switch_LR_Mode) //TWS Mode
 #endif
 						{
 							if(Get_Cur_Master_Slave_Mode() == Switch_Slave_Mode) //TWS Slave
+							{
+#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-04-26_16 : Added condition to avoid sending connectable mode and discoverable mode again and again.
+								if(TWS_Slave_Status == TWS_SLAVE_NONE_CONNECTION) //To avoid unlimited repetition.
+								{
+									TWS_Slave_Status = TWS_SLAVE_DISCOVERABLE_CONNECTABLE_MODE_1;
+									bPolling_Get_Data |= BCRF_TWS_SET_DISCOVERABLE_MODE; //For TWS Slave
+								}
+#else
 								bPolling_Get_Data |= BCRF_TWS_SET_DISCOVERABLE_MODE; //For TWS Slave
+#endif
+							}								
 							else
 							{//TWS Master
-#if defined(NEW_TWS_MASTER_SLAVE_LINK) && defined(SW1_KEY_TWS_MODE) && defined(FLASH_SELF_WRITE_ERASE) //2023-04-17_3 : To make New TWS Connection, we need to send TWS_CMD when first TWS connection under TWS master mode.
+#if defined(NEW_TWS_MASTER_SLAVE_LINK) && defined(SW1_KEY_TWS_MODE) && defined(FLASH_SELF_WRITE_ERASE) //2023-04-26_3 : To make New TWS Connection, we need to send TWS_CMD when first TWS connection under TWS master mode.
 								Flash_Read(FLASH_SAVE_START_ADDR, uFlash_Read_Buf, FLASH_SAVE_DATA_END);
-								_DBG("\n\r@@@ G1  !!!");
+								
 								if(uFlash_Read_Buf[FLASH_SAVE_SET_DEVICE_ID_0] == 0x00 || uFlash_Read_Buf[FLASH_SAVE_SET_DEVICE_ID_0] == 0xff) //we don't to execute this when SET_DEVICE_ID is 0xffffffffffff(6Byte)
 								{
 #ifdef BT_DEBUG_MSG
-									_DBG("\n\rExecute new TWS link start - MB3021_BT_Module_TWS_Start_Master_Slave_Grouping() !!!");
+									_DBG("\n\rMaster Execute new TWS link start - MB3021_BT_Module_TWS_Start_Master_Slave_Grouping() !!!");
 #endif
 									MB3021_BT_TWS_Master_Slave_Grouping_Start();
 								}
 								else
 								{
-									if(Aux_In_Exist() && BTWS_Master_Slave_Connect < TWS_Get_Slave_Information_Done && BTWS_LIAC < TWS_Status_Master_LIAC) //2023-03-15_2 : When master is TWS Aux mode and BT is connecting with peer device, if user disconnect BT connection on peer device, MCU sends connection and discovery again & again, forever. So, we need to add condition to send disovery. //BTWS_LIAC != TWS_Status_Master_Mode_Control) //2023-02-21_2
+#ifndef NEW_TWS_MASTER_SLAVE_LINK //2023-04-26_20 : To play Aux under TWS Master
+									if(Aux_In_Exist() && BTWS_Master_Slave_Connect < TWS_Get_Slave_Connected && BTWS_LIAC < TWS_Status_Master_LIAC) //2023-03-15_2 : When master is TWS Aux mode and BT is connecting with peer device, if user disconnect BT connection on peer device, MCU sends connection and discovery again & again, forever. So, we need to add condition to send disovery. //BTWS_LIAC != TWS_Status_Master_Mode_Control) //2023-02-21_2
 									{
 										bPolling_Get_Data |= BCRF_TWS_SET_DISCOVERABLE_MODE; //2022-11-17_2 : Under Aux mode, TWS Setting
 									}
 									else
+#endif
+									{
+#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-04-26_16 : Added condition to avoid sending connectable mode and discoverable mode again and again.
+										if(Peer_Device_Status == PEER_DEVICE_NONE || Peer_Device_Status == PEER_DEVICE_DISCONNECTED)
+										{
+											Peer_Device_Status = PEER_DEVICE_DISCOVERABLE_CONNECTABLE_MODE_1;
+											bPolling_Get_Data |= BCRF_SET_DISCOVERABLE_MODE;
+										}
+#else
 										bPolling_Get_Data |= BCRF_SET_DISCOVERABLE_MODE;
+#endif
+									}
 								}
-#else //#if defined(TWS_MODE_ENABLE) && defined(SW1_KEY_TWS_MODE) && defined(FLASH_SELF_WRITE_ERASE)
+#else //#if defined(NEW_TWS_MASTER_SLAVE_LINK) && defined(SW1_KEY_TWS_MODE) && defined(FLASH_SELF_WRITE_ERASE)
 								if(Aux_In_Exist() && BTWS_Master_Slave_Connect < TWS_Get_Slave_Information_Done && BTWS_LIAC < TWS_Status_Master_LIAC) //2023-03-15_2 : When master is TWS Aux mode and BT is connecting with peer device, if user disconnect BT connection on peer device, MCU sends connection and discovery again & again, forever. So, we need to add condition to send disovery. //BTWS_LIAC != TWS_Status_Master_Mode_Control) //2023-02-21_2
 								{
 									bPolling_Get_Data |= BCRF_TWS_SET_DISCOVERABLE_MODE; //2022-11-17_2 : Under Aux mode, TWS Setting
@@ -5487,7 +5636,7 @@ Bool MB3021_BT_Module_CMD_Execute(uint8_t major_id, uint8_t minor_id, uint8_t *d
 #endif //#if defined(TWS_MODE_ENABLE) && defined(SW1_KEY_TWS_MODE) && defined(FLASH_SELF_WRITE_ERASE)
 							}
 						}
-						else
+						else //Broadcast mode
 #endif
 						{
 #ifndef MASTER_MODE_ONLY
@@ -5516,10 +5665,96 @@ Bool MB3021_BT_Module_CMD_Execute(uint8_t major_id, uint8_t minor_id, uint8_t *d
 				_DBG("\n\rRes: MINOR_ID_SET_DISCOVERABLE_MODE");
 #endif
 #ifdef TWS_MODE_ENABLE
-					if(Get_Cur_LR_Stereo_Mode() == Switch_LR_Mode
-#ifndef NEW_TWS_MASTER_SLAVE_LINK //2023-04-17_8 : To make New TWS Connection, we need to send TWS_MODE_CONTROL after SET_DISCOVERABLE_MODE under TWS Master reset.
-					 && BTWS_LIAC == TWS_Status_Master_LIAC
-#endif //NEW_TWS_MASTER_SLAVE_LINK
+#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-04-26_21 : Under TWS Mode, changed some condition for response of MINOR_ID_SET_DISCOVERABLE_MODE.
+					if(Get_Cur_LR_Stereo_Mode() == Switch_LR_Mode)
+					{
+						if(Get_Cur_Master_Slave_Mode() == Switch_Master_Mode)
+						{
+							if(BTWS_LIAC == TWS_Status_Master_GIAC
+#ifdef BT_GENERAL_MODE_KEEP_ENABLE //2022-12-27
+								&& !BKeep_Connectable
+#endif
+							) //For TWS Device
+							{
+								if(do_recovery)
+									bPolling_Get_Data |= BCRF_TWS_SET_DISCOVERABLE_MODE; //Set flag to send same data again
+								else //For TWS Connection
+								{
+#ifdef TWS_MASTER_SLAVE_GROUPING //2022-12-15 //TWS : Disable TWS CMD
+									//Flash_Read(FLASH_SAVE_START_ADDR, uFlash_Read_Buf, FLASH_SAVE_DATA_END); //We already read flash data for SET DEVICE ID thru CMD_SET_DEVICE_ID_32
+					
+									if(BTWS_Master_Slave_Grouping || (uFlash_Read_Buf[FLASH_SAVE_SET_DEVICE_ID_0] != 0x00 && uFlash_Read_Buf[FLASH_SAVE_SET_DEVICE_ID_0] != 0xff))
+#endif
+									{
+										if(Get_Cur_Master_Slave_Mode() == Switch_Master_Mode && Is_TWS_Master_Slave_Connect() != TWS_Get_Information_Ready) //2023-03-08_2 : Added condtion to avoid sending TWS CMD again even though TWS Mode under Master Mode
+											bPolling_Get_Data |= BCRF_INFORM_HOST_MODE;
+										else
+											bPolling_Get_Data |= BCRF_TWS_MODE_CONTROL;
+										
+										BTWS_LIAC = TWS_Status_Master_Mode_Control;
+									}
+									else
+									{
+										if(Read_TWS_Connection_From_Flash()) //2023-04-26_16 : TWS Master need to send 
+										{										
+											if(Peer_Device_Status == PEER_DEVICE_DISCOVERABLE_CONNECTABLE_MODE_1 || Peer_Device_Status == PEER_DEVICE_DISCONNECTED) //To avoid unlimited repetition.
+											{
+												Peer_Device_Status = PEER_DEVICE_DISCOVERABLE_CONNECTABLE_MODE_2;
+												bPolling_Get_Data |= BCRF_SET_CONNECTABLE_MODE;
+											}
+										}
+									}
+								}
+							}
+							else //For A2DP Device
+							{
+								if(do_recovery)
+									bPolling_Get_Data |= BCRF_SET_DISCOVERABLE_MODE; //Set flag to send same data again
+								else
+								{
+									if(Peer_Device_Status == PEER_DEVICE_DISCOVERABLE_CONNECTABLE_MODE_1 || Peer_Device_Status == PEER_DEVICE_DISCONNECTED)
+									{
+										Peer_Device_Status = PEER_DEVICE_DISCOVERABLE_CONNECTABLE_MODE_2;
+										bPolling_Get_Data |= BCRF_SET_CONNECTABLE_MODE;
+									}
+								}
+							}
+						}
+
+#if defined(SW1_KEY_TWS_MODE) && defined(FLASH_SELF_WRITE_ERASE) //2023-04-26_7 : TWS Slave grouping Start
+						else //(Get_Cur_Master_Slave_Mode() == Switch_Slave_Mode)
+						{
+							if(!Read_TWS_Connection_From_Flash() && TWS_Slave_Status != TWS_SLAVE_GROUGPING_MODE)
+							{
+#ifdef BT_DEBUG_MSG
+								_DBG("\n\rSlave Execute new TWS link start - MB3021_BT_Module_TWS_Start_Master_Slave_Grouping() !!!");
+#endif
+								TWS_Slave_Status = TWS_SLAVE_GROUGPING_MODE;
+								MB3021_BT_TWS_Master_Slave_Grouping_Start();
+							}
+							else
+							{
+								if(TWS_Slave_Status != TWS_SLAVE_DISCOVERABLE_CONNECTABLE_MODE_2) //To avoid unlimited repetition.
+								{
+									if(TWS_Slave_Status == TWS_SLAVE_DISCOVERABLE_CONNECTABLE_MODE_1)
+									{
+										TWS_Slave_Status = TWS_SLAVE_DISCOVERABLE_CONNECTABLE_MODE_2;
+									}
+									else
+									{
+										TWS_Slave_Status = TWS_SLAVE_DISCOVERABLE_CONNECTABLE_MODE_1;
+									}
+
+									bPolling_Get_Data |= BCRF_TWS_MODE_CONTROL;
+								}
+							}
+						}
+
+						break;
+#endif //#if defined(SW1_KEY_TWS_MODE) && defined(FLASH_SELF_WRITE_ERASE)
+					}
+#else //NEW_TWS_MASTER_SLAVE_LINK
+					if(Get_Cur_LR_Stereo_Mode() == Switch_LR_Mode && BTWS_LIAC == TWS_Status_Master_LIAC
 #ifdef BT_GENERAL_MODE_KEEP_ENABLE //2022-12-27
 					&& !BKeep_Connectable
 #endif
@@ -5546,7 +5781,8 @@ Bool MB3021_BT_Module_CMD_Execute(uint8_t major_id, uint8_t minor_id, uint8_t *d
 						}
 					}
 					else
-#endif
+#endif //NEW_TWS_MASTER_SLAVE_LINK
+#endif //TWS_MODE_ENABLE
 					{
 						if(do_recovery)
 							bPolling_Get_Data |= BCRF_SET_DISCOVERABLE_MODE; //Set flag to send same data again
@@ -5623,6 +5859,10 @@ Bool MB3021_BT_Module_CMD_Execute(uint8_t major_id, uint8_t minor_id, uint8_t *d
 #ifdef BT_DEBUG_MSG
 								_DBG("\n\rdata_length = ");_DBD(data_length);
 #endif
+
+#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-04-26_12 : Under TWS Mode, The agorithm of last connection is changed.
+								ret = FALSE;
+
 								for(j=0;j<uPaired_Device_Count;j++) //Check Total Device
 								{
 									if(data[9+j*8] & 0x4)
@@ -5630,11 +5870,51 @@ Bool MB3021_BT_Module_CMD_Execute(uint8_t major_id, uint8_t minor_id, uint8_t *d
 										for(i=0;i<6;i++) //Paired TWS Device Address
 										{
 											uLast_Connected_TWS_Device_Address[i] = data[i+3+(j*8)];
-#if 1//def BT_DEBUG_MSG	
+#ifdef BT_DEBUG_MSG	
 											_DBH(uLast_Connected_TWS_Device_Address[i]);
 #endif
 										}
 										
+									}
+									else
+									{
+#ifdef BT_DEBUG_MSG
+										_DBG("\n\ruLast_Connected_Device_Address = ");
+#endif
+										for(i=0;i<6;i++) //Paired Device Address
+										{
+											uLast_Connected_Device_Address[i] = data[i+3+(j*8)];
+											ret = TRUE;
+#ifdef BT_DEBUG_MSG	
+											_DBH(uLast_Connected_Device_Address[i]);
+#endif
+										}
+
+										break;
+									}
+								}
+
+								if(ret == FALSE) //TWS Device Address is invalid
+								{
+#ifdef BT_DEBUG_MSG
+									_DBG("\n\rNo Last Connection Information !!!");
+#endif
+								}
+#else //NEW_TWS_MASTER_SLAVE_LINK
+								for(j=0;j<uPaired_Device_Count;j++) //Check Total Device
+								{
+									if(data[9+j*8] & 0x4)
+									{
+										for(i=0;i<6;i++) //Paired TWS Device Address
+										{
+											uLast_Connected_TWS_Device_Address[i] = data[i+3+(j*8)];
+#ifdef BT_DEBUG_MSG	
+											_DBH(uLast_Connected_TWS_Device_Address[i]);
+#endif
+										}
+#ifdef BT_DEBUG_MSG
+										_DBG("\n\rNo Last Connection Information !!!");
+#endif
 										break;
 									}
 								}
@@ -5643,6 +5923,10 @@ Bool MB3021_BT_Module_CMD_Execute(uint8_t major_id, uint8_t minor_id, uint8_t *d
 								{
 									if(!(data[9+j*8] & 0x4))
 									{
+#ifdef BT_DEBUG_MSG	
+										_DBG("\n\r");
+#endif
+
 										for(i=0;i<6;i++) //Paired Device Address
 										{
 											uLast_Connected_Device_Address[i] = data[i+3+(j*8)];
@@ -5654,6 +5938,7 @@ Bool MB3021_BT_Module_CMD_Execute(uint8_t major_id, uint8_t minor_id, uint8_t *d
 										break;
 									}
 								}
+#endif //NEW_TWS_MASTER_SLAVE_LINK
 #else //TWS_MODE_ENABLE
 								//for(i=0;i<uPaired_Device_Count*8;i++) //Total Device 
 								for(i=0;i<6;i++)
@@ -5664,9 +5949,9 @@ Bool MB3021_BT_Module_CMD_Execute(uint8_t major_id, uint8_t minor_id, uint8_t *d
 #endif
 								}
 #endif //TWS_MODE_ENABLE
-#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-04-17_6 : To make New TWS Connection, we need to set BCRF_SET_DISCOVERABLE_MODE instead of BCRF_SET_LAST_CONNECTION when the last connection information is only TWS slave address.
-								if(uLast_Connected_TWS_Device_Address[0] != 0x00)
-									bPolling_Get_Data |= BCRF_SET_CONNECTABLE_MODE;//BCRF_SET_DISCOVERABLE_MODE;
+#if defined(NEW_TWS_MASTER_SLAVE_LINK) && defined(FLASH_SELF_WRITE_ERASE) //2023-04-26_6 : To make New TWS Connection, we need to set BCRF_SET_DISCOVERABLE_MODE instead of BCRF_SET_LAST_CONNECTION when the last connection information is only TWS slave address.
+								if(ret == FALSE)
+									bPolling_Get_Data |= BCRF_SET_CONNECTABLE_MODE;
 								else
 #endif
 								bPolling_Get_Data |= BCRF_SET_LAST_CONNECTION; //For Last Connection //For init sequence (Init Sequnece : Broadcaster -0-1) //Last -6
@@ -5861,11 +6146,18 @@ Bool MB3021_BT_Module_CMD_Execute(uint8_t major_id, uint8_t minor_id, uint8_t *d
 #if defined(TWS_MODE_ENABLE) && defined(SW1_KEY_TWS_MODE)
 						if(Get_Cur_LR_Stereo_Mode() == Switch_LR_Mode)
 						{
+#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-04-26_12 : Under TWS Mode, The agorithm of last connection is changed.
+							if(Get_Cur_Master_Slave_Mode() == Switch_Master_Mode) //Under TWS Mode, the Master doesn't send INFORM_HOST_MODE when Last conneection is OK. So, the Master has BT output even though it has aux input when Power plug-out/In.
+							{
+								BTWS_LIAC = TWS_Status_Master_Mode_Control;
+								bPolling_Get_Data |= BCRF_TWS_MODE_CONTROL;
+							}
+#else //NEW_TWS_MASTER_SLAVE_LINK
 							BTWS_LIAC = TWS_Status_Master_GIAC;
 
 							if(Get_Cur_Master_Slave_Mode() == Switch_Master_Mode) //2023-03-15_1 : Under TWS Mode, the Master doesn't send INFORM_HOST_MODE when Last conneection is OK. So, the Master has BT output even though it has aux input when Power plug-out/In.
 								bPolling_Get_Data |= BCRF_INFORM_HOST_MODE; 
-
+#endif //NEW_TWS_MASTER_SLAVE_LINK
 						}
 						else //2022-11-09_1
 						{
@@ -7019,6 +7311,14 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 #ifdef TIMER21_LED_ENABLE
 		Set_Status_LED_Mode(STATUS_BT_PAIRED_MODE);
 #endif
+#ifdef NEW_TWS_MASTER_SLAVE_LINK
+		Peer_Device_Status = PEER_DEVICE_PAIRED; //2023-04-26_15 : To make current status of Peer device(A2DP)
+
+		if(Get_Cur_Master_Slave_Mode() == Switch_Master_Mode && Get_Cur_LR_Stereo_Mode() == Switch_LR_Mode) //2023-04-26_14 : TWS Master is connected with A2DP device and then TWS Master send LIAC to prohibit access from other devices
+		{
+			MB3021_BT_Module_TWS_Set_Discoverable_Mode();
+		}
+#endif
 #ifdef PRODUCT_LINE_TEST_MASTER_ID2_FIXED
 		B_Auto_FactoryRST_On = TRUE; //2023-04-03_1
 #endif
@@ -7154,6 +7454,38 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 			int i;
 
 #ifdef TWS_MODE_ENABLE
+#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-04-26_11 : Changed IO_CAPABILITY_MODE condition to check whether current device is TWS slave or not using uBT_TWS_Remote_Device_Name
+			if(Get_Cur_LR_Stereo_Mode() == Switch_LR_Mode && strncmp(uBT_Remote_Device_Address, uBT_TWS_Remote_Device_Address, 6) == FALSE //Need to check whether current BT address is TWS address or not
+				&& (strncmp(strUSEN_Device_Name_2, uBT_TWS_Remote_Device_Name, 15) == FALSE //"15" is string length and it's "USEN MUSIC LINK"if(strUSEN_Device_Name_2)
+#ifdef NEW_BT_FW_BUG_FIX //2023-02-20_1 : "10" is string length and it's "MB3021BNU0"if(strUSEN_Device_Name_3)
+				|| strncmp(strUSEN_Device_Name_3, uBT_TWS_Remote_Device_Name, 10) == FALSE
+#endif
+				))
+			{
+				uBuf[0] = 0x03; //0x03 : Pairing Accept
+				uBuf[1] = 0x00; //Sink mitm setting (0x00)
+				
+				for(i=0;i<6;i++)
+					uBuf[i+2] = uBT_TWS_Remote_Device_Address[i]; //BT Address			
+
+#ifdef DEVICE_NAME_CHECK_PAIRING_DEBUG_MSG
+				_DBG("\n\r0x");
+
+				for(i=0;i<8;i++)
+					_DBH(uBuf[i]);
+
+				_DBG("\n\r Remote Addr =");
+				for(i=0;i<6;i++)
+					_DBH(uBT_Remote_Device_Address[i]);
+
+				_DBG("\n\r TWS Addr =");
+				for(i=0;i<6;i++)
+					_DBH(uBT_TWS_Remote_Device_Address[i]);
+#endif
+				MB3021_BT_Module_Send_cmd_param(CMD_SET_IOCAPABILITY_MODE_32, uBuf);
+			}
+			else
+#else //NEW_TWS_MASTER_SLAVE_LINK
 			//if(BTWS_LIAC == TWS_Status_Master_Mode_Control && Get_Cur_LR_Stereo_Mode() == Switch_LR_Mode)
 			if(BTWS_LIAC == TWS_Status_Master_Mode_Control && Get_Cur_LR_Stereo_Mode() == Switch_LR_Mode && BTWS_Master_Slave_Connect == TWS_Get_Slave_Name) //2023-03-30_3 : Under TWS Master, the SETIO_CAPABILITY_MODE will be worked only that TWS_Get_Slave_Name is executed.
 			{
@@ -7192,7 +7524,8 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 				MB3021_BT_Module_Send_cmd_param(CMD_SET_IOCAPABILITY_MODE_32, uBuf);
 			}
 			else
-#endif
+#endif //NEW_TWS_MASTER_SLAVE_LINK
+#endif //TWS_MODE_ENABLE
 			{
 #ifdef TWS_MODE_ENABLE
 				if(BBT_Is_Connected && strncmp(uBT_Cur_A2DP_Device_Address, uBT_Remote_Device_Address, 6)) //2023-04-04_1 : if the BT devcie is not cur A2DP under TWS Master, we don't need to apply it as peerdevice
@@ -8026,10 +8359,15 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 #endif
 		uBuf[15] = 0x5F; //'_'
 		
+#ifdef BT_DEBUG_MSG
+		_DBG("\n\r");
+#endif		
 		for(i=0;i<6;i++) //Just add last 3BYTE(6 ASCII Code) address
 		{
 			uBuf[i+16] = uNaming[i+6];
+#ifdef BT_DEBUG_MSG
 			_DBH(uBuf[i+16]);
+#endif
 		}
 
 #endif //BT_NAME_EXTENSION
@@ -8147,8 +8485,12 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 		}
 		else
 		{
-			//if(BTWS_LIAC != TWS_Status_Master_Mode_Control) //2023-03-30_1 : Disable 2023-03-15_6 solution //2023-03-15_6 : This case is only that TWS Master is connected with TWS Slave and PeerDevice is disconnected with TWS Master. We need to keep current TWS status.
+#ifdef NEW_TWS_MASTER_SLAVE_LINK
+			if(BTWS_LIAC != TWS_Status_Master_Mode_Control) //2023-04-26_9 : Enable Again //2023-03-30_1 : Disable 2023-03-15_6 solution //2023-03-15_6 : This case is only that TWS Master is connected with TWS Slave and PeerDevice is disconnected with TWS Master. We need to keep current TWS status.
+#endif
+			{
 				BTWS_LIAC = TWS_Status_Master_GIAC;
+			}
 			
 			uBuf[0] = 0x02; //Enable General Discoverable mode
 		}

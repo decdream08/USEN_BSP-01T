@@ -170,7 +170,7 @@ extern "C"
 #endif //UART_10_ENABLE
 
 #ifdef TWS_MODE_ENABLE
-#define NEW_TWS_MASTER_SLAVE_LINK			(1) //2023-04-17_1 : To make new spec which is new tws master slave link.
+#define NEW_TWS_MASTER_SLAVE_LINK			(1) //2023-04-26_1 : To make new spec which is new tws master slave link.
 #endif
 
 // Amp **************/

@@ -1285,10 +1285,11 @@ void TIMER20_IRQHandler_IT(void)
 				}
 				else if(tws_grouping_send_flag == 31) //After 3 sec, Need to send Cur Status information to Slave again
 				{
-#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-04-17_5 : To make New TWS Connection, we need to reset after 5sec since TWS Master sent SET_DEVICE_IDE to TWS Slave
+#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-04-26_5 : To make New TWS Connection, we need to reset after 5sec since TWS Master sent SET_DEVICE_IDE to TWS Slave
 					tws_grouping_send_flag++;
 #else
 					tws_grouping_send_flag = 0;
+#endif
 					Set_Cur_TWS_Grouping_Status(TWS_Grouping_Master_Send_Cur_Status2);
 #if defined(MB3021_ENABLE) && defined(I2C_0_ENABLE)
 #ifdef TAS5806MD_ENABLE
@@ -1298,7 +1299,7 @@ void TIMER20_IRQHandler_IT(void)
 #endif
 #endif
 				}
-#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-04-17_5 : To make New TWS Connection, we need to reset after 5sec since TWS Master sent SET_DEVICE_IDE to TWS Slave
+#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-04-26_5 : To make New TWS Connection, we need to reset after 5sec since TWS Master sent SET_DEVICE_IDE to TWS Slave
 				else if(tws_grouping_send_flag == 51)
 				{
 					tws_grouping_send_flag = 0;
@@ -1309,6 +1310,23 @@ void TIMER20_IRQHandler_IT(void)
 				else
 					tws_grouping_send_flag++;
 			}
+#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-04-26_7 : To make New TWS Connection, we need to reset after 5sec since TWS Slave get SET_DEVICE_IDE from TWS Master.
+			else if(
+#ifndef MASTER_MODE_ONLY
+				Get_Cur_Master_Slave_Mode() == Switch_Slave_Mode && 
+#endif
+				master_slave_grouping_flag)
+			{
+				if(tws_grouping_send_flag == 51)
+				{
+					tws_grouping_send_flag = 0;
+					master_slave_grouping_flag = 0;
+					TIMER20_Master_Slave_Grouping_flag_Stop(FALSE);
+				}
+				else
+					tws_grouping_send_flag++;
+			}
+#endif
 			else
 			{
 				tws_grouping_send_flag = 0;
@@ -1328,7 +1346,7 @@ void TIMER20_IRQHandler_IT(void)
 #ifdef MASTER_SLAVE_GROUPING_DEBUG_MSG
 					_DBG("\n\rMaster Slave Gropuing Time Over under Master - 30sec !!! ");
 #endif
-#ifndef NEW_TWS_MASTER_SLAVE_LINK //2023-04-17_4 : To make New TWS Connection, we need to disable timer action to close TWS Master/Slave Grouping
+#ifndef NEW_TWS_MASTER_SLAVE_LINK //2023-04-26_4 : To make New TWS Connection, we need to disable timer action to close TWS Master/Slave Grouping
 					master_slave_grouping_flag = 0;
 					TIMER20_Master_Slave_Grouping_flag_Stop(FALSE);
 #endif //NEW_TWS_MASTER_SLAVE_LINK
@@ -1364,7 +1382,7 @@ void TIMER20_IRQHandler_IT(void)
 #ifdef MASTER_SLAVE_GROUPING_DEBUG_MSG
 					_DBG("\n\rMaster Slave Gropuing Time Over under Slave - 30sec !!! ");
 #endif
-#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-04-17_4 : To make New TWS Connection, we need to disable timer action to close TWS Master/Slave Grouping
+#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-04-26_4 : To make New TWS Connection, we need to disable timer action to close TWS Master/Slave Grouping
 					if(Get_Cur_LR_Stereo_Mode() == Switch_Stereo_Mode)
 #endif
 					{
