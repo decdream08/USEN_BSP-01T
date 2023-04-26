@@ -414,3 +414,5 @@
   - To play Aux under TWS Master need to send "BCRF_TWS_SET_DISCOVERABLE_MODE". //2023-04-26_20
   - Under TWS Mode, changed some condition for response of MINOR_ID_SET_DISCOVERABLE_MODE. //2023-04-26_21
 
+## 2023-04-26_1 (BSP-01T)
+  - When Power Off and Power on under Slave mode, Slave can't display Volume Level LED. This is side effect of //2023-04-06_3. //2023-04-26_22

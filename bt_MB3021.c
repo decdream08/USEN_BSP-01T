@@ -4516,12 +4516,17 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 #endif
 											if(data[3+6] <= 0x0f)
 											{
+#if defined(NEW_TWS_MASTER_SLAVE_LINK) && defined(LR_360_FACTORY_ENABLE) //2023-04-26_22 : When Power Off and Power on under Slave mode, Slave can't display Volume Level LED. This is side effect of //2023-04-06_3
+												if(Power_State())
+#endif
+												{
 #ifdef AD82584F_ENABLE
-												AD82584F_Amp_Volume_Set_with_Index(data[3+6], TRUE, FALSE);
+													AD82584F_Amp_Volume_Set_with_Index(data[3+6], TRUE, FALSE);
 #else //AD82584F_ENABLE
-												TAS5806MD_Amp_Volume_Set_with_Index(data[3+6], TRUE, FALSE);
+													TAS5806MD_Amp_Volume_Set_with_Index(data[3+6], TRUE, FALSE);
 #endif //TAS5806MD_ENABLE
-												BAlready_Set_Vol1 = TRUE;
+													BAlready_Set_Vol1 = TRUE;
+												}
 											}
 											else
 												BRet = FALSE;
