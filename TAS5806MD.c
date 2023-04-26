@@ -669,6 +669,11 @@ void TAS5806MD_Amp_Init(void)
 #ifdef _DBG_FLASH_WRITE_ERASE
 		_DBG("\n\r#### Flash Data : Find Volume Level");
 #endif
+
+#if defined(USEN_BAP) && defined(USEN_IT_AMP_EQ_ENABLE) //2023-04-25_1 : Need to set EQ Mode after AMP Init
+		TAS5806MD_Amp_EQ_DRC_Control(EQ_NORMAL_MODE); //DRC / EQ Setting
+#endif
+
 		if(Power_On_Init == TRUE)
 			TAS5806MD_Amp_Volume_Set_with_Index(uVol_Level, FALSE, TRUE); //Power On Init Call //2023-03-28_5 : Changed condition actual_key from FALSE to TRUE. When power on init, BAP-01 Master sned wrong volume data until user changed voluem thru rotary button or remote app. Also, BAP-01 can use ACTUAL KEY in this case.
 		else
@@ -1406,6 +1411,13 @@ void TAS5806MD_Amp_EQ_DRC_Control(EQ_Mode_Setting EQ_mode)
 	Cur_EQ_Mode = EQ_mode; //2023-03-08_3
 #endif
 
+#ifdef USEN_BAP //2023-04-25_1 : To keep EQ Mode for Amp_Init, we need to use cur_EQ_Mode under BAP-01.
+	if(Get_Cur_BAP_EQ_Mode() == Switch_EQ_NORMAL_Mode && EQ_mode == EQ_NORMAL_MODE)
+	{
+		EQ_mode = EQ_BAP_NORMAL_MODE;
+	}
+#endif
+	
 #ifndef USEN_BAP //2023-03-23_1 : EQ On/Off setting
 	TAS5806MD_Amp_Move_to_DSP_Control_Page();
 #endif
