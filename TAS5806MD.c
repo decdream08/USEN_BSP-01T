@@ -675,7 +675,11 @@ void TAS5806MD_Amp_Init(void)
 #endif
 
 		if(Power_On_Init == TRUE)
-			TAS5806MD_Amp_Volume_Set_with_Index(uVol_Level, FALSE, TRUE); //Power On Init Call //2023-03-28_5 : Changed condition actual_key from FALSE to TRUE. When power on init, BAP-01 Master sned wrong volume data until user changed voluem thru rotary button or remote app. Also, BAP-01 can use ACTUAL KEY in this case.
+#ifdef USEN_BAP //2023-04-28_2 : Under BSP-01T broadcast mode, we need to return back to original code to avoid to send "BLE_SET_MANUFACTURER_DATA" when DC Power on.
+			TAS5806MD_Amp_Volume_Set_with_Index(uVol_Level, FALSE, TRUE); //Power On Init Call //2023-03-28_5 : Changed condition actual_key from FALSE to TRUE. When power on init, BAP-01 Master send wrong volume data until user changed voluem thru rotary button or remote app. Also, BAP-01 can use ACTUAL KEY in this case.
+#else
+			TAS5806MD_Amp_Volume_Set_with_Index(uVol_Level, FALSE, FALSE); //Power On Init Call
+#endif
 		else
 			TAS5806MD_Amp_Volume_Set_with_Index(uVol_Level, FALSE, TRUE); //Actual Key Input
 

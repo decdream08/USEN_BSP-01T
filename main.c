@@ -1614,7 +1614,7 @@ void GPIOCD_IRQHandler_IT2(void)
 		if(status & 0x00000080) //Rising Edge : High check - Aux Out
 		{
 #ifdef AUX_CHATTERING_ENABLE
-			delay_ms(40); //For Aux Chattering
+			delay_ms(80); //2023-04-28_3 : Changed Aux detection check delay from 40ms to 80ms.  //For Aux Chattering
 			
 			if(HAL_GPIO_ReadPin(PC) & (1<<3)) //PC3 : High - Aux Out
 			{
@@ -1674,7 +1674,7 @@ void GPIOCD_IRQHandler_IT2(void)
 #endif
 			{
 #ifdef AUX_CHATTERING_ENABLE
-			delay_ms(40); //For Aux Chattering
+				delay_ms(80); //2023-04-28_3 : Changed Aux detection check delay from 40ms to 80ms. //For Aux Chattering
 			
 			if(!(HAL_GPIO_ReadPin(PC) & (1<<3)) )//PC3 : Low -Aux In
 			{

@@ -423,5 +423,9 @@
 ## 2023-04-27_2 (BSP-01T)
   - When TWS Master get reboot CMD over USEN Tablet remocon App, TWS Master need some delay to send reboot CMD to TWS Slave. //2023-04-27_2
   - After BT Long key on TWS Master, TWS Master can't connect with other device excepting previous peerdevice. //2023-04-27_3  
+  
 ## 2023-04-28 (BAP-01)
   - Changed EQ Setting. Under BSP-EQ Mode, it's all same with BSP-01T EQ but Under EQ Normal, it's just keep previous EQ. //2023-04-28_1
+
+## 2023-04-28 (BSP-01T)
+  - Under BSP-01T broadcast mode, we need to return back to original code to avoid to send "BLE_SET_MANUFACTURER_DATA" when DC Power on. //2023-04-28_2  - Changed Aux detection check delay from 40ms to 80ms to avoid undetection issue(Non-Aux case). //2023-04-28_3
