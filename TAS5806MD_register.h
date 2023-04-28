@@ -354,7 +354,9 @@ const uint8_t TAS5806MD_EQ_Table_BAP_NORMAL_MODE[][2] = //2023-03-28_6 : Added E
 	{ 0x52, 0x00 },
 	{ 0x53, 0x00 }
 };
+#endif //2023-04-28_1
 
+#if 0//#ifdef USEN_BAP //2023-04-28_1
 const uint8_t TAS5806MD_EQ_Table_POP_ROCK[][2] = 
 {
     { 0x18, 0x08 }, //  Biquad -  BQ1 Left   -     Filter: Low Shelf  Frequency: 87.075 Hz  Gain: 3dB  QVal: 0.71  Bandwidth: 1000 Hz
@@ -4379,7 +4381,7 @@ const uint8_t TAS5806MD_registers[][2] =
 
 #else //USEN_BAP
 
-const uint8_t TAS5806MD_registers[][2] = //2023-03-02_2 //EJT EQ Setting Test 230302_001_Normal_OYM.h
+const uint8_t TAS5806MD_registers[][2] = //2023-03-02_2 //EJT EQ Setting Test 230307_001_Normal_OYM.h
 {
 //RESET
     { 0x00, 0x00 },

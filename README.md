@@ -416,9 +416,12 @@
 
 ## 2023-04-26_1 (BSP-01T)
   - When Power Off and Power on under Slave mode, Slave can't display Volume Level LED. This is side effect of //2023-04-06_3. //2023-04-26_22  
+  
 ## 2023-04-27_1 (BAP-01)
   - Temparary SW Solution 500s check time to change Aux to BT. //2023-04-27_1
   
 ## 2023-04-27_2 (BSP-01T)
   - When TWS Master get reboot CMD over USEN Tablet remocon App, TWS Master need some delay to send reboot CMD to TWS Slave. //2023-04-27_2
-  - After BT Long key on TWS Master, TWS Master can't connect with other device excepting previous peerdevice. //2023-04-27_3
+  - After BT Long key on TWS Master, TWS Master can't connect with other device excepting previous peerdevice. //2023-04-27_3  
+## 2023-04-28 (BAP-01)
+  - Changed EQ Setting. Under BSP-EQ Mode, it's all same with BSP-01T EQ but Under EQ Normal, it's just keep previous EQ. //2023-04-28_1

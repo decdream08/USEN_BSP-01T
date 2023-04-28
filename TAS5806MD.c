@@ -95,7 +95,7 @@ static Bool Display_Mute = FALSE;
 Bool volatile BAmp_Init = TRUE; //2023-02-21_5 : To aovid AMP access after boot on
 Bool volatile BAmp_COM = FALSE; //2023-02-27_3 : To check whether AMP is busy(can't access - TRUE) or not(FALSE)
 
-#if !defined(USEN_BAP) && defined(USEN_IT_AMP_EQ_ENABLE)  //2023-03-08_3
+#ifdef USEN_IT_AMP_EQ_ENABLE //2023-04-28_1 : To apply BSP-01T EQ Setting to BAP-01 under EQ BSP Mode //#if !defined(USEN_BAP) && defined(USEN_IT_AMP_EQ_ENABLE)  //2023-03-08_3
 static EQ_Mode_Setting Cur_EQ_Mode = EQ_NORMAL_MODE;
 #endif
 
@@ -1389,8 +1389,12 @@ void TAS5806MD_Amp_EQ_DRC_Control(EQ_Mode_Setting EQ_mode)
 #ifdef USEN_IT_AMP_EQ_ENABLE //2023-02-27_1
 	uint16_t uSize, i;
 	uint8_t Data, uCommand;
-#if !defined(USEN_BAP) && defined(USEN_IT_AMP_EQ_ENABLE) //2023-03-08_3 : Control volume level for each EQ Mode
+#ifdef USEN_IT_AMP_EQ_ENABLE //2023-04-28_1 : To apply BSP-01T EQ Setting to BAP-01 under EQ BSP Mode  //#if !defined(USEN_BAP) && defined(USEN_IT_AMP_EQ_ENABLE) //2023-03-08_3 : Control volume level for each EQ Mode
 	uint8_t uCurVolLevel;
+#endif
+
+#ifdef TAS5806MD_DEBUG_MSG
+	_DBG("\n\r+++ TAS5806MD_Amp_EQ_DRC_Control() !!!!");
 #endif
 
 	if(Is_BAmp_Init()) //2023-02-22_1
@@ -1407,10 +1411,6 @@ void TAS5806MD_Amp_EQ_DRC_Control(EQ_Mode_Setting EQ_mode)
 
 	BAmp_COM = TRUE;
 
-#if !defined(USEN_BAP) && defined(USEN_IT_AMP_EQ_ENABLE)
-	Cur_EQ_Mode = EQ_mode; //2023-03-08_3
-#endif
-
 #ifdef USEN_BAP //2023-04-25_1 : To keep EQ Mode for Amp_Init, we need to use cur_EQ_Mode under BAP-01.
 	if(Get_Cur_BAP_EQ_Mode() == Switch_EQ_NORMAL_Mode && EQ_mode == EQ_NORMAL_MODE)
 	{
@@ -1418,9 +1418,13 @@ void TAS5806MD_Amp_EQ_DRC_Control(EQ_Mode_Setting EQ_mode)
 	}
 #endif
 	
-#ifndef USEN_BAP //2023-03-23_1 : EQ On/Off setting
-	TAS5806MD_Amp_Move_to_DSP_Control_Page();
+#ifdef USEN_IT_AMP_EQ_ENABLE //2023-04-28_1 : To apply BSP-01T EQ Setting to BAP-01 under EQ BSP Mode  //#if !defined(USEN_BAP) && defined(USEN_IT_AMP_EQ_ENABLE)
+	Cur_EQ_Mode = EQ_mode; //2023-03-08_3
 #endif
+	
+//2023-04-28_1 //#ifndef USEN_BAP //2023-03-23_1 : EQ On/Off setting
+	TAS5806MD_Amp_Move_to_DSP_Control_Page();
+//#endif
 
 #ifdef I2C_ACCESS_ERROR_DEBUG
 	_DBG("\n\r+++ TAS5806MD_Amp_EQ_DRC_Control() !!!!");
@@ -1433,9 +1437,10 @@ void TAS5806MD_Amp_EQ_DRC_Control(EQ_Mode_Setting EQ_mode)
 #if defined(USEN_BAP) && defined(USEN_IT_AMP_EQ_ENABLE) //2023-03-28_6 : Added EQ NORMAL switch mode from EJT
 		case EQ_BAP_NORMAL_MODE:
 		{
+#if 0//2023-04-28_1 //def USEN_BAP 
 			TAS5806MD_EQ_OnOff(TRUE); //EQ On			
 			TAS5806MD_Amp_Move_to_DSP_Control_Page();
-
+#endif
 			uSize = sizeof(TAS5806MD_EQ_Table_BAP_NORMAL_MODE)/2;
 
 			for(i =0;i<uSize;i++)
@@ -1450,7 +1455,7 @@ void TAS5806MD_Amp_EQ_DRC_Control(EQ_Mode_Setting EQ_mode)
 #endif
 		case EQ_NORMAL_MODE:
 		{
-#ifdef USEN_BAP //2023-03-23_1  : EQ Setting from EJT
+#if 0//2023-04-28_1 //def USEN_BAP //2023-03-23_1  : EQ Setting from EJT
 			TAS5806MD_EQ_OnOff(FALSE); //EQ Off
 #else //USEN_BAP
 			uSize = sizeof(TAS5806MD_EQ_Table_NORMAL)/2;
@@ -1467,7 +1472,7 @@ void TAS5806MD_Amp_EQ_DRC_Control(EQ_Mode_Setting EQ_mode)
 		break;
 		case EQ_POP_ROCK_MODE:
 		{
-#ifdef USEN_BAP //2023-03-23_1 : EQ Setting from EJT
+#if 0//2023-04-28_1 //2023-03-23_1 : EQ Setting from EJT
 			TAS5806MD_EQ_OnOff(TRUE); //EQ On			
 			TAS5806MD_Amp_Move_to_DSP_Control_Page();
 #endif
@@ -1484,7 +1489,7 @@ void TAS5806MD_Amp_EQ_DRC_Control(EQ_Mode_Setting EQ_mode)
 		break;
 		case EQ_CLUB_MODE:
 		{
-#ifdef USEN_BAP //2023-03-23_1 : EQ Setting from EJT
+#if 0//2023-04-28_1 //2023-04-28_1 //#ifdef USEN_BAP //2023-03-23_1 : EQ Setting from EJT
 			TAS5806MD_EQ_OnOff(TRUE); //EQ On			
 			TAS5806MD_Amp_Move_to_DSP_Control_Page();
 #endif
@@ -1501,7 +1506,7 @@ void TAS5806MD_Amp_EQ_DRC_Control(EQ_Mode_Setting EQ_mode)
 		break;
 		case EQ_JAZZ_MODE:
 		{
-#ifdef USEN_BAP //2023-03-23_1 : EQ Setting from EJT
+#if 0//2023-04-28_1 //#ifdef USEN_BAP //2023-03-23_1 : EQ Setting from EJT
 			TAS5806MD_EQ_OnOff(TRUE); //EQ On			
 			TAS5806MD_Amp_Move_to_DSP_Control_Page();
 #endif
@@ -1518,7 +1523,7 @@ void TAS5806MD_Amp_EQ_DRC_Control(EQ_Mode_Setting EQ_mode)
 		break;
 		case EQ_VOCAL_MODE:
 		{
-#ifdef USEN_BAP //2023-03-23_1 : EQ Setting from EJT
+#if 0//2023-04-28_1 //2023-04-28_1 //#ifdef USEN_BAP //2023-03-23_1 : EQ Setting from EJT
 			TAS5806MD_EQ_OnOff(TRUE); //EQ On			
 			TAS5806MD_Amp_Move_to_DSP_Control_Page();
 #endif
@@ -1535,7 +1540,9 @@ void TAS5806MD_Amp_EQ_DRC_Control(EQ_Mode_Setting EQ_mode)
 		break;
 	}
 		
-#ifdef USEN_BAP	
+#if 0//def USEN_BAP	
+	TAS5806MD_Amp_Move_to_Control_Page();
+
 	switch(EQ_mode) //2023-03-23_1 : Added DRC from OYM
 	{
 		case EQ_POP_ROCK_MODE: //POP & ROCK
@@ -1571,8 +1578,22 @@ void TAS5806MD_Amp_EQ_DRC_Control(EQ_Mode_Setting EQ_mode)
 #else //USEN_BAP
 	switch(EQ_mode) //2023-03-02_2 : Added DRC due to 230302_001_Normal_OYM.h
 	{
+#ifdef USEN_BAP //2023-04-28_1
+		case EQ_BAP_NORMAL_MODE:
+		{
+			//DRC_OFF
+			TAS5806MD_Amp_Move_to_Control_Page();
+			TAS5806MD_DRC_OnOff(FALSE);
+		}
+		break;
+#endif
 		case EQ_POP_ROCK_MODE: //POP & ROCK
 		{
+#ifdef USEN_BAP //2023-04-28_1
+			//DRC_ON
+			TAS5806MD_Amp_Move_to_Control_Page();
+			TAS5806MD_DRC_OnOff(TRUE);
+#endif
 			TAS58066MD_Amp_Move_to_DRC_band3_Page();
 			
 			uSize = sizeof(TAS5806MD_DRC_Table_POP_ROCK)/2;
@@ -1589,6 +1610,12 @@ void TAS5806MD_Amp_EQ_DRC_Control(EQ_Mode_Setting EQ_mode)
 
 		default: //NORMAL
 		{
+#ifdef USEN_BAP //2023-04-28_1
+			//DRC_ON
+			TAS5806MD_Amp_Move_to_Control_Page();
+			TAS5806MD_DRC_OnOff(TRUE);
+#endif
+
 			TAS58066MD_Amp_Move_to_DRC_band3_Page();
 			
 			uSize = sizeof(TAS5806MD_DRC_Table_NORMAL)/2;
@@ -1606,13 +1633,13 @@ void TAS5806MD_Amp_EQ_DRC_Control(EQ_Mode_Setting EQ_mode)
 #endif //USEN_BAP
 	
 #ifdef USEN_IT_AMP_EQ_ENABLE
-#ifndef USEN_BAP //2023-03-23_1 : Changed condition //#if !defined(USEN_BAP) && defined(USEN_IT_AMP_EQ_ENABLE) //2023-03-08_3 : Control volume level for each EQ Mode
+//2023-04-28_1 //#ifndef USEN_BAP //2023-03-23_1 : Changed condition //#if !defined(USEN_BAP) && defined(USEN_IT_AMP_EQ_ENABLE) //2023-03-08_3 : Control volume level for each EQ Mode
 	uCurVolLevel = TAS5806MD_Amp_Get_Cur_Volume_Level();
 	TAS5806MD_Amp_Volume_Register_Writing(uCurVolLevel);
 #ifdef INPUT_KEY_SYNC_WITH_SLAVE_ENABLE
 	MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_EQ, EQ_mode);
 #endif
-#endif
+//2023-04-28_1 //#endif
 #else //USEN_IT_AMP_EQ_ENABLE
 	TAS5806MD_Amp_Move_to_Control_Page();
 #endif //USEN_IT_AMP_EQ_ENABLE
@@ -2350,8 +2377,12 @@ void TAS5806MD_Amp_Volume_Register_Writing(uint8_t uVolumeLevel)
 
 	uArrayLevel = Find_Volume_Level[uVolumeLevel];
 
-#if !defined(USEN_BAP) && defined(USEN_IT_AMP_EQ_ENABLE) //2023-03-08_3 : Control volume level for each EQ Mode
+#ifdef USEN_IT_AMP_EQ_ENABLE //2023-04-28_1 : To apply BSP-01T EQ Setting to BAP-01 under EQ BSP Mode //#if !defined(USEN_BAP) && defined(USEN_IT_AMP_EQ_ENABLE) //2023-03-08_3 : Control volume level for each EQ Mode
+#ifdef USEN_BAP //2023-04-28_1
+	if(uVolumeLevel != 49)
+#else
 	if(uVolumeLevel != 15)
+#endif
 	{
 		switch(Cur_EQ_Mode)
 		{
@@ -2367,6 +2398,9 @@ void TAS5806MD_Amp_Volume_Register_Writing(uint8_t uVolumeLevel)
 
 			case EQ_NORMAL_MODE:
 			case EQ_CLUB_MODE:
+#ifdef USEN_BAP //2023-04-28_1 : To apply BSP-01T EQ Setting to BAP-01 under EQ BSP Mode
+			case EQ_BAP_NORMAL_MODE:
+#endif
 			default:
 			break;
 		}
