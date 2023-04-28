@@ -1101,4 +1101,13 @@ void LED_Display_All_On(void)
 #endif //FACTORY_RESET_LED_DISPLAY
 #endif //#if defined(TIMER30_LED_PWM_ENABLE) || defined(TIMER1n_LED_PWM_ENABLE) || defined(GPIO_LED_ENABLE) || defined(TIMER21_LED_ENABLE)
 
+#ifdef _DEBUG_MSG
+void Debug_Test_Blue_LED_On(Bool On)
+{
+	if(On)
+		BT_PAIRING_LED_BLUE_ON;
+	else
+		BT_PAIRING_LED_BLUE_OFF;
+}
+#endif
 

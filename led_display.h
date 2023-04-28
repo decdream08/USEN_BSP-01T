@@ -85,6 +85,9 @@ void LED_Test(Bool bPower_on); //PC3
 void LED_Display_All_On(void);
 void LED_Diplay_All_Off(void);
 #endif
+#ifdef _DEBUG_MSG
+void Debug_Test_Blue_LED_On(Bool On);
+#endif
 
 #endif //__LED_DISPLAY_H__
 

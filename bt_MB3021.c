@@ -377,7 +377,7 @@ typedef enum {
 
 //Variable
 #ifdef VERSION_INFORMATION_SUPPORT
-char MCU_Version[6] = "230426"; //MCU Version Info
+char MCU_Version[6] = "230427"; //MCU Version Info
 #ifdef SPP_EXTENSION_V50_ENABLE
 char BT_Version[7]; //MCU Version Info
 #endif
@@ -5966,6 +5966,11 @@ Bool MB3021_BT_Module_CMD_Execute(uint8_t major_id, uint8_t minor_id, uint8_t *d
 							}
 							else //No Paired Device List : Need to go Discoverable_Mode
 							{
+#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-04-27_3 : After BT Long key on TWS Master, TWS Master can't connect with other device excepting previous peerdevice.
+								if(Get_Cur_LR_Stereo_Mode() == Switch_LR_Mode)
+									bPolling_Get_Data |= BCRF_SET_CONNECTABLE_MODE;
+								else
+#endif
 								bPolling_Get_Data |= BCRF_SET_DISCOVERABLE_MODE; //For init sequence (Init Sequnece : Broadcaster -1)
 #ifdef AVRCP_ENABLE
 								BBT_Is_Last_Connection_for_AVRCP = FALSE;
@@ -6850,6 +6855,7 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 
 			if(Is_SSP_REBOOT_KEY_In()) //check whether it receive reboot key thru SPP and execute reboot if it receives reboot key
 			{
+				delay_ms(200); //2023-04-27_2 : When TWS Master get reboot CMD over USEN Tablet remocon App, TWS Master need some delay to send reboot CMD to TWS Slave.
 				MB3021_BT_Disconnect_All_ACL(); //To avoid last connection fail after reboot //Reboot recovery solution - 1
 				delay_ms(1000); //delay for send BLE Data to Slave SPK(Receiver)
 				SW_Reset();

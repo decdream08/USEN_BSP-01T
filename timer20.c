@@ -248,7 +248,7 @@ void TIMER20_aux_detect_check_flag_start(void)
 #ifdef TIMER20_DEBUG_MSG
 	_DBG("\n\rTIMER20_aux_detect_check_flag_start() !!! ");
 #endif
-	aux_detect_check_flag = 51; //2023-02-21_9 : Reduced Aux detect check time from 20 sec(2023-01-10_3) to 5 sec(Total 10sec = HW 5sec + SW 5sec) 
+	aux_detect_check_flag = 5; //2023-04-27_1 : Temparary SW Solution 500s check time to change Aux to BT.//41; //2023-04-12_4 : 4 Sec check time //51; //2023-02-21_9 : Reduced Aux detect check time from 20 sec(2023-01-10_3) to 5 sec(Total 10sec = HW 5sec + SW 5sec) 
 	//aux_detect_check_flag = 201; //200 x 100ms timer = 20 Sec
 }
 

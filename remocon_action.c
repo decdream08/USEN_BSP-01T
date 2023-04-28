@@ -859,9 +859,9 @@ void Remocon_Power_Key_Action(Bool Power_on, Bool Slave_Sync, Bool Vol_Sync) //F
 		{
 #ifndef AUX_DETECT_INTERRUPT_ENABLE //2023-01-10_3
 			if(HAL_GPIO_ReadPin(PA) & (1<<0)) //2022-10-17 //To Do !!! after implementing aux detection check
-#else
+#else //AUX_DETECT_INTERRUPT_ENABLE
 			if(HAL_GPIO_ReadPin(PC) & (1<<3)) //Input(Aux Detec Pin) : High -Aux Out / Low -Aux In
-#endif
+#endif //AUX_DETECT_INTERRUPT_ENABLE
 			{
 				BNeed_Mute_Off_Delay = FALSE;
 			}
@@ -875,7 +875,7 @@ void Remocon_Power_Key_Action(Bool Power_on, Bool Slave_Sync, Bool Vol_Sync) //F
 
 			BNeed_Mute_Off_Delay = TRUE;
 		}
-#endif //AUX_INPUT_DET_ENABLE
+#endif //#if defined(TIMER20_COUNTER_ENABLE) && defined(AUX_INPUT_DET_ENABLE) && defined(MB3021_ENABLE)
 
 #ifdef AD82584F_ENABLE
 		delay_ms(20);
@@ -992,7 +992,7 @@ void Remocon_Power_Key_Action(Bool Power_on, Bool Slave_Sync, Bool Vol_Sync) //F
 		)
 #endif //#if defined(TIMER20_COUNTER_ENABLE) && defined(AUX_INPUT_DET_ENABLE) && defined(MB3021_ENABLE)
 		Set_Is_Mute(FALSE);
-#endif
+#endif //AD82584F_USE_POWER_DOWN_MUTE
 		
 #ifdef TIMER21_LED_ENABLE		
 #ifdef AUX_INPUT_DET_ENABLE
@@ -1027,9 +1027,9 @@ void Remocon_Power_Key_Action(Bool Power_on, Bool Slave_Sync, Bool Vol_Sync) //F
 		delay_ms(25); //Do NOT Delete !!!
 		EXIT_PortE_Configure(); //2023-01-03_2 : To enable BT_KEY Interrupt(PE7). After we fixed 2023-01-03_1 using LED Power control, it makes BT short key interrupt because LED POWER CONTROL line is used as pull-up of BT KEY
 #endif
-#else
+#else //USEN_BAP
 		HAL_GPIO_SetPin(PD, _BIT(0)); //LED POWER CONTROL - ON //To Do !!! - Need to use this after separating LED Power from Button Power
-#endif
+#endif //USEN_BAP
 #endif
 
 #if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
@@ -1059,7 +1059,7 @@ void Remocon_Power_Key_Action(Bool Power_on, Bool Slave_Sync, Bool Vol_Sync) //F
 #else
 		Init_Value_Setting();
 #endif
-#else //TAS5806MD_ENABLE
+#else //AD82584F_ENABLE //TAS5806MD_ENABLE
 #if 0 //When we use DeepSleep mode under TAS5806MD, we don't need to amp init upon power on and just use TAS5806MD_Amp_Set_PWR_Control_Mode(TAS5806MD_PWR_Mode_PLAY) //2022-10-12_2
 #ifdef FLASH_SELF_WRITE_ERASE
 		TAS5806MD_Amp_Init(FALSE);
@@ -1081,8 +1081,8 @@ void Remocon_Power_Key_Action(Bool Power_on, Bool Slave_Sync, Bool Vol_Sync) //F
 			 if(Vol_Sync == TRUE) //To set volume level from Master's information when power on and do not set volume level in power on function.
 				TAS5806MD_Amp_Volume_Set_with_Index(bVolume_Level, FALSE, FALSE);
 		}
-#endif
-#else
+#endif //MASTER_MODE_ONLY
+#else //USEN_BAP
 		if(Master_Slave == Switch_Master_Mode)
 		{
 			TAS5806MD_Amp_Volume_Set_with_Index(bVolume_Level, FALSE, TRUE);
@@ -1092,15 +1092,15 @@ void Remocon_Power_Key_Action(Bool Power_on, Bool Slave_Sync, Bool Vol_Sync) //F
 			 if(Vol_Sync == TRUE) //To set volume level from Master's information when power on and do not set volume level in power on function.
 				TAS5806MD_Amp_Volume_Set_with_Index(bVolume_Level, FALSE, FALSE);
 		}
-#endif
-#else
+#endif //USEN_BAP
+#else //SLAVE_ADD_MUTE_DELAY_ENABLE
 		TAS5806MD_Amp_Volume_Set_with_Index(bVolume_Level, FALSE, FALSE);
-#endif
+#endif //SLAVE_ADD_MUTE_DELAY_ENABLE
 #ifdef USEN_BAP //2023-04-06_4 : To recognize the place which call this function is whther SW start or Power On
 		Init_Value_Setting(FALSE);
-#else
+#else //USEN_BAP
 		Init_Value_Setting();
-#endif
+#endif //USEN_BAP
 #endif //TAS5806MD_ENABLE
 #endif //defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
 		
