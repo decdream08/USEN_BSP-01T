@@ -1121,7 +1121,8 @@ void TAS5806MD_Amp_Mute_Toggle(void) //Toggle
 		MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Mute, 0x01);
 	else
 	{
-		if(TAS5806MD_CLK_Detect_Count() == 0xffffffff) //2023-04-12_2 : if this condition is not true, we'll retry again and agin under mute off function. So, we don't need to send same mute off CMD to slave
+		//2023-05-02_4 : The solution of "2023-04-12_2" makes side effect that under no connection with PeerDevice(No signal), If user push mute on/mute off on TWS Master, TWS Slave keep mute on.
+		//if(TAS5806MD_CLK_Detect_Count() == 0xffffffff) //2023-04-12_2 : if this condition is not true, we'll retry again and agin under mute off function. So, we don't need to send same mute off CMD to slave
 			MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Mute, 0x00);
 	}
 #endif

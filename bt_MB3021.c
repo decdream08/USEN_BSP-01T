@@ -1537,7 +1537,7 @@ void MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_Key_Sync_With_Slave Input_
 	static uint8_t uBuf[32] = {0,};
 	int i;
 
-#ifdef BT_DEBUG_MSG	
+#ifdef BT_DEBUG_MSG
 	_DBG("\n\rMB3021_BT_Module_Input_Key_Sync_With_Slave() - Start");
 #endif
 #ifndef MASTER_MODE_ONLY
