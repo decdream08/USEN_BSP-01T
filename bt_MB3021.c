@@ -377,7 +377,7 @@ typedef enum {
 
 //Variable
 #ifdef VERSION_INFORMATION_SUPPORT
-char MCU_Version[6] = "230428"; //MCU Version Info
+char MCU_Version[6] = "230502"; //MCU Version Info
 #ifdef SPP_EXTENSION_V50_ENABLE
 char BT_Version[7]; //MCU Version Info
 #endif
