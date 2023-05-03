@@ -670,8 +670,8 @@ void TAS5806MD_Amp_Init(void)
 		_DBG("\n\r#### Flash Data : Find Volume Level");
 #endif
 
-#if defined(USEN_BAP) && defined(USEN_IT_AMP_EQ_ENABLE) //2023-04-25_1 : Need to set EQ Mode after AMP Init
-		TAS5806MD_Amp_EQ_DRC_Control(EQ_NORMAL_MODE); //DRC / EQ Setting
+#ifdef USEN_IT_AMP_EQ_ENABLE //#if defined(USEN_BAP) && defined(USEN_IT_AMP_EQ_ENABLE) //2023-04-25_1 : Need to set EQ Mode after AMP Init
+		TAS5806MD_Amp_EQ_DRC_Control(Cur_EQ_Mode); //2023-05-02_2 : To keep current EQ mode under Amp init //(EQ_NORMAL_MODE); //DRC / EQ Setting
 #endif
 
 		if(Power_On_Init == TRUE)
@@ -1416,7 +1416,7 @@ void TAS5806MD_Amp_EQ_DRC_Control(EQ_Mode_Setting EQ_mode)
 	BAmp_COM = TRUE;
 
 #ifdef USEN_BAP //2023-04-25_1 : To keep EQ Mode for Amp_Init, we need to use cur_EQ_Mode under BAP-01.
-	if(Get_Cur_BAP_EQ_Mode() == Switch_EQ_NORMAL_Mode && EQ_mode == EQ_NORMAL_MODE)
+	if(Get_Cur_BAP_EQ_Mode() == Switch_EQ_NORMAL_Mode) // && EQ_mode == EQ_NORMAL_MODE) //2023-05-02_1 : Under BAP-01, If switch is EQ NORMAL mode, the EQ is always EQ_BAP_NORMAL_MODE.
 	{
 		EQ_mode = EQ_BAP_NORMAL_MODE;
 	}
@@ -1586,7 +1586,6 @@ void TAS5806MD_Amp_EQ_DRC_Control(EQ_Mode_Setting EQ_mode)
 		case EQ_BAP_NORMAL_MODE:
 		{
 			//DRC_OFF
-			TAS5806MD_Amp_Move_to_Control_Page();
 			TAS5806MD_DRC_OnOff(FALSE);
 		}
 		break;
@@ -1595,7 +1594,6 @@ void TAS5806MD_Amp_EQ_DRC_Control(EQ_Mode_Setting EQ_mode)
 		{
 #ifdef USEN_BAP //2023-04-28_1
 			//DRC_ON
-			TAS5806MD_Amp_Move_to_Control_Page();
 			TAS5806MD_DRC_OnOff(TRUE);
 #endif
 			TAS58066MD_Amp_Move_to_DRC_band3_Page();
@@ -1616,7 +1614,6 @@ void TAS5806MD_Amp_EQ_DRC_Control(EQ_Mode_Setting EQ_mode)
 		{
 #ifdef USEN_BAP //2023-04-28_1
 			//DRC_ON
-			TAS5806MD_Amp_Move_to_Control_Page();
 			TAS5806MD_DRC_OnOff(TRUE);
 #endif
 
@@ -2053,6 +2050,7 @@ uint8_t TAS5806MD_Amp_Detect_Fault(Bool Return_Val_Only) //2022-10-25 : FAULT PI
 		_DBG("\n\r !!!!! Clock fault");
 #endif
 
+#if 0 //2023-05-02_3 : Need to disable to avoid amp init(2023-04-07_1) when Tablet move to next song(Suspend --> Play)
 		if(TAS5806MD_CLK_Detect_Count() == 0xffffffff) //2023-04-07_1 : Added Clock Error Recovery after first AMP init.
 		{
 #ifdef COMMON_DEBUG_MSG
@@ -2060,6 +2058,7 @@ uint8_t TAS5806MD_Amp_Detect_Fault(Bool Return_Val_Only) //2022-10-25 : FAULT PI
 #endif
 			TAS5806MD_Init_After_Clk_Detect();
 		}
+#endif
 	}
 
 	if(Fault1 & 0x2)

@@ -427,6 +427,12 @@
 ## 2023-04-28 (BAP-01)
   - Changed EQ Setting. Under BSP-EQ Mode, it's all same with BSP-01T EQ but Under EQ Normal, it's just keep previous EQ. //2023-04-28_1
 
-## 2023-04-28 (BSP-01T)
+## 2023-04-28_1 (BSP-01T)
   - Under BSP-01T broadcast mode, we need to return back to original code to avoid to send "BLE_SET_MANUFACTURER_DATA" when DC Power on. //2023-04-28_2
-  - Changed Aux detection check delay from 40ms to 80ms to avoid undetection issue(Non-Aux case). //2023-04-28_3
+  - Changed Aux detection check delay from 40ms to 80ms to avoid undetection issue(Non-Aux case). //2023-04-28_3  
+## 2023-05-02 (BAP-01)
+  - Under BAP-01, If switch is EQ NORMAL mode, the EQ is always EQ_BAP_NORMAL_MODE. //2023-05-02_1
+  - To keep current EQ mode under Amp init. BSP-01T is same. //2023-05-02_2
+  - Need to disable to avoid amp init(2023-04-07_1) when Tablet move to next song(Suspend --> Play). //2023-05-02_3
+  
+  
