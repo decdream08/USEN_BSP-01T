@@ -377,7 +377,7 @@ typedef enum {
 
 //Variable
 #ifdef VERSION_INFORMATION_SUPPORT
-char MCU_Version[6] = "230502"; //MCU Version Info
+char MCU_Version[6] = "230504"; //MCU Version Info
 #ifdef SPP_EXTENSION_V50_ENABLE
 char BT_Version[7]; //MCU Version Info
 #endif
@@ -5698,6 +5698,7 @@ Bool MB3021_BT_Module_CMD_Execute(uint8_t major_id, uint8_t minor_id, uint8_t *d
 										
 										BTWS_LIAC = TWS_Status_Master_Mode_Control;
 									}
+#ifdef TWS_MASTER_SLAVE_GROUPING
 									else
 									{
 										if(Read_TWS_Connection_From_Flash()) //2023-04-26_16 : TWS Master need to send 
@@ -5709,6 +5710,7 @@ Bool MB3021_BT_Module_CMD_Execute(uint8_t major_id, uint8_t minor_id, uint8_t *d
 											}
 										}
 									}
+#endif
 								}
 							}
 							else //For A2DP Device

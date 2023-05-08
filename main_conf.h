@@ -140,8 +140,9 @@ extern "C"
 #ifdef SWITCH_BUTTON_KEY_ENABLE
 #ifndef USEN_BAP
 #define POWER_KEY_TOGGLE_ENABLE				(1) //Use Power Key Toggle as USEN Spec
-#define FACTORY_RESET_KEY_CAPACITOR_APPLY 	(1) //For recovery, When we use capacitor on FACTORY RESET Line, the Rising Edge value is always 0x03(0x02 is correct) but Falling Edge is always 0x01
 #endif
+#define FACTORY_RESET_KEY_CAPACITOR_APPLY 	(1) //2023-05-04_4 : For factory reset key chattering uner BAP-01//For recovery, When we use capacitor on FACTORY RESET Line, the Rising Edge value is always 0x03(0x02 is correct) but Falling Edge is always 0x01
+
 #endif //SWITCH_BUTTON_KEY_ENABLE
 #endif
 #define TIMER12_13_LONG_KEY_ENABLE		(1) //Use TIMER13(PA7) for Long Key control - Just Timer not Port(the PA7 can be used GPIO if you want)

@@ -496,6 +496,11 @@ void Init_Value_Setting(void)
 #endif
 #endif //AUX_INPUT_DET_ENABLE
 #ifdef USEN_BAP
+	if(HAL_GPIO_ReadPin(PA) & (1<<1)) //EQ BSP(High) //2023-05-04_1 : Need to make init for EQ NORMAL/EQ BSP position.
+		IsEQ_BSP = 0x00; //EQ NORMAL(Low)
+	else
+		IsEQ_BSP = 0x01; //EQ BSP(High)
+
 	Remocon_BSP_NORMAL_Mode_Switch_Action(); //2023-03-27_4
 #else //USEN_BAP
 #if defined(SWITCH_BUTTON_KEY_ENABLE) && (defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE))
@@ -1903,7 +1908,7 @@ void GPIOAB_IRQHandler_IT(void)
 		shift_bit = 0xffffffff;
 
 #ifdef KEY_CHATTERING_ENABLE
-		delay_ms(KEY_CHATTERING_DELAY_MS);
+		delay_ms(KEY_CHATTERING_DELAY_MS+60); //2023-05-04_2 : Under BAP-01, key chattering delay is increased from 20ms to 80ms.
 #endif
 		/* bit 0 : PA Falling Edge / bit 1 : PA Rising Edge *///Just check Rising Edge (Normal : High / Push : Low)
 		if(status & 0x00000003) //PA0 : AUTO_SW //2022-10-17_1
@@ -1944,7 +1949,7 @@ void GPIOAB_IRQHandler_IT(void)
 				}
 			}
 
-#ifdef MB3021_ENABLE
+#if 0//def MB3021_ENABLE //2023-05-04_3 : Move to the action of Auto Aux/Fixed Aux
 			if(key != NONE_KEY)
 			{
 				key = NONE_KEY; //SW1_KEY set to NONE_KEY
@@ -2147,8 +2152,16 @@ void GPIOAB_IRQHandler_IT(void)
 				else
 #endif
 				{
-					key = POWER_ON_KEY;
-					cur_button_status = button_release; //Falling Means : Power On
+					if(!Power_State()) //2023-05-04_5 : Under BAP-01, we need to add power check condition for Power key chattering.
+					{
+						key = POWER_ON_KEY;
+						cur_button_status = button_release; //Falling Means : Power On
+					}
+					else
+					{
+						shift_bit = 0xffffffff;
+						key = NONE_KEY;
+					}
 				}
 			}
 			else //status == 0x00002000 //Rising
@@ -2162,8 +2175,16 @@ void GPIOAB_IRQHandler_IT(void)
 				else
 #endif
 				{
-					key = POWER_OFF_KEY;
-					cur_button_status = button_release; //Low -> High
+					if(Power_State()) //2023-05-04_5 : Under BAP-01, we need to add power check condition for Power key chattering.
+					{
+						key = POWER_OFF_KEY;
+						cur_button_status = button_release; //Low -> High
+					}
+					else
+					{
+						shift_bit = 0xffffffff;
+						key = NONE_KEY;
+					}
 				}
 			}
 			clear_bit = status & 0x00003000;
@@ -2738,6 +2759,29 @@ void GPIOAB_IRQHandler_IT(void)
 						
 					filtering_time_old = filtering_time;
 					key_bk = key;
+
+#ifdef MB3021_ENABLE //2023-05-04_3 : Move to the action of Auto Aux/Fixed Aux
+					if(key == SW1_KEY)
+					{
+						key = NONE_KEY; //SW1_KEY set to NONE_KEY
+#if defined(TIMER20_COUNTER_ENABLE) && defined(AUTO_ONOFF_ENABLE) //Fixed Master SPK do not work Auto power off even though No siganl from BT when user remove Aux jack
+						TIMER20_auto_power_flag_Start();
+#endif
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#ifdef SLAVE_ADD_MUTE_DELAY_ENABLE
+						MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x02);
+#endif
+#ifdef AD82584F_ENABLE
+						AD82584F_Amp_Mute(TRUE, FALSE); //MUTE ON
+#else //TAS5806MD_ENABLE
+						TAS5806MD_Amp_Mute(TRUE, FALSE); //MUTE ON
+#endif
+#endif
+						Set_MB3021_BT_Module_Source_Change();
+
+						ret = -1;
+					}
+#endif
 
 					if(ret != -1)
 					{
