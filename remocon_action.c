@@ -353,7 +353,7 @@ void Remocon_EQ_Key_Action(EQ_Mode_Setting EQ_mode)
 #endif //AD82584F_ENABLE
 }
 
-#ifdef MASTER_MODE_ONLY //2023-03-27_4 : Under BAP-01 NORMAL mode, BAP-01 can get only NORMAL MODE.
+#if defined(MASTER_MODE_ONLY) && defined(TAS5806MD_ENABLE) //2023-03-27_4 : Under BAP-01 NORMAL mode, BAP-01 can get only NORMAL MODE.
 void Remocon_BSP_NORMAL_Mode_Switch_Action(void)
 {
 #ifdef FIVE_USER_EQ_ENABLE
@@ -1577,7 +1577,7 @@ void Send_Remote_Key_Event(uint8_t IR_KEY)
 			
 		case SW2_KEY: //MASTER/SLAVE KEY (BASS_BOOST_KEY)				//0xb8
 		{
-#ifdef MASTER_MODE_ONLY //2023-03-27_2 : Implemented SW2_KEY action for BAP-01 EQ Setting
+#if defined(MASTER_MODE_ONLY) && defined(TAS5806MD_ENABLE) //2023-03-27_2 : Implemented SW2_KEY action for BAP-01 EQ Setting
 			Remocon_BSP_NORMAL_Mode_Switch_Action();
 #else //MASTER_MODE_ONLY
 #ifdef F1DQ3021_ENABLE

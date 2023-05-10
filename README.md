@@ -418,7 +418,7 @@
   - When Power Off and Power on under Slave mode, Slave can't display Volume Level LED. This is side effect of //2023-04-06_3. //2023-04-26_22  
   
 ## 2023-04-27_1 (BAP-01)
-  - Temparary SW Solution 500s check time to change Aux to BT. //2023-04-27_1
+  - Temparary SW Solution 500ms check time to change Aux to BT. //2023-04-27_1
   
 ## 2023-04-27_2 (BSP-01T)
   - When TWS Master get reboot CMD over USEN Tablet remocon App, TWS Master need some delay to send reboot CMD to TWS Slave. //2023-04-27_2
@@ -430,9 +430,21 @@
 ## 2023-04-28_1 (BSP-01T)
   - Under BSP-01T broadcast mode, we need to return back to original code to avoid to send "BLE_SET_MANUFACTURER_DATA" when DC Power on. //2023-04-28_2
   - Changed Aux detection check delay from 40ms to 80ms to avoid undetection issue(Non-Aux case). //2023-04-28_3  
+  
 ## 2023-05-02 (BAP-01)
   - Under BAP-01, If switch is EQ NORMAL mode, the EQ is always EQ_BAP_NORMAL_MODE. //2023-05-02_1
   - To keep current EQ mode under Amp init. BSP-01T is same. //2023-05-02_2
   - Need to disable to avoid amp init(2023-04-07_1) when Tablet move to next song(Suspend --> Play). //2023-05-02_3
+  - The solution of "2023-04-12_2" makes side effect that under no connection with PeerDevice(No signal), If user push mute on/mute off on TWS Master, TWS Slave keep mute on. //2023-05-02_4
   
+## 2023-05-04 (BAP-01) - ESD
+  - Need to make init for EQ NORMAL/EQ BSP position. //2023-05-04_1
+  - Under BAP-01, key chattering delay is increased from 20ms to 80ms. //2023-05-04_2
+  - Move to the action of Auto Aux/Fixed Aux. //2023-05-04_3
+  - For factory reset key chattering uner BAP-01//For recovery, When we use capacitor on FACTORY RESET Line, the Rising Edge value is always 0x03(0x02 is correct) but Falling Edge is always 0x01. //2023-05-04_4
+  - Under BAP-01, we need to add power check condition for Power key chattering. //2023-05-04_5
+  
+## 2023-05-09 (BAP-01)
+  - Reduced the checking time from 5.3s to 2.6s //2023-05-09_1
+  - Changed DRC Table for BAP-01(Normal/Pop) //2023-05-09_2
   

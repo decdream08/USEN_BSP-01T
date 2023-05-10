@@ -191,6 +191,10 @@ Bool Is_SSP_FACTORY_RESET_KEY_In(void);
 void Do_taskUART(void);
 void MB3021_BT_Module_Init(Bool Factory_Reset);
 void Set_MB3021_BT_Module_Source_Change(void);
+#if defined(USEN_BAP) && defined(MASTER_MODE_ONLY) //2023-05-09_1
+void Set_MB3021_BT_Module_Source_Change_Direct(void);
+#endif
+
 #ifdef BT_ALWAYS_GENERAL_MODE //2023-02-15_1 : Added parameter for checking whether factory reset(TRUE) or BT Long Key(FALSE)
 void MB3021_BT_Delete_Paired_List_All(Bool Factory_Reset);
 #else

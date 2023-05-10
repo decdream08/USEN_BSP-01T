@@ -104,6 +104,28 @@ int32_t tws_grouping_send_flag = 0; //2023-02-20_2
 int32_t aux_detecttion_flag = 0;
 #endif
 
+#ifdef USEN_IT_AMP_EQ_ENABLE //2023-05-09_2
+int32_t drc_eq_set_recovery_flag = 0;
+#endif
+
+#ifdef USEN_IT_AMP_EQ_ENABLE //2023-05-09_2
+void TIMER20_drc_eq_set_flag_start(void)
+{
+#ifdef TIMER20_DEBUG_MSG
+	_DBG("\n\rTIMER20_drc_eq_set_flag_start() !!!");
+#endif
+	drc_eq_set_recovery_flag = 1;
+}
+
+void TIMER20_drc_eq_set_flag_stop(void)
+{
+#ifdef TIMER20_DEBUG_MSG
+	_DBG("\n\rTIMER20_drc_eq_set_flag_stop() !!!");
+#endif
+	drc_eq_set_recovery_flag = 0;
+}
+#endif
+
 #ifdef TIMER20_DEBUG_MSG
 void TIMER20_Display_Flag(void)
 {
@@ -201,7 +223,7 @@ void TIMER20_Display_Flag(void)
 #endif
 
 #if defined(USEN_BAP) && defined(AUX_INPUT_DET_ENABLE) && defined(TIMER20_COUNTER_ENABLE) //2023-04-12_1
-void TIMER20_aux_detection_flag_start(void)
+void TIMER20_aux_detection_flag_start(void) //To keep BT mode when Power On
 {
 #ifdef TIMER20_DEBUG_MSG
 	_DBG("\n\rTIMER20_aux_detection_flag_start() !!! ");
@@ -248,7 +270,7 @@ void TIMER20_aux_detect_check_flag_start(void)
 #ifdef TIMER20_DEBUG_MSG
 	_DBG("\n\rTIMER20_aux_detect_check_flag_start() !!! ");
 #endif
-	aux_detect_check_flag = 5; //2023-04-27_1 : Temparary SW Solution 500s check time to change Aux to BT.//41; //2023-04-12_4 : 4 Sec check time //51; //2023-02-21_9 : Reduced Aux detect check time from 20 sec(2023-01-10_3) to 5 sec(Total 10sec = HW 5sec + SW 5sec) 
+	aux_detect_check_flag = 26; //2023-05-09_1 : Reduced the checking time from 5.3s to 2.6s //5; //2023-04-27_1 : Temparary SW Solution 500s check time to change Aux to BT.//41; //2023-04-12_4 : 4 Sec check time //51; //2023-02-21_9 : Reduced Aux detect check time from 20 sec(2023-01-10_3) to 5 sec(Total 10sec = HW 5sec + SW 5sec) 
 	//aux_detect_check_flag = 201; //200 x 100ms timer = 20 Sec
 }
 
@@ -1447,7 +1469,7 @@ void TIMER20_IRQHandler_IT(void)
 #if defined(USEN_BAP) && defined(AUX_INPUT_DET_ENABLE) && defined(TIMER20_COUNTER_ENABLE) //2023-04-12_1
 		if(aux_detecttion_flag)
 		{
-			if(aux_detecttion_flag == 54)//After 5.3ms, Check current BT/Aux Status
+			if(aux_detecttion_flag == 26) //2023-05-09_1 : Reduced the checking time from 5.3s to 2.6s //54)//14) //2023-04-12_4 //54)//After 5.3ms, Check current BT/Aux Status
 			{
 #ifdef TIMER20_DEBUG_MSG
 				_DBG("\n\r##### aux_detecttion_flag meets 5.3ms condition !!! ");
@@ -1585,6 +1607,20 @@ void TIMER20_IRQHandler_IT(void)
 			}
 			else
 				eq_mode_check_flag++;
+		}
+#endif
+
+#ifdef USEN_IT_AMP_EQ_ENABLE //2023-05-09_2 : To recovery DRC/EQ Setting
+		if(drc_eq_set_recovery_flag && !Is_BAmp_Init())
+		{
+			if(drc_eq_set_recovery_flag == 3) //check time 200ms
+			{
+				//_DBG("\n\rTIMER20_Master_Slave_Grouping_cmd_recovery_flag_start() !!! ");
+				TAS5806MD_Set_Cur_EQ_DRC_Mode();
+				drc_eq_set_recovery_flag = 0;
+			}
+			else
+				drc_eq_set_recovery_flag++;
 		}
 #endif
 

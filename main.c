@@ -226,10 +226,12 @@ void Aux_Mode_Setting_After_Timer_Checking(Bool Aux_In)
 #ifdef SLAVE_ADD_MUTE_DELAY_ENABLE
 		MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x02);
 #endif
+#if 0 //2023-05-09_1 : Reduced time for changing from Aux to BT. Do not need Mute On.
 #ifdef AD82584F_ENABLE
 		AD82584F_Amp_Mute(TRUE, FALSE); //MUTE ON
 #else //TAS5806MD_ENABLE
 		TAS5806MD_Amp_Mute(TRUE, FALSE); //MUTE ON
+#endif
 #endif
 #endif
 #ifdef TWS_MODE_ENABLE
@@ -247,7 +249,11 @@ void Aux_Mode_Setting_After_Timer_Checking(Bool Aux_In)
 			}
 		}
 #endif
+#ifdef USEN_BAP //2023-05-09_1
+		Set_MB3021_BT_Module_Source_Change_Direct();
+#else
 		Set_MB3021_BT_Module_Source_Change();
+#endif
 #endif
 	}
 }
@@ -500,8 +506,9 @@ void Init_Value_Setting(void)
 		IsEQ_BSP = 0x00; //EQ NORMAL(Low)
 	else
 		IsEQ_BSP = 0x01; //EQ BSP(High)
-
+#if defined(MASTER_MODE_ONLY) && defined(TAS5806MD_ENABLE)
 	Remocon_BSP_NORMAL_Mode_Switch_Action(); //2023-03-27_4
+#endif
 #else //USEN_BAP
 #if defined(SWITCH_BUTTON_KEY_ENABLE) && (defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE))
 	Remocon_Mode_Key_Action(); //To set current mode(STEREO/LR Mode) when Power On

@@ -377,7 +377,7 @@ typedef enum {
 
 //Variable
 #ifdef VERSION_INFORMATION_SUPPORT
-char MCU_Version[6] = "230504"; //MCU Version Info
+char MCU_Version[6] = "230509"; //MCU Version Info
 #ifdef SPP_EXTENSION_V50_ENABLE
 char BT_Version[7]; //MCU Version Info
 #endif
@@ -557,12 +557,13 @@ void Set_Peer_Device_Status(Peer_Device_Connection_Status Status)
 Bool Read_TWS_Connection_From_Flash(void)
 {	
 	Bool Ret_Val;
-
+#ifdef TWS_MASTER_SLAVE_GROUPING
 	Flash_Read(FLASH_SAVE_START_ADDR, uFlash_Read_Buf, FLASH_SAVE_DATA_END);
 	
 	if(uFlash_Read_Buf[FLASH_SAVE_SET_DEVICE_ID_0] != 0x00 && uFlash_Read_Buf[FLASH_SAVE_SET_DEVICE_ID_0] != 0xff)
 		Ret_Val = TRUE; //SPK has TWS connection.
 	else
+#endif
 		Ret_Val = FALSE; //SPK doesn't have TWS connection.
 
 	return Ret_Val;
@@ -949,7 +950,7 @@ void MB3021_BT_Module_Forced_Input_Audio_Path_Setting(void)
 	bPolling_Get_Data |= BCRF_INFORM_HOST_MODE; 
 }
 
-#ifdef FLASH_SELF_WRITE_ERASE_EXTENSION
+#if defined(FLASH_SELF_WRITE_ERASE_EXTENSION) && defined(TAS5806MD_ENABLE)
 uint8_t Get_Current_EQ_Mode(void)
 {
 #ifdef MASTER_MODE_ONLY //2023-03-27_4 : Under BAP-01 NORMAL mode, BAP-01 can get only NORMAL MODE.
@@ -1050,7 +1051,11 @@ void MB3021_BT_TWS_Master_Slave_Grouping_Stop(void)
 #ifdef AD82584F_USE_POWER_DOWN_MUTE
 	Mute_On = IS_Display_Mute();
 #else
+#if defined(MASTER_MODE_ONLY) && defined(TAS5806MD_ENABLE)
 	Mute_On = Is_Mute(); //AD82584F_Amp_Get_Cur_Mute_Status();
+#else //#if defined(MASTER_MODE_ONLY) && defined(TAS5806MD_ENABLE)
+	Mute_On = FALSE;
+#endif //#if defined(MASTER_MODE_ONLY) && defined(TAS5806MD_ENABLE)
 #endif //AD82584F_USE_POWER_DOWN_MUTE
 
 #ifdef LED_DISPLAY_CHANGE
@@ -1194,7 +1199,11 @@ void MB3021_BT_Master_Slave_Grouping_Stop(void)
 #ifdef AD82584F_USE_POWER_DOWN_MUTE
 	Mute_On = IS_Display_Mute();
 #else
+#if defined(MASTER_MODE_ONLY) && defined(TAS5806MD_ENABLE)
 	Mute_On = Is_Mute(); //AD82584F_Amp_Get_Cur_Mute_Status();
+#else //#if defined(MASTER_MODE_ONLY) && defined(TAS5806MD_ENABLE)
+		Mute_On = FALSE;
+#endif //#if defined(MASTER_MODE_ONLY) && defined(TAS5806MD_ENABLE)
 #endif //AD82584F_USE_POWER_DOWN_MUTE
 
 #ifdef LED_DISPLAY_CHANGE
@@ -1291,7 +1300,7 @@ void MB3021_BT_Module_Value_Init(void)
 #if defined(BT_DISCONNECT_CONNECTABLE_ENABLE) || defined(BT_CLEAR_CONNECTABLE_MODE)
 	BKeep_Connectable = FALSE;
 #endif
-#ifdef SPP_EXTENSION_ENABLE
+#if defined(SPP_EXTENSION_ENABLE) && defined(TAS5806MD_ENABLE)
 	uEQ_Mode = EQ_NORMAL_MODE; //Normal Mode
 #endif
 #ifdef MASTER_SLAVE_GROUPING
@@ -1937,6 +1946,79 @@ void MB3021_BT_Module_Init(Bool Factory_Reset) //No need BT module Init. Just ch
 	TIMER20_Master_Slave_Grouping_flag_Stop(TRUE);
 #endif
 }
+
+#if defined(USEN_BAP) && defined(MASTER_MODE_ONLY) //2023-05-09_1
+void Set_MB3021_BT_Module_Source_Change_Direct(void)
+{
+	static uint8_t uBuf[2] = {0,};
+#if 0//def BT_DEBUG_MSG	
+	_DBG("\n\rSet_MB3021_BT_Module_Source_Change_Direct()");
+#endif
+	if(BBT_Init_OK) //The Source change is only available when BT Init is finished
+	{
+#ifdef AUX_INPUT_DET_ENABLE
+		if(Aux_In_Exist())
+		{
+			uBuf[0] = 0x50; //Aux Mode
+#ifdef TIMER21_LED_ENABLE
+			Set_Status_LED_Mode(STATUS_AUX_MODE);
+#endif
+#if 0//def BT_DEBUG_MSG	
+			_DBG("AUX Mode");
+#endif
+		}
+		else
+#endif //AUX_INPUT_DET_ENABLE
+		{
+#ifdef TIMER21_LED_ENABLE
+			Set_Status_LED_Mode(Get_Return_Status_LED_Mode());
+#endif
+			uBuf[0] = 0x07; //Bluetooth Mode
+#if 0//def BT_DEBUG_MSG	
+			_DBG("BT Mode");
+#endif
+		}
+
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) //To avoid, BT has no output sometime when user alternates Aux mode / BT mode repeately
+		if(uMode_Change == uBuf[0] 
+#ifdef AD82584F_USE_POWER_DOWN_MUTE
+			&& !IS_Display_Mute()
+#else
+			&& Is_Mute()
+#endif
+			)
+		{
+#ifdef AD82584F_ENABLE
+			if(AD82584F_Amp_Get_Cur_CLK_Status())
+#else //TAS5806MD_ENABLE
+			if(TAS5806MD_Amp_Detect_FS(FALSE)) //2022-10-17_2
+#endif //AD82584F_ENABLE
+			{
+				if(uMode_Change == 0x07 || uMode_Change == 0x50) //BT Mode or Aux Mode
+				{
+#ifdef BT_DEBUG_MSG	
+					_DBG("\n\r Mute Off : To avoid, BT has no output sometime when user alternates Aux mode / BT mode repeately");
+#endif
+#ifdef AUTO_ONOFF_ENABLE
+					TIMER20_auto_power_flag_Stop();
+#endif
+#ifndef USEN_BAP //2023-05-09_1 : Reduced the checking time from 5.3s to 3s and no need mute under BAP-01
+				    TIMER20_mute_flag_Start();
+#endif
+				}
+			}
+		}
+		else
+			uMode_Change = uBuf[0];
+#endif //#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+
+		MB3021_BT_Module_Send_cmd_param(CMD_INFORM_HOST_MODE_32, uBuf);
+#ifdef SWITCH_BUTTON_KEY_ENABLE
+		bFactory_Reset_Mode = FALSE;
+#endif
+	}
+}
+#endif
 
 void Set_MB3021_BT_Module_Source_Change(void)
 {
@@ -2934,7 +3016,7 @@ static void MB3021_BT_Module_Remote_Data_Receive(uint8_t source_type, uint8_t da
 								else
 #endif
 								{
-#ifdef MASTER_MODE_ONLY //2023-03-27_4 : Under BAP-01 NORMAL mode, BAP-01 can get only NORMAL MODE.
+#if defined(MASTER_MODE_ONLY) && defined(TAS5806MD_ENABLE) //2023-03-27_4 : Under BAP-01 NORMAL mode, BAP-01 can get only NORMAL MODE.
 									if(i == (BLE_EQ_KEY+1) && Get_Cur_BAP_EQ_Mode() == Switch_EQ_NORMAL_Mode)
 									{
 										uSPP_receive_buf8[i] = EQ_NORMAL_MODE;
@@ -3065,7 +3147,7 @@ static void MB3021_BT_Module_Remote_Data_Receive(uint8_t source_type, uint8_t da
 #else //#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
 								uCurrent_Status_buf8[3] = 0x05; //Volume Level
 #endif //#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)								
-#ifdef MASTER_MODE_ONLY //2023-03-28_3 : Send current information to USEN Tablet when user changes SW2_KEY(EQ NORMAL/EQ BSP) due to changed spec
+#if defined(MASTER_MODE_ONLY) && defined(TAS5806MD_ENABLE) //2023-03-28_3 : Send current information to USEN Tablet when user changes SW2_KEY(EQ NORMAL/EQ BSP) due to changed spec
 								if(Get_Cur_BAP_EQ_Mode() == Switch_EQ_NORMAL_Mode)
 								{
 									uEQ_Mode = EQ_NORMAL_MODE;
@@ -3215,14 +3297,19 @@ static void MB3021_BT_Module_Receive_Data_RESP(uint8_t major_id, uint8_t minor_i
 			MB3021_BT_Module_CMD_Execute(major_id, minor_id, data, data_length, FALSE);	
 		else //Recovery : send CMD again
 		{
+#ifndef MASTER_MODE_ONLY
 			Switch_Master_Slave_Mode mode;
 			
 			mode = Get_Cur_Master_Slave_Mode();
-
+#endif
 			//When Factory reset under Slave mode, we don't need to check ERROR_CODE_SUCCESS becasue If Slave does not have last connection, it will return error code.
 			//or the BA_MODE_CONTROL is not valid, it's already set same mode.
-			if((major_id == MAJOR_ID_GENERAL_CONTROL && minor_id == MINOR_ID_DELETE_PAIRED_DEVICE_LIST && mode == Switch_Slave_Mode) \
-			||(major_id == MAJOR_ID_BA_CONTROL && minor_id == MINOR_ID_BA_MODE_CONTROL && uError_code == ERROR_CODE_FAIL))
+			if(
+#ifndef MASTER_MODE_ONLY
+				(major_id == MAJOR_ID_GENERAL_CONTROL && minor_id == MINOR_ID_DELETE_PAIRED_DEVICE_LIST && mode == Switch_Slave_Mode) ||
+#endif
+			(major_id == MAJOR_ID_BA_CONTROL && minor_id == MINOR_ID_BA_MODE_CONTROL && uError_code == ERROR_CODE_FAIL)
+			)
 			{
 				MB3021_BT_Module_CMD_Execute(major_id, minor_id, data, data_length, FALSE);
 			}
@@ -3283,6 +3370,7 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 					{
 						if(Get_Cur_LR_Stereo_Mode() == Switch_LR_Mode)
 						{
+#ifdef TWS_MASTER_SLAVE_GROUPING
 							Flash_Read(FLASH_SAVE_START_ADDR, uFlash_Read_Buf, FLASH_SAVE_DATA_END);
 					
 							if(uFlash_Read_Buf[FLASH_SAVE_SET_DEVICE_ID_0] != 0x00 && uFlash_Read_Buf[FLASH_SAVE_SET_DEVICE_ID_0] != 0xff) //we don't to execute this when SET_DEVICE_ID is 0xffffffffffff(6Byte)
@@ -3293,6 +3381,7 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 								bPolling_Get_Data |= BCRF_GET_PAIRED_DEVICE_LIST; //For init sequence (Init Sequnece : Broadcaster -0) //Last -5
 							}
 							else
+#endif
 							{
 #ifdef BT_DEBUG_MSG
 								_DBG("\n\rTry to do New TWS Connection - 1 instead of GET_PAIRED_DEVICE_LIST");
@@ -4055,7 +4144,9 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 #ifdef AD82584F_ENABLE
 							AD82584F_Amp_Mute(TRUE, FALSE); //Mute On
 #else //AD82584F_ENABLE
+#ifdef TAS5806MD_ENABLE
 							TAS5806MD_Amp_Mute(TRUE, FALSE); //Mute On
+#endif
 #endif //TAS5806MD_ENABLE
 						}
 #ifdef AUTO_ONOFF_ENABLE
@@ -4545,7 +4636,9 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 #ifdef AD82584F_ENABLE
 												AD82584F_Amp_Mute(TRUE, FALSE); //MUTE ON //Adding Mute when EQ Toggle
 #else //AD82584F_ENABLE
+#ifdef TAS5806MD_ENABLE
 												TAS5806MD_Amp_Mute(TRUE, FALSE); //MUTE ON //Adding Mute when EQ Toggle
+#endif
 #endif //TAS5806MD_ENABLE
 												TIMER20_user_eq_mute_flag_start();	
 
@@ -5602,7 +5695,7 @@ Bool MB3021_BT_Module_CMD_Execute(uint8_t major_id, uint8_t minor_id, uint8_t *d
 							}								
 							else
 							{//TWS Master
-#if defined(NEW_TWS_MASTER_SLAVE_LINK) && defined(SW1_KEY_TWS_MODE) && defined(FLASH_SELF_WRITE_ERASE) //2023-04-26_3 : To make New TWS Connection, we need to send TWS_CMD when first TWS connection under TWS master mode.
+#if defined(NEW_TWS_MASTER_SLAVE_LINK) && defined(SW1_KEY_TWS_MODE) && defined(FLASH_SELF_WRITE_ERASE) && defined(TWS_MASTER_SLAVE_GROUPING) //2023-04-26_3 : To make New TWS Connection, we need to send TWS_CMD when first TWS connection under TWS master mode.
 								Flash_Read(FLASH_SAVE_START_ADDR, uFlash_Read_Buf, FLASH_SAVE_DATA_END);
 								
 								if(uFlash_Read_Buf[FLASH_SAVE_SET_DEVICE_ID_0] == 0x00 || uFlash_Read_Buf[FLASH_SAVE_SET_DEVICE_ID_0] == 0xff) //we don't to execute this when SET_DEVICE_ID is 0xffffffffffff(6Byte)
@@ -5634,7 +5727,11 @@ Bool MB3021_BT_Module_CMD_Execute(uint8_t major_id, uint8_t minor_id, uint8_t *d
 									}
 								}
 #else //#if defined(NEW_TWS_MASTER_SLAVE_LINK) && defined(SW1_KEY_TWS_MODE) && defined(FLASH_SELF_WRITE_ERASE)
-								if(Aux_In_Exist() && BTWS_Master_Slave_Connect < TWS_Get_Slave_Information_Done && BTWS_LIAC < TWS_Status_Master_LIAC) //2023-03-15_2 : When master is TWS Aux mode and BT is connecting with peer device, if user disconnect BT connection on peer device, MCU sends connection and discovery again & again, forever. So, we need to add condition to send disovery. //BTWS_LIAC != TWS_Status_Master_Mode_Control) //2023-02-21_2
+								if(Aux_In_Exist() && BTWS_LIAC < TWS_Status_Master_LIAC
+#ifndef NEW_TWS_MASTER_SLAVE_LINK
+								&& BTWS_Master_Slave_Connect < TWS_Get_Slave_Information_Done
+#endif
+								) //2023-03-15_2 : When master is TWS Aux mode and BT is connecting with peer device, if user disconnect BT connection on peer device, MCU sends connection and discovery again & again, forever. So, we need to add condition to send disovery. //BTWS_LIAC != TWS_Status_Master_Mode_Control) //2023-02-21_2
 								{
 									bPolling_Get_Data |= BCRF_TWS_SET_DISCOVERABLE_MODE; //2022-11-17_2 : Under Aux mode, TWS Setting
 								}
@@ -5737,7 +5834,9 @@ Bool MB3021_BT_Module_CMD_Execute(uint8_t major_id, uint8_t minor_id, uint8_t *d
 								_DBG("\n\rSlave Execute new TWS link start - MB3021_BT_Module_TWS_Start_Master_Slave_Grouping() !!!");
 #endif
 								TWS_Slave_Status = TWS_SLAVE_GROUGPING_MODE;
+#if defined(MASTER_SLAVE_GROUPING) && defined(TWS_MASTER_SLAVE_GROUPING)
 								MB3021_BT_TWS_Master_Slave_Grouping_Start();
+#endif
 							}
 							else
 							{
@@ -7048,14 +7147,18 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 #ifdef AD82584F_USE_POWER_DOWN_MUTE
 		&& !IS_Display_Mute()//This is mute off delay and that's means this action should be worked in mute off. //if(Is_Mute())
 #else
+#ifdef TAS5806MD_ENABLE
 		&& Is_Mute()
+#endif
 #endif
 		)
 		{
 #ifdef AD82584F_ENABLE
 			AD82584F_Amp_Mute(FALSE, FALSE); //MUTE OFF
 #else //TAS5806MD_ENABLE						
+#ifdef TAS5806MD_ENABLE
 			TAS5806MD_Amp_Mute(FALSE, FALSE); //MUTE OFF
+#endif
 #endif //TAS5806MD_ENABLE
 
 		MB3021_BT_Module_Forced_Input_Audio_Path_Setting();
@@ -7899,7 +8002,9 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 #ifdef AUTO_ONOFF_ENABLE
 							TIMER20_auto_power_flag_Stop();
 #endif
+#ifndef USEN_BAP //2023-05-09_1 : Reduced the checking time from 5.3s to 3s and no need mute under BAP-01
 						        TIMER20_mute_flag_Start();
+#endif
 						}
 					}
 				}

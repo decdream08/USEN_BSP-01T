@@ -411,6 +411,13 @@ const uint8_t TAS5806MD_AGL_Table[][2] =
 };
 #endif
 
+#ifdef USEN_IT_AMP_EQ_ENABLE //2023-05-09_2
+void TAS5806MD_Set_Cur_EQ_DRC_Mode(void)
+{
+	TAS5806MD_Amp_EQ_DRC_Control(Cur_EQ_Mode);
+}
+#endif
+
 #ifdef TAS5806MD_ENABLE
 Bool Is_BAmp_Init(void)
 {
@@ -1394,16 +1401,19 @@ void TAS5806MD_Amp_EQ_DRC_Control(EQ_Mode_Setting EQ_mode)
 #ifdef USEN_IT_AMP_EQ_ENABLE //2023-02-27_1
 	uint16_t uSize, i;
 	uint8_t Data, uCommand;
-#ifdef USEN_IT_AMP_EQ_ENABLE //2023-04-28_1 : To apply BSP-01T EQ Setting to BAP-01 under EQ BSP Mode  //#if !defined(USEN_BAP) && defined(USEN_IT_AMP_EQ_ENABLE) //2023-03-08_3 : Control volume level for each EQ Mode
-	uint8_t uCurVolLevel;
-#endif
+	uint8_t uCurVolLevel; //2023-04-28_1 : To apply BSP-01T EQ Setting to BAP-01 under EQ BSP Mode  //#if !defined(USEN_BAP) && defined(USEN_IT_AMP_EQ_ENABLE) //2023-03-08_3 : Control volume level for each EQ Mode
 
 #ifdef TAS5806MD_DEBUG_MSG
 	_DBG("\n\r+++ TAS5806MD_Amp_EQ_DRC_Control() !!!!");
 #endif
 
 	if(Is_BAmp_Init()) //2023-02-22_1
+	{
+#ifdef USEN_IT_AMP_EQ_ENABLE //2023-05-09_2
+		TIMER20_drc_eq_set_flag_start();
+#endif
 		return;
+	}
 	
 #ifdef I2C_ACCESS_ERROR_DEBUG
 	if(Is_BAmp_Init() == TRUE || Is_I2C_Access_OK() == FALSE)
@@ -1412,6 +1422,10 @@ void TAS5806MD_Amp_EQ_DRC_Control(EQ_Mode_Setting EQ_mode)
 
 		return;
 	}
+#endif
+
+#ifdef USEN_IT_AMP_EQ_ENABLE //2023-05-09_2
+	TIMER20_drc_eq_set_flag_stop();
 #endif
 
 	BAmp_COM = TRUE;
@@ -1545,42 +1559,6 @@ void TAS5806MD_Amp_EQ_DRC_Control(EQ_Mode_Setting EQ_mode)
 		break;
 	}
 		
-#if 0//def USEN_BAP	
-	TAS5806MD_Amp_Move_to_Control_Page();
-
-	switch(EQ_mode) //2023-03-23_1 : Added DRC from OYM
-	{
-		case EQ_POP_ROCK_MODE: //POP & ROCK
-		case EQ_CLUB_MODE: //CLUB
-		case EQ_NORMAL_MODE: //Normal
-		case EQ_BAP_NORMAL_MODE: //2023-03-28_6 //EQ NORMAL SWITCH MODE
-		{
-			//DRC_OFF
-			TAS5806MD_DRC_OnOff(FALSE);
-		}
-		break;
-
-		default: //NORMAL //JAZZ //VOCAL
-		{
-			//DRC_ON
-			TAS5806MD_DRC_OnOff(TRUE);
-			
-			//DRC Setting
-			TAS58066MD_Amp_Move_to_DRC_band3_Page();
-			
-			uSize = sizeof(TAS5806MD_DRC_Table_NORMAL)/2;
-
-			for(i =0;i<uSize;i++)
-			{
-				uCommand = TAS5806MD_DRC_Table_NORMAL[i][0];
-				
-				Data = TAS5806MD_DRC_Table_NORMAL[i][1];
-				I2C_Interrupt_Write_Data(TAS5806MD_I2C_ADDR, uCommand,&Data,1);
-			}
-		}
-		break;
-	}
-#else //USEN_BAP
 	switch(EQ_mode) //2023-03-02_2 : Added DRC due to 230302_001_Normal_OYM.h
 	{
 #ifdef USEN_BAP //2023-04-28_1
@@ -1588,17 +1566,30 @@ void TAS5806MD_Amp_EQ_DRC_Control(EQ_Mode_Setting EQ_mode)
 		{
 			//DRC_OFF
 			TAS5806MD_DRC_OnOff(FALSE);
+
+			//2023-05-09_2 : Changed BAP-01 EQ/DRC
+			uSize = sizeof(TAS5806MD_DRC_Table_BAP_NORMAL)/2;
+
+			for(i =0;i<uSize;i++)
+			{
+				uCommand = TAS5806MD_DRC_Table_BAP_NORMAL[i][0];
+				
+				Data = TAS5806MD_DRC_Table_BAP_NORMAL[i][1];
+				I2C_Interrupt_Write_Data(TAS5806MD_I2C_ADDR, uCommand,&Data,1);
+			}
 		}
 		break;
-#endif
+#endif //USEN_BAP
+
 		case EQ_POP_ROCK_MODE: //POP & ROCK
 		{
 #ifdef USEN_BAP //2023-04-28_1
 			//DRC_ON
 			TAS5806MD_DRC_OnOff(TRUE);
 #endif
+#ifndef USEN_BAP //2023-05-09_2 :  Changed BAP-01 EQ/DRC
 			TAS58066MD_Amp_Move_to_DRC_band3_Page();
-			
+#endif			
 			uSize = sizeof(TAS5806MD_DRC_Table_POP_ROCK)/2;
 
 			for(i =0;i<uSize;i++)
@@ -1617,9 +1608,9 @@ void TAS5806MD_Amp_EQ_DRC_Control(EQ_Mode_Setting EQ_mode)
 			//DRC_ON
 			TAS5806MD_DRC_OnOff(TRUE);
 #endif
-
+#ifndef USEN_BAP //2023-05-09_2 : Changed BAP-01 EQ
 			TAS58066MD_Amp_Move_to_DRC_band3_Page();
-			
+#endif
 			uSize = sizeof(TAS5806MD_DRC_Table_NORMAL)/2;
 
 			for(i =0;i<uSize;i++)
@@ -1632,7 +1623,6 @@ void TAS5806MD_Amp_EQ_DRC_Control(EQ_Mode_Setting EQ_mode)
 		}
 		break;
 	}
-#endif //USEN_BAP
 	
 #ifdef USEN_IT_AMP_EQ_ENABLE
 //2023-04-28_1 //#ifndef USEN_BAP //2023-03-23_1 : Changed condition //#if !defined(USEN_BAP) && defined(USEN_IT_AMP_EQ_ENABLE) //2023-03-08_3 : Control volume level for each EQ Mode

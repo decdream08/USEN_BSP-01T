@@ -71,6 +71,9 @@ typedef enum {
 #define TAS5806MD_I2C_ADDR						(TAS5806_DEVICE_ADDR_15K) //2022-11-14_1
 
 //Function
+#ifdef USEN_IT_AMP_EQ_ENABLE //2023-05-09_2
+void TAS5806MD_Set_Cur_EQ_DRC_Mode(void);
+#endif
 Bool Is_Mute(void);
 void Set_Is_Mute(Bool mute_on);
 #ifdef AD82584F_USE_POWER_DOWN_MUTE

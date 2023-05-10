@@ -101,7 +101,7 @@ void Remocon_EQ_Toggle_Key_Action(void);
 void Remocon_EQ_Key_Action(EQ_Mode_Setting EQ_mode);
 void Remocon_Mode_Key_Action(void);
 #endif
-#ifdef MASTER_MODE_ONLY //2023-03-27_4 : Under BAP-01 NORMAL mode, BAP-01 can get only NORMAL MODE.
+#if defined(MASTER_MODE_ONLY) && defined(TAS5806MD_ENABLE) //2023-03-27_4 : Under BAP-01 NORMAL mode, BAP-01 can get only NORMAL MODE.
 void Remocon_BSP_NORMAL_Mode_Switch_Action(void);
 #endif
 #ifdef SWITCH_BUTTON_KEY_ENABLE
