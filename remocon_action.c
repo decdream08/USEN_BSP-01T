@@ -1365,8 +1365,8 @@ void Send_Remote_Key_Event(uint8_t IR_KEY)
 #ifdef AUTO_VOLUME_LED_OFF
 	uint8_t uVolume_Level = 0;
 #endif
+#if !defined(MASTER_MODE_ONLY) && defined(TAS5806MD_ENABLE)
 #if defined(BT_GENERAL_MODE_KEEP_ENABLE) && defined(SWITCH_BUTTON_KEY_ENABLE) && defined(FLASH_SELF_WRITE_ERASE)
-#ifndef MASTER_MODE_ONLY
 	uint8_t uFlash_Read_Buf4[FLASH_SAVE_DATA_END];
 #endif
 #endif
@@ -1471,16 +1471,16 @@ void Send_Remote_Key_Event(uint8_t IR_KEY)
 			break;
 			
 		case VOL_UP_KEY:
-#ifdef SIG_TEST
-			MB3021_BT_Module_SIG_Test(A2DP_Abort_Request);
+#if defined(SIG_TEST) && defined(USEN_BT_SPK_TI)
+			MB3021_BT_Module_SIG_Test(A2DP_Abort_Request); //Set Key 1
 #else
 			Remocon_VOL_Key_Action(Volume_Up_In);
 #endif
 			break;
 
 		case VOL_DOWN_KEY:
-#ifdef SIG_TEST
-			MB3021_BT_Module_SIG_Test(A2DP_Close_Request);
+#if defined(SIG_TEST) && defined(USEN_BT_SPK_TI)
+			MB3021_BT_Module_SIG_Test(A2DP_Close_Request); //Set Key 2
 #else
 			Remocon_VOL_Key_Action(Volume_Down_In);
 #endif
@@ -1578,7 +1578,20 @@ void Send_Remote_Key_Event(uint8_t IR_KEY)
 		case SW2_KEY: //MASTER/SLAVE KEY (BASS_BOOST_KEY)				//0xb8
 		{
 #if defined(MASTER_MODE_ONLY) && defined(TAS5806MD_ENABLE) //2023-03-27_2 : Implemented SW2_KEY action for BAP-01 EQ Setting
+#if defined(SIG_TEST) && defined(USEN_BAP) //2023-05-12_2 : Implemented SIG TEST code for extra test under BAP-01
+			if(HAL_GPIO_ReadPin(PA) & (1<<1)) //EQ Port - High : EQ Normal
+			{
+				MB3021_BT_Module_SIG_Test(A2DP_Abort_Request); //Set Key 1
+				//_DBG("\n\r@@@ EQ Normal - High");
+			}
+			else //EQ Port - Low : EQ BSP
+			{
+				MB3021_BT_Module_SIG_Test(A2DP_Close_Request); //Set Key 2
+				//_DBG("\n\r@@@ EQ BSP - Low");
+			}
+#else //#if defined(SIG_TEST) && defined(USEN_BAP)
 			Remocon_BSP_NORMAL_Mode_Switch_Action();
+#endif //#if defined(SIG_TEST) && defined(USEN_BAP)
 #else //MASTER_MODE_ONLY
 #ifdef F1DQ3021_ENABLE
 			Switch_Master_Slave_Mode Master_Slave;

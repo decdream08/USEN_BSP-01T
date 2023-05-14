@@ -447,4 +447,8 @@
 ## 2023-05-09 (BAP-01)
   - Reduced the checking time from 5.3s to 2.6s //2023-05-09_1
   - Changed DRC Table for BAP-01(Normal/Pop) //2023-05-09_2
-  
+
+## 2023-05-12_1 (BAP-01) - ESD
+  - Make unused pins to PUSH_PULL_OUTPUT(Pull Down) //PB 2 ~ 3 / PC 2, PC5 / PD 0 ~ 1 / PE 0 ~ 6 / PF 1 ~ 3 //2023-05-12_1
+  - Implemented SIG TEST code for extra test under BAP-01. //2023-05-12_2
+

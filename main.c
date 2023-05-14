@@ -471,7 +471,7 @@ void Init_Value_Setting(void)
 		B_AUX_DET = TRUE; //TURE -Aux In
 	}
 #endif //USEN_BAP
-#ifdef USEN_BAP //2023-04-06_4 : Under Power Off, when user changed Aux Auto/Fixed Switch and then power on using rotary key, we need to reflect this setting.
+#if defined(USEN_BAP) && defined(MB3021_ENABLE) //2023-04-06_4 : Under Power Off, when user changed Aux Auto/Fixed Switch and then power on using rotary key, we need to reflect this setting.
 	if(B_boot)
 	{
 		if(HAL_GPIO_ReadPin(PA) & (1<<0)) //High : Aux Fix - Always Aux In /Low : Auto - Need to check B_AUX_DET
@@ -3344,6 +3344,58 @@ void EXIT_Configure1(void) //Interrupt edge of both side
  **********************************************************************/
 void GPIO_Configure(void)
 {
+#ifdef USEN_BAP //2023-05-12_1 : make unused pins to PUSH_PULL_OUTPUT(Pull Down) //PB 2 ~ 3, 6 ~ 7 / PC 2, PC5 / PD 0 ~ 1 / PE 0 ~ 6 / PF 1 ~ 3
+	int i;
+
+	for(i=2;i<4;i++) //PB 2 ~ 3
+	{
+		HAL_GPIO_ConfigOutput(PB, i, PUSH_PULL_OUTPUT);
+		HAL_GPIO_ConfigPullup(PB, i, ENPD);
+		HAL_GPIO_ClearPin(PB, _BIT(i));
+	}
+
+	for(i=6;i<8;i++) //PB 6 ~ 7
+	{
+		HAL_GPIO_ConfigOutput(PB, i, PUSH_PULL_OUTPUT);
+		HAL_GPIO_ConfigPullup(PB, i, ENPD);
+		HAL_GPIO_ClearPin(PB, _BIT(i));
+	}
+
+	//PC 2, PC5
+	{
+		i = 2;
+		HAL_GPIO_ConfigOutput(PC, i, PUSH_PULL_OUTPUT);
+		HAL_GPIO_ConfigPullup(PC, i, ENPD);
+		HAL_GPIO_ClearPin(PC, _BIT(i));
+
+		i = 5;
+		HAL_GPIO_ConfigOutput(PC, i, PUSH_PULL_OUTPUT);
+		HAL_GPIO_ConfigPullup(PC, i, ENPD);
+		HAL_GPIO_ClearPin(PC, _BIT(i));
+	}
+
+	for(i=0;i<2;i++) //PD 0 ~ 1
+	{
+		HAL_GPIO_ConfigOutput(PD, i, PUSH_PULL_OUTPUT);
+		HAL_GPIO_ConfigPullup(PD, i, ENPD);
+		HAL_GPIO_ClearPin(PD, _BIT(i));
+	}
+
+	for(i=0;i<7;i++) //PE 0 ~ 6
+	{
+		HAL_GPIO_ConfigOutput(PE, i, PUSH_PULL_OUTPUT);
+		HAL_GPIO_ConfigPullup(PE, i, ENPD);
+		HAL_GPIO_ClearPin(PE, _BIT(i));
+	}
+
+	for(i=1;i<4;i++) //PF 1 ~ 3
+	{
+		HAL_GPIO_ConfigOutput(PF, i, PUSH_PULL_OUTPUT);
+		HAL_GPIO_ConfigPullup(PF, i, ENPD);
+		HAL_GPIO_ClearPin(PF, _BIT(i));
+	}
+#endif
+
 #ifdef USEN_BAP //Port Setting for USEN_BAP //2022-10-07
 #ifdef SWITCH_BUTTON_KEY_ENABLE //Use External INT for Switchs and Button Keys - PA0 / PA1 / PA6
 	/* external interrupt pin PA0 : AUTO_SW */
@@ -3502,7 +3554,7 @@ void GPIO_Configure(void)
 	HAL_GPIO_ConfigPullup(PD, 3, DISPUPD);
 	HAL_GPIO_SetPin(PD, _BIT(3));
 #endif
-#ifndef _DEBUG_MSG //If we don't use DEBUG_MSG, we need to set some GPIO like below. Becasue these GPIOs can avoid USART10 UART error. But we don't know why.
+#if 0//2023-05-12_1 : #ifndef _DEBUG_MSG //If we don't use DEBUG_MSG, we need to set some GPIO like below. Becasue these GPIOs can avoid USART10 UART error. But we don't know why.
 	HAL_GPIO_ConfigOutput(PB, 7, ALTERN_FUNC); //RX1
 	HAL_GPIO_ConfigFunction(PB, 7, FUNC1);
 	HAL_GPIO_ConfigPullup(PB, 7, 1);
