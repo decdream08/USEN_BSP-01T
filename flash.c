@@ -279,6 +279,9 @@ void FlashWriteErase(uint8_t *uData, uint8_t uSize)//Execute flash erase and wri
 	{
 #ifdef _DBG_FLASH_WRITE_ERASE
 		_DBG("\n\rWrite Size over than buffer !!! NG !!!");
+		_DBH(uSize);
+		_DBG(" - ");
+		_DBH(FLASH_SAVE_DATA_LENGTH);
 #endif
 		return;
 	}
@@ -567,6 +570,18 @@ void FlashSave_SET_DEVICE_ID(uint8_t data_num, uint8_t data) //2022-12-15 //TWS 
 		}
 		break;
 
+#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-05-15_2
+		case FLASH_TWS_MASTER_SLAVE_ID:
+		{
+			databuffers1[FLASH_TWS_MASTER_SLAVE_ID] = data; //0x01 : Master / 0x02 : Slave
+#ifdef MASTER_SLAVE_GROUPING_DEBUG_MSG
+			_DBG("\n\rSave FLASH_TWS_MASTER_SLAVE_ID :  Data is ");
+			_DBH(data);
+#endif
+		}
+
+#endif
+
 		default:
 #ifdef MASTER_SLAVE_GROUPING_DEBUG_MSG
 			_DBG("\n\rFlashSave_SET_DEVICE_ID - Error !!!");
@@ -574,7 +589,11 @@ void FlashSave_SET_DEVICE_ID(uint8_t data_num, uint8_t data) //2022-12-15 //TWS 
 		break;
 	}	
 
+#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-05-15_2
+	if(data_num == FLASH_TWS_MASTER_SLAVE_ID)
+#else
 	if(data_num == FLASH_SAVE_SET_DEVICE_ID_5) //When we receive all data, we save SET_DEVICE_ID to flash.
+#endif
 	{
 		Flash_Read(FLASH_SAVE_START_ADDR, readbuffer, FLASH_SAVE_DATA_END); //Read Volume Level from Flash and set the value to Amp Device
 

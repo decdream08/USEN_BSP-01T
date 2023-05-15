@@ -76,14 +76,22 @@
 #define FLASH_SAVE_START_ADDR           			(0x0000FE00UL) //(0x0000F800UL)(0x0000F800UL)//Size : byte (0x00004000UL)
 #ifdef TWS_MASTER_SLAVE_GROUPING
 #ifndef FLASH_SELF_WRITE_ERASE_EXCEPTING_EQ //2023-01-17 : To save EQ Mode
+#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-05-15_2
+#define FLASH_SAVE_DATA_LENGTH						(20) //Just save 20 Byte memory data to flash
+#else
+#define FLASH_SAVE_DATA_LENGTH						(16) //Just save 16 Byte memory data to flash
+#endif
+#else
+#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-05-15_2
 #define FLASH_SAVE_DATA_LENGTH						(16) //Just save 16 Byte memory data to flash
 #else
 #define FLASH_SAVE_DATA_LENGTH						(12) //Just save 12 Byte memory data to flash
 #endif
-#else
+#endif
+#else //TWS_MASTER_SLAVE_GROUPING
 #define FLASH_SAVE_DATA_LENGTH						(8) //Just save 8 Byte memory data to flash
-#endif
-#endif
+#endif //TWS_MASTER_SLAVE_GROUPING
+#endif //FLASH_SELF_WRITE_ERASE
 
 /* CODE FLASH - COMMON REGISTERS ----------------------------------------------------*/
 #define FMCFG_ENTRY         0x78580500
@@ -165,6 +173,9 @@ typedef enum {
 	FLASH_SAVE_SET_DEVICE_ID_3,
 	FLASH_SAVE_SET_DEVICE_ID_4,
 	FLASH_SAVE_SET_DEVICE_ID_5,
+#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-05-15_2 : When Slave is changed to Master under TWS mode, we don't connect the changed Master to Original Master.
+	FLASH_TWS_MASTER_SLAVE_ID, //0x01 : Master / 0x02 : Slave
+#endif
 #endif
 #ifdef BT_GENERAL_MODE_KEEP_ENABLE //2022-12-23
 	FLASH_SAVE_GENERAL_MODE_KEEP,

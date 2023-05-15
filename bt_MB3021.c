@@ -377,7 +377,7 @@ typedef enum {
 
 //Variable
 #ifdef VERSION_INFORMATION_SUPPORT
-char MCU_Version[6] = "230512"; //MCU Version Info
+char MCU_Version[6] = "230515"; //MCU Version Info
 #ifdef SPP_EXTENSION_V50_ENABLE
 char BT_Version[7]; //MCU Version Info
 #endif
@@ -650,6 +650,10 @@ void MASTER_SLAVE_Grouping_Send_SET_DEVICE_ID(Bool B_Send_Again) //2023-02-20_2 
 	{
 		for(m=0; m<6; m++)
 			FlashSave_SET_DEVICE_ID(FLASH_SAVE_SET_DEVICE_ID_0+m, uBuf[m+1]); //Excepting uBuf[0](Start Code of SET_DEVICE_ID)
+
+#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-05-15_2 : To save current TWS mode under Master(Master - 0x01 or Slave - 0x02)
+			FlashSave_SET_DEVICE_ID(FLASH_TWS_MASTER_SLAVE_ID, 0x01);
+#endif
 	}
 
 	//BYTE[8] - Checksum
@@ -3714,7 +3718,27 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 #ifdef BT_DEBUG_MSG	
 					_DBG("\n\r++Ind : MINOR_ID_ACL_CLOSED_IND : "); //Data[6]: Disconnect : 0x13/BT Delete : 0x16/TWS Disconnection : 0x08(Timeout)
 #endif
+#ifdef TWS_MODE_ENABLE //2023-05-15_1 : When uBT_TWS_Remote_Device_Address is all 0(0x00 00 00 00 00 00), we need to make recovery here using uBT_Cur_TWS_Device_Address.
+					if(Get_Cur_Master_Slave_Mode() == Switch_Master_Mode && Get_Cur_LR_Stereo_Mode() == Switch_LR_Mode)
+					{
+						for(i=0;i<6;i++) //Save Remote BT Device Name //6 Byte
+						{	
+							if(uBT_TWS_Remote_Device_Address[i] != 0x00)
+							{
+								i = 0;
+								break;
+							}
+						}
 
+						if(i) //If this is true, it means that uBT_TWS_Remote_Device_Address is all 0.(0x00 00 00 00 00 00). So, we need to make recovery here.
+						{
+							for(i=0;i<6;i++) //Save Remote BT Device Name //6 Byte
+							{						
+								uBT_TWS_Remote_Device_Address[i] = uBT_Cur_TWS_Device_Address[i];
+							}
+						}
+					}
+#endif
 #ifdef TWS_MODE_ENABLE //2023-03-09_3 : When TWS mode is not ACL_CLOSED under TWS Slave mode, we don't need to make Mute On.
 					if(!(strncmp(uBT_TWS_Remote_Device_Address, (char *)data, 6) != 0 && Is_TWS_Master_Slave_Connect() != TWS_Get_Information_Ready && Get_Cur_Master_Slave_Mode() == Switch_Slave_Mode && Get_Cur_LR_Stereo_Mode() == Switch_LR_Mode))
 #endif
@@ -4894,6 +4918,9 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 							{
 								FlashSave_SET_DEVICE_ID((FLASH_SAVE_SET_DEVICE_ID_0+i-1), data[i+6]);
 							}
+#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-05-15_2 : To save current TWS mode under Slave(Master - 0x01 or Slave - 0x02)								
+								FlashSave_SET_DEVICE_ID(FLASH_TWS_MASTER_SLAVE_ID, 0x02);
+#endif
 #ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-04-26_7 : Slave connection To make New TWS Connection, we need to reset after 5sec since TWS Master sent SET_DEVICE_IDE to TWS Slave
 							TIMER20_TWS_Grouping_send_flag_start();
 #endif
@@ -8391,14 +8418,57 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 #ifdef TWS_MASTER_SLAVE_GROUPING //2022-12-15 //TWS : Setting and Sending SET_DEVICE_ID under Master mode
 		Flash_Read(FLASH_SAVE_START_ADDR, uFlash_Read_Buf, FLASH_SAVE_DATA_END);	
 		
-		if(uFlash_Read_Buf[FLASH_SAVE_SET_DEVICE_ID_0] != 0x00 && uFlash_Read_Buf[FLASH_SAVE_SET_DEVICE_ID_0] != 0xff) //In case of valid SET_DEVICE_IDE
+		if(uFlash_Read_Buf[FLASH_SAVE_SET_DEVICE_ID_0] != 0x00 && uFlash_Read_Buf[FLASH_SAVE_SET_DEVICE_ID_0] != 0xff) //In case of valid SET_DEVICE_ID
 		{//It has the history that Master is connected with TWS Slave
-			uBuf[0] = uFlash_Read_Buf[FLASH_SAVE_SET_DEVICE_ID_0]; //Vendor ID : High byte
-			uBuf[1] = uFlash_Read_Buf[FLASH_SAVE_SET_DEVICE_ID_1]; //Vendor ID : Low byte
-			uBuf[2] = uFlash_Read_Buf[FLASH_SAVE_SET_DEVICE_ID_2]; //Product ID : High byte
-			uBuf[3] = uFlash_Read_Buf[FLASH_SAVE_SET_DEVICE_ID_3]; //Product ID : Low byte
-			uBuf[4] = uFlash_Read_Buf[FLASH_SAVE_SET_DEVICE_ID_4]; //Product Version : High byte
-			uBuf[5] = uFlash_Read_Buf[FLASH_SAVE_SET_DEVICE_ID_5]; //Product Version : Low byte
+#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-05-15_2 : If Saved TWS mode is not matched cur TWS Mode, we need to ignore the SET_DEVICE ID setting.
+			uint8_t cur_Master_Slave_Mode;
+
+			if(Get_Cur_Master_Slave_Mode() == Switch_Master_Mode)
+			{
+				cur_Master_Slave_Mode = 0x01;
+			}
+			else
+			{
+				cur_Master_Slave_Mode = 0x02;
+			}
+			
+			if(uFlash_Read_Buf[FLASH_TWS_MASTER_SLAVE_ID] != cur_Master_Slave_Mode)
+			{//It has NOT the history that Master is connected with TWS Slave
+				if(cur_Master_Slave_Mode == 0x01) //Master
+				{
+					uBuf[0] = 0x00; //Vendor ID : High byte
+					uBuf[1] = 0x00; //Vendor ID : Low byte
+					uBuf[2] = 0x00; //Product ID : High byte
+					uBuf[3] = 0x00; //Product ID : Low byte
+					uBuf[4] = 0x00; //Product Version : High byte
+					uBuf[5] = 0x00; //Product Version : Low byte
+				}
+				else
+				{
+					uBuf[0] = 0xFF; //Vendor ID : High byte
+					uBuf[1] = 0xFF; //Vendor ID : Low byte
+					uBuf[2] = 0xFF; //Product ID : High byte
+					uBuf[3] = 0xFF; //Product ID : Low byte
+					uBuf[4] = 0xFF; //Product Version : High byte
+					uBuf[5] = 0xFF; //Product Version : Low byte
+				}
+#ifdef BT_DEBUG_MSG
+				_DBG("\n\r ### Mismatching SET_DEVICE ID becuase Master/Slave mode is changed !!!");
+#endif
+			}
+			else
+#endif //NEW_TWS_MASTER_SLAVE_LINK
+			{
+				uBuf[0] = uFlash_Read_Buf[FLASH_SAVE_SET_DEVICE_ID_0]; //Vendor ID : High byte
+				uBuf[1] = uFlash_Read_Buf[FLASH_SAVE_SET_DEVICE_ID_1]; //Vendor ID : Low byte
+				uBuf[2] = uFlash_Read_Buf[FLASH_SAVE_SET_DEVICE_ID_2]; //Product ID : High byte
+				uBuf[3] = uFlash_Read_Buf[FLASH_SAVE_SET_DEVICE_ID_3]; //Product ID : Low byte
+				uBuf[4] = uFlash_Read_Buf[FLASH_SAVE_SET_DEVICE_ID_4]; //Product Version : High byte
+				uBuf[5] = uFlash_Read_Buf[FLASH_SAVE_SET_DEVICE_ID_5]; //Product Version : Low byte
+#ifdef BT_DEBUG_MSG
+				_DBG("\n\r ### SET_DEVICE ID setting is OK !!!");
+#endif
+			}
 		}
 		else
 		{//It has NOT the history that Master is connected with TWS Slave

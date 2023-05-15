@@ -51,46 +51,46 @@
 ## 2022-10-28
   - Added SIG Test feature(Please refer to SIG_TEST).
   
-## 2022-10-31(BSP-02)
+## 2022-10-31(BSP-01T)
   - When Amp error is ocurred, we don't need to alarm SOC_ERROR_MODE. //2022-10-31
   
-## 2022-11-01(BSP-02)
+## 2022-11-01(BSP-01T)
   - When Amp error is ocurred, execute volume down actions. //2022-11-01
   
-## 2022-11-03/2022-11-04 (BSP-02)
+## 2022-11-03/2022-11-04 (BSP-01T)
   - Implemented TWS Feature. Please refer to TWS_MODE_ENABLE //2022-11-03
   
-## 2022-11-08 (BSP-02)
+## 2022-11-08 (BSP-01T)
   - Implemented TWS communication Feature between Master and Slave. Please refer to TWS_MASTER_SLAVE_COM_ENABLE //2022-11-08
 
-## 2022-11-09 (BSP-02)
+## 2022-11-09 (BSP-01T)
   - Disable Remocon_Mode_Key_Action() under SW1_KEY pusing and then Execute BT Init //2022-11-09
   - Fixed TWS_MODE_ENABLE define error which is Master can't turn on BA mode(Broadcast) under last connection //2022-11-09_1
   
-## 2022-11-11 (BSP-02)
+## 2022-11-11 (BSP-01T)
   - Fixed the issue which MCU sends BA_SWITCH_MODE many time when last connection playing but this issue is closed when disable tWS_MODE_ENABLE(if(BMaster_Send_BLE_Remote_Data) //Master Mode Only is always FALSE)//2022-11-11
   - Fixed the issue which TAS5806MD can't not raised up Error Pin when Overtemperature after MUSIC pause and then play
   
-## 2022-11-14 (BSP-02)
+## 2022-11-14 (BSP-01T)
   - HW fixed the resistor value of TAS5806MD_I2C_ADDR to 15K ohm //2022-11-14_1
   - Need to Amp Init for Opened under Slave / TWS Mode //2022-11-14_2
   - Under TWS Mode, Master/Slave working is not permitted //2022-11-14_3
   - After Master/Slave connection, Sync Master status with Slave //2022-11-14_4
   
-## 2022-11-15 (BSP-02)
+## 2022-11-15 (BSP-01T)
   - To fix no audio or audio NG, Under TWS Slave mode, we don't use Clk_detect_uCount and will use clock detection timer to init Amp //2022-11-15_1
   - To fix no audio or audio NG, under TWS mode, we do't use Clock error detect anymore. //2022-11-15_2
 
-## 2022-11-17 (BSP-02)  
+## 2022-11-17 (BSP-01T)  
   - Added some codes to set Master SPK as left channel(Slave should be Right channel after this command) //2022-11-17_1
   - Implemented the codes for supporting Aux mode //2022-11-17_2
   - the BBT_Is_Connected should be TRUE Under A2DP but not Under TWS. //2022-11-17_3
 
-## 2022-11-22 (BSP-02)
+## 2022-11-22 (BSP-01T)
   - Fixed Volume Level from HW team //2022-11-22
   - Implemented attenuator Action with 3-Step(Max/Mid/Min) //2022-11-22_1
   
-## 2022-12-06 (BSP-02)
+## 2022-12-06 (BSP-01T)
   - To delete audio noise(Slave abnormal volume) under TWS Mode, we keep audio mute untill CLK is stable //2022-12-06
   - Under connection with PC, TWS master mode working shuld be use this line when last connection //2022-12-06_1
 
@@ -100,20 +100,20 @@
 ## 2022-12-14 (BAP-01)
   - Fixed volume curve for BAP-01 //2022-12-14
   
-## 2022-12-15 (BSP-02)
+## 2022-12-15 (BSP-01T)
   - Implemented the method of first TWS connection(Please refer to TWS_MASTER_SLAVE_GROUPING macro) //2022-12-15 
   
 ## 2022-12-20 (BAP-01)
   - Changed volume curve for BAP-01(from 0x58 to 0x4e) //2022-12-20_1
   - Modified Master/Slave Switch & Aux/BT Switch to work in inverse //2022-12-20_2
   
-## 2022-12-20 (BSP-02)
+## 2022-12-20 (BSP-01T)
   - When Peerdevice executes pause/play, slave SPK under TWS make stopping output due to Amp_Init for slave recovery. Changed SW that Just executes Recovery Init(Only first one time, it has I2S Clock) //2022-12-20_3
 
-## 2022-12-22 (BSP-02)
+## 2022-12-22 (BSP-01T)
   - Add cnodition BTWS_Master_Slave_Connect to avoid Master recognize peer device as slave after android device reboot when Master device updates tws slave address //2022-12-22
 
-## 2022-12-23/2022-12-27 (BSP-02)
+## 2022-12-23/2022-12-27 (BSP-01T)
   - When user executes power plug out/in under general mode, BT SPK must keep general mode. If Last connection is failed, BT SPK should connect with other general device. Please refer to "BT_GENERAL_MODE_KEEP_ENABLE" //2022-12-23
 
 ## 2023-01-02 (BAP-01)
@@ -161,30 +161,30 @@
   - Changed volume level 1~4 by HW team //2023-01-12_1
   - Changed EQ_TOGGLE_ENABLE using MUTE KEY instead of BT KEY
   
-## 2023-01-17 (BSP-02)
+## 2023-01-17 (BSP-01T)
   - Implemented LED display of EQ Mode using MUTE KEY(Long Key - 3 sec) and save current EQ Mode on Flash. Please refer to PRIVATE_CUSTOM_MODE //2023-01-17
   
-## 2023-01-18 (BSP-02)
-  - To avoid click noise when Master is connected with Slave under TWS mode //2023-01-18_1(BSP-02 Issue #2)
-  - To avoid mute when Master has audio from Aux but BT is changed from "streaming" to "suspend". //2023-01-18_2(BSP-02 Issue #5)
+## 2023-01-18 (BSP-01T)
+  - To avoid click noise when Master is connected with Slave under TWS mode //2023-01-18_1(BSP-01T Issue #2)
+  - To avoid mute when Master has audio from Aux but BT is changed from "streaming" to "suspend". //2023-01-18_2(BSP-01T Issue #5)
   
-## 2023-01-20 (BSP-02)
+## 2023-01-20 (BSP-01T)
   - To turn on audio when Master SPK works as standalone under TWS(Power Plug In case) //2023-01-20
 
-## 2023-01-26 (BSP-02)
+## 2023-01-26 (BSP-01T)
   - Under TWS mode, Master lose AD2P address and save TWS device as AD2P address when user plug-out slave. Fixed it. //2023-01-26_1
   - Under TWS Aux mode, Master can't output aux audio when user plug-out slave. Fixed it. //2023-01-26_2
 
-## 2023-01-31 (BSP-02)
+## 2023-01-31 (BSP-01T)
   - Implemented Alway General mode and do not use USEN mode. Please refer to "BT_ALWAYS_GENERAL_MODE" //2023-01-31_1
   - When Master don't have PLD List, we use fast white bliking LED display. //2023-01-31_2
   - When user push BT Long Key, Master should delete PDL List and work as General mode under enabling "BT_ALWAYS_GENERAL_MODE" //2023-01-31_3
 
-## 2023-02-02 (BSP-02)
+## 2023-02-02 (BSP-01T)
   - Fixed the bug of Alway General mode(Can't connect with USEN Tablet) //2023-02-02_1
   - Adjust Volume Level and EQ Setting on TI Amp //2023-02-02_2 this is only invalid under "USEN_230203(EJT_Biz_Trip_For_EQ_Tuning)" Folder 
 
-## 2023-02-03 (BSP-02)
+## 2023-02-03 (BSP-01T)
   - Need to make Mute ON when BT SPK disconnect with PeerDevice //2023-02-03_1
 
 ## 2023-02-06 (BAP-01)
@@ -200,7 +200,7 @@
 ## 2023-02-09 (BAP-01)
   - Ignored MUTE on LED display function //2023-02-09_1
   - When auto power off due to no music under power on state on BAP-01, user turn off using rotary switch on BAP-01. If user turn on using rotary switch on BAP-01, LED is not turned on. (BAP-01 Issue #10)
-  - Changed Volume table for BSP-02 //2023-02-09_3
+  - Changed Volume table for BSP-01T //2023-02-09_3
 
 ## 2023-02-10 (BAP-01)
   - Fixed the problem BAP-01 can't reconnect with peerdevice after disconnecting with peerdevice //2023-02-10_1
@@ -211,21 +211,21 @@
   - When user makes power on with rotary switch after power plug Out --> In, this statement makes power on key is invalid key before finishing BT Init //2023-02-14_1 
   - Don't need LED display setting as STATUS_BT_GIA_PAIRING_MODE under slave mode //2023-02-14_2(USEN#1)
   
-## 2023-02-15 (BSP-02)
-  - When user push BT long key for 5sec after factory reset, BSP-02 works as factory reset. It's fixed. //2023-02-15_1 (USEN#7)
+## 2023-02-15 (BSP-01T)
+  - When user push BT long key for 5sec after factory reset, BSP-01T works as factory reset. It's fixed. //2023-02-15_1 (USEN#7)
   
-## 2023-02-16 (BSP-02)
-  - Under TWS slave mode, slave keeps Blue LED On when user executes factory reset of Master. Accroding to spec, but Blue LED should be blinking. //2023-02-16_1(BSP-02 Issue #10)
+## 2023-02-16 (BSP-01T)
+  - Under TWS slave mode, slave keeps Blue LED On when user executes factory reset of Master. Accroding to spec, but Blue LED should be blinking. //2023-02-16_1(BSP-01T Issue #10)
   - To save TWS address and name even though A2DP_CONNECT_FAIL_ERRORCODE (Security Reject) //2023-02-16_2(Temp solution for BT EQ BYPASS FW) //Delete these solution. refer to 2023-02-20_1
   - To avoid pop noise on TWS Slave during init //2023-02-16_3
 
-## 2023-02-20 (BSP-02)
+## 2023-02-20 (BSP-01T)
   - To fix BT FW(2302170) bug under TWS Mode(Slave Name is "MB3021BNU0"). Remove 2023-02-16_2 //2023-02-20_1
-  - Added recovery action for SET_DEVICE_ID sending and current information sending to TWS Slave to sync due to sync error, sometimes. //2023-02-20_2 (BSP-02 USEN#3/4)
+  - Added recovery action for SET_DEVICE_ID sending and current information sending to TWS Slave to sync due to sync error, sometimes. //2023-02-20_2 (BSP-01T USEN#3/4)
   
-## 2023-02-21 (BSP-02)
-  - After Factory Reset or Reboot, SPK Should keep power stage(PLAY) under PLAY MODE and it do not set uRead = 0 //2023-02-21_1(BSP-02 USEN#3/4)
-  - To recovery, SPK can't get TWS Address and Maaster sends sync data to Slave during Master is connected with Slave, only. //2023-02-21_2 (BSP-02 #3)
+## 2023-02-21 (BSP-01T)
+  - After Factory Reset or Reboot, SPK Should keep power stage(PLAY) under PLAY MODE and it do not set uRead = 0 //2023-02-21_1(BSP-01T USEN#3/4)
+  - To recovery, SPK can't get TWS Address and Maaster sends sync data to Slave during Master is connected with Slave, only. //2023-02-21_2 (BSP-01T #3)
   - Fixed Mute Error after Volume Control. Need to Move General Page instead of DSP Page. //2023-02-21_3
   - Need to Set MODEL NAME as USEN MUSIC LINK under TWS Slave also. to avoid "2023-02-20_1" issue. //2023-02-21_4
   - We can't access TI AMP during TI AMP initializing / To aovid AMP access after boot on. //2023-02-21_5
@@ -236,18 +236,18 @@
 ## 2023-02-21_1 (BAP-01)
   - Reduced Aux detect check time from 20 sec(2023-01-10_3) to 5 sec(Total 10sec = HW 5sec + SW 5sec)  //2023-02-21_9
 
-## 2023-02-22 (BSP-02)
+## 2023-02-22 (BSP-01T)
   - TWS Slave BT SPK executes Amp init again. Sometimes, BT SPK get this interrupt during Amp Init and Amp Init has wrong data. //2023-02-22_1
   - Disable AMP Init that is for AMP recovery(2022-11-14_4) //2023-02-22_2
   - After reboot, TWS Master sends data but TWS Slave ignore it due to AMP initializing. So, we need to send it again for recovery. //2023-02-22_3
   - Applied EJT EQ Setting Test 230214_001_OYM.h
 
-## 2023-02-23 (BSP-02)
+## 2023-02-23 (BSP-01T)
   - In BSP-01T Model, DSP Volume Level Tuning for EQ BYPASS BT FW. Max Volume = DSP(-8dB) + DAC(15.5dB) = 7.5 dB Max(DAC Gain Setting)//2023-02-23_1
   - In BSP-01T Model, Changed Default DAC GAIN(16.5dB - 1dB = 15.5dB) for EQ BYPASS BT FW //2023-02-23_2
   - Total -9dB reduction
 
-## 2023-02-24 (BSP-02)
+## 2023-02-24 (BSP-01T)
   - Applied EJT EQ Setting "230223_001_OYM.h"
   
 ## 2023-02-24_1 (BAP-01)
@@ -264,63 +264,63 @@
   - Under BAP-01 Slave Mode, When BAP-01 Master is connected, we need to disable Power Key. //2023-02-28_2(BAP-01 Issue #16)
   - Under BAP-01 Master Mode, if user changed rotary volume position very fast many times before BT init during Power on, Last connection is almost failed. //2023-02-28_3(BAP-01 Issue #14)
   
-## 2023-03-02 (BAP-01 / BSP-02)
+## 2023-03-02 (BAP-01 / BSP-01T)
   - Send BAP-01 Name to USEN Tablet. //2023-03-02_1
-  - Changed EQ and added DRC for BSP-02 //2023-03-02_2
+  - Changed EQ and added DRC for BSP-01T //2023-03-02_2
   - Changed the concept of volume level update under BAP-01, we just use ADC value for Amp_Init() instead of flash data. //2023-03-02_3(BAP-01 Issue #14)
 
-## 2023-03-03 (BSP-02)
+## 2023-03-03 (BSP-01T)
   - For flash saving time of BT module during BT Long key action because BT SPK can do last connection, sometimes. //2023-03-03_1
 
-## 2023-03-07 (BSP-02)
+## 2023-03-07 (BSP-01T)
   - Applied Club EQ Setting only which is Semi-Final_02_230307 from OYM
 
-## 2023-03-08 (BSP-02)
-  - Sometimes, Some peerdevice send only MINOR_ID_ACL_CLOSED_IND on disconnection. so we need to add recovery code. //2023-03-08_1 (BSP-02 USEN#17, BSP-02 QA#6)
-  - When user choose "Device Forget" and then "Device Delete" on peer device under TWS mode, user can't connect Master even though user choose Master in BT Menu. Added condtion to avoid sending TWS CMD again even though TWS Mode under Master Mode. //2023-03-08_2 (BSP-02 Issue #17, BSP-02 QA#5, BSP-02 QA#3)
+## 2023-03-08 (BSP-01T)
+  - Sometimes, Some peerdevice send only MINOR_ID_ACL_CLOSED_IND on disconnection. so we need to add recovery code. //2023-03-08_1 (BSP-01T USEN#17, BSP-01T QA#6)
+  - When user choose "Device Forget" and then "Device Delete" on peer device under TWS mode, user can't connect Master even though user choose Master in BT Menu. Added condtion to avoid sending TWS CMD again even though TWS Mode under Master Mode. //2023-03-08_2 (BSP-01T Issue #17, BSP-01T QA#5, BSP-01T QA#3)
   - Control volume level for each EQ Mode. //2023-03-08_3
-  - Changed condition because Slave can't mute off after TWS pairing with Master and then rebooting even though Master is mute off after rebooting. //2023-03-08_4 (BSP-02 USEN#23)
+  - Changed condition because Slave can't mute off after TWS pairing with Master and then rebooting even though Master is mute off after rebooting. //2023-03-08_4 (BSP-01T USEN#23)
 
-## 2023-03-09 (BSP-02)
-  - When user used Master with USEN Remote APP and then user changed the master to slave, we need to avoid USEN Remote APP try to connect with Slave using SPP. //2023-03-09_1 (BSP-02 Issue #19)
-  - TWS can connect with USEN MUSIC LINK device Only. Sometimes If Peer Device has Slave address in its PDL, Peer device can connect with TWS Slave. //2023-03-09_2 (BSP-02 Issue #18)
-  - When TWS mode is not ACL_CLOSED under TWS Slave mode, we don't need to make Mute On. //2023-03-09_3 (BSP-02 Issue #20)
-  - When Master is mute state and then Power plug Out/In, Master can't keep mute on due to #ifdef error //2023-03-09_4 (BSP-02 QA#1)
+## 2023-03-09 (BSP-01T)
+  - When user used Master with USEN Remote APP and then user changed the master to slave, we need to avoid USEN Remote APP try to connect with Slave using SPP. //2023-03-09_1 (BSP-01T Issue #19)
+  - TWS can connect with USEN MUSIC LINK device Only. Sometimes If Peer Device has Slave address in its PDL, Peer device can connect with TWS Slave. //2023-03-09_2 (BSP-01T Issue #18)
+  - When TWS mode is not ACL_CLOSED under TWS Slave mode, we don't need to make Mute On. //2023-03-09_3 (BSP-01T Issue #20)
+  - When Master is mute state and then Power plug Out/In, Master can't keep mute on due to #ifdef error //2023-03-09_4 (BSP-01T QA#1)
   
-## 2023-03-10 (BSP-02)
+## 2023-03-10 (BSP-01T)
   - In i2c.c file, the read function need to change read size which depends on actual size from calling function. //2023-03-10_1
-  - Changed concept of AMP clock checking to recover audio noise when I2S clock is not stable. //2023-03-10_2 (BSP-02 QA#9)
+  - Changed concept of AMP clock checking to recover audio noise when I2S clock is not stable. //2023-03-10_2 (BSP-01T QA#9)
   - When TAS5806MD init, we need to add some delay for Data value but we don't set Data value before. //2023-03-10_3
-  - Delete "2023-02-06-2" because Broadcast slave don't have audio when slave is powered off by power key and then plugged out/In. //2023-03-10_4 (BSP-02 QA#8)
-  - When mute off, we need to check whether I2S Clock is stable or not. if I2S Clock is not stable, we use TIMER20_mute_flag_Start() instead of actual mute off. This is series of "2023-03-10_4". //2023-03-10_5 (BSP-02 QA#8, BSP-02 QA#2)
+  - Delete "2023-02-06-2" because Broadcast slave don't have audio when slave is powered off by power key and then plugged out/In. //2023-03-10_4 (BSP-01T QA#8)
+  - When mute off, we need to check whether I2S Clock is stable or not. if I2S Clock is not stable, we use TIMER20_mute_flag_Start() instead of actual mute off. This is series of "2023-03-10_4". //2023-03-10_5 (BSP-01T QA#8, BSP-01T QA#2)
   - In TAS5806MD_Amp_Init(), we move to the position of TAS5806MD_Amp_Move_to_Control_Page() to protect I2C Access //2023-03-10_6
-  - In TAS5806MD_Amp_Detect_Fault(), Added return condition to protect I2C Access //2023-03-10_7 (BSP-02 QA#9)
+  - In TAS5806MD_Amp_Detect_Fault(), Added return condition to protect I2C Access //2023-03-10_7 (BSP-01T QA#9)
   
-## 2023-03-13 (BSP-02)
+## 2023-03-13 (BSP-01T)
   - Sometimes, BT Long Key is worked as Factory Reset due to factory reset recovery action. So, we need to keep BT Long Key action here.) //2023-03-13_1
   
-## 2023-03-14 (BSP-02)
-  - When user remove Power plug from Slave under TWS mode, Master sends sync data to slave for a while. it's fixed. //2023-03-14_1 (BSP-02 #3)
-  - Under TWS first connection to avoid pop noise, we need to make mute on(w/o MUTE LED) before reboot. //2023-03-14_2 (BSP-02 #11)
+## 2023-03-14 (BSP-01T)
+  - When user remove Power plug from Slave under TWS mode, Master sends sync data to slave for a while. it's fixed. //2023-03-14_1 (BSP-01T #3)
+  - Under TWS first connection to avoid pop noise, we need to make mute on(w/o MUTE LED) before reboot. //2023-03-14_2 (BSP-01T #11)
   - The white status LED should be turned on alway under AUX IN Mode. //2023-03-14_3 (USEN #14)
   - To avoid HW noise of AMP, this is temporary. //2023-03-14_4
   
 ## 2023-03-14 (BAP-01)
   - Under Slave Mode, If User plug-in power cable when rotary power off and then power Plug-out, LED is turned on even though rotary power off. //2023-03-14_5
   
-## 2023-03-15 (BSP-02)
-  - Under TWS Mode, the Master doesn't send INFORM_HOST_MODE when Last conneection is OK. So, the Master has BT output even though it has aux input when Power plug-out/In. //2023-03-15_1 (BSP-02 #28)
-  - When master is TWS Aux mode and BT is connecting with peer device, if user disconnect BT connection on peer device, MCU sends connection and discovery again & again, forever. So, we need to add condition to send discovery. //2023-03-15_2 (BSP-02 #29)
-  - Added condition because if Master is Aux mode under TWS mode, we don't need make mute on also. //2023-03-15_3 (BSP-02 #30)
-  - This case is only that TWS Master is connected with TWS Slave and PeerDevice is disconnected with TWS Master. We need to keep current TWS status. //2023-03-15_4 (BSP-02 #31)
-  - Under TWS Mode, If user repeat connection/disconnection using BT List on Peer Device, sometimes, Slave LED is bliking and then Slave LED is on. //2023-03-15_5 (BSP-02 #33)
-  - This case is only that TWS Master is connected with TWS Slave and PeerDevice is disconnected with TWS Master. We need to keep current TWS status. //2023-03-15_6 (BSP-02 #32)
+## 2023-03-15 (BSP-01T)
+  - Under TWS Mode, the Master doesn't send INFORM_HOST_MODE when Last conneection is OK. So, the Master has BT output even though it has aux input when Power plug-out/In. //2023-03-15_1 (BSP-01T #28)
+  - When master is TWS Aux mode and BT is connecting with peer device, if user disconnect BT connection on peer device, MCU sends connection and discovery again & again, forever. So, we need to add condition to send discovery. //2023-03-15_2 (BSP-01T #29)
+  - Added condition because if Master is Aux mode under TWS mode, we don't need make mute on also. //2023-03-15_3 (BSP-01T #30)
+  - This case is only that TWS Master is connected with TWS Slave and PeerDevice is disconnected with TWS Master. We need to keep current TWS status. //2023-03-15_4 (BSP-01T #31)
+  - Under TWS Mode, If user repeat connection/disconnection using BT List on Peer Device, sometimes, Slave LED is bliking and then Slave LED is on. //2023-03-15_5 (BSP-01T #33)
+  - This case is only that TWS Master is connected with TWS Slave and PeerDevice is disconnected with TWS Master. We need to keep current TWS status. //2023-03-15_6 (BSP-01T #32)
 
-## 2023-03-16 (BSP-02)
-  - Changed max condition because this code erases FLASH_SAVE_SLAVE_LAST_CONNECTION info when user execute TWS connection between Master and Slave. //2023-03-16_1 (BSP-02 #34)
-  - Add 2023-03-10_5 solution //2023-03-16_1 (BSP-02 #22)
+## 2023-03-16 (BSP-01T)
+  - Changed max condition because this code erases FLASH_SAVE_SLAVE_LAST_CONNECTION info when user execute TWS connection between Master and Slave. //2023-03-16_1 (BSP-01T #34)
+  - Add 2023-03-10_5 solution //2023-03-16_1 (BSP-01T #22)
 
-## 2023-03-17 (BSP-02)
+## 2023-03-17 (BSP-01T)
   - Added BT Long Key Action from USEN Tablet App using SPP. This key is only valid under Master. //2023-03-17_1
 
 ## 2023-03-23 (BAP-01)
@@ -344,14 +344,14 @@
   - When user disconnects BSP-01 in BT Menu on Peerdevice, If user executes power off->on over power button, Master has BT LED On(It should be blinking). //2023-03-29_1
   - BT Long key is working as factory reset. so, we need to fix this one.//2023-03-29_2
 
-## 2023-03-30 (BSP-01) (BSP-02 USEN#15)
+## 2023-03-30 (BSP-01) (BSP-01T USEN#15)
   - Disable 2023-03-15_6 solution for TWS Master. Because If user push BT short long key which TWS Master mode(Master is already connect with Slave) and then connect with other device, TWS slave lose audio output. //2023-03-30_1
   - When user push BT Long key under TWS Master mode, a speicific case make TWS slave is disconnected with Master. So, Added recovery solution when Slave get closed action on. This is solution for TWS Slave //2023-03-30_2
   - Under TWS Master, the SETIO_CAPABILITY_MODE will be worked only that TWS_Get_Slave_Name is executed. //2023-03-30_3
 
 ## 2023-04-03 (BSP-01)
   - For master mode checking of BAP-01 on factory line, we need to make BSP-01 Slave and it should be worked auto factory reset on disconnection with Master. //2023-04-03_1
-  - When TWS slave is conected, we don't need to display BT STATUS LED on TWS Master. //2023-04-03_2 (BSP-02 #40)
+  - When TWS slave is conected, we don't need to display BT STATUS LED on TWS Master. //2023-04-03_2 (BSP-01T #40)
 
 ## 2023-04-04 (BSP-01)
   - if the BT devcie is not cur A2DP under TWS Master, we don't need to apply it as peerdevice. //2023-04-04_1
@@ -415,21 +415,21 @@
   - Under TWS Mode, changed some condition for response of MINOR_ID_SET_DISCOVERABLE_MODE. //2023-04-26_21
 
 ## 2023-04-26_1 (BSP-01T)
-  - When Power Off and Power on under Slave mode, Slave can't display Volume Level LED. This is side effect of //2023-04-06_3. //2023-04-26_22  
+  - When Power Off and Power on under Slave mode, Slave can't display Volume Level LED. This is side effect of //2023-04-06_3. //2023-04-26_22
   
 ## 2023-04-27_1 (BAP-01)
   - Temparary SW Solution 500ms check time to change Aux to BT. //2023-04-27_1
   
 ## 2023-04-27_2 (BSP-01T)
   - When TWS Master get reboot CMD over USEN Tablet remocon App, TWS Master need some delay to send reboot CMD to TWS Slave. //2023-04-27_2
-  - After BT Long key on TWS Master, TWS Master can't connect with other device excepting previous peerdevice. //2023-04-27_3  
+  - After BT Long key on TWS Master, TWS Master can't connect with other device excepting previous peerdevice. //2023-04-27_3
   
 ## 2023-04-28 (BAP-01)
   - Changed EQ Setting. Under BSP-EQ Mode, it's all same with BSP-01T EQ but Under EQ Normal, it's just keep previous EQ. //2023-04-28_1
 
 ## 2023-04-28_1 (BSP-01T)
   - Under BSP-01T broadcast mode, we need to return back to original code to avoid to send "BLE_SET_MANUFACTURER_DATA" when DC Power on. //2023-04-28_2
-  - Changed Aux detection check delay from 40ms to 80ms to avoid undetection issue(Non-Aux case). //2023-04-28_3  
+  - Changed Aux detection check delay from 40ms to 80ms to avoid undetection issue(Non-Aux case). //2023-04-28_3
   
 ## 2023-05-02 (BAP-01)
   - Under BAP-01, If switch is EQ NORMAL mode, the EQ is always EQ_BAP_NORMAL_MODE. //2023-05-02_1
@@ -452,3 +452,6 @@
   - Make unused pins to PUSH_PULL_OUTPUT(Pull Down) //PB 2 ~ 3 / PC 2, PC5 / PD 0 ~ 1 / PE 0 ~ 6 / PF 1 ~ 3 //2023-05-12_1
   - Implemented SIG TEST code for extra test under BAP-01. //2023-05-12_2
 
+## 2023-05-15_1 (BSP-01T)
+  - When uBT_TWS_Remote_Device_Address is all 0(0x00 00 00 00 00 00), we need to make recovery here using uBT_Cur_TWS_Device_Address. //2023-05-15_1 (BSP-01T New #10)
+  - When Slave is changed to Master under TWS mode, we don't connect the changed Master to Original Master. //2023-05-15_2 (BSP-01T USEN#19)
