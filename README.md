@@ -455,8 +455,3 @@
 ## 2023-05-15_1 (BSP-01T)
   - When uBT_TWS_Remote_Device_Address is all 0(0x00 00 00 00 00 00), we need to make recovery here using uBT_Cur_TWS_Device_Address. //2023-05-15_1 (BSP-01T New #10)
   - When Slave is changed to Master under TWS mode, we don't connect the changed Master to Original Master. //2023-05-15_2 (BSP-01T USEN#19)
-  - Under BSP-01T, this statement(BAP-01 solution) makes SW1_KEY error. //2023-05-15_3
-  - When Power Off and Power on under Broadcast Slave mode, Slave can't display Volume Level LED. This is side effect of //2023-04-06_3 //2023-05-15_4 (BSP-01T New #11)
-  
-
-  
