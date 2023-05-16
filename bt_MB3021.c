@@ -5307,12 +5307,15 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 													BAlready_Set_Vol = TRUE;
 												}
 #else //#if defined(ADC_VOLUME_STEP_ENABLE) && defined(USEN_BAP)
+												if(Power_State()) //2023-05-15_4 : When Power Off and Power on under Broadcast Slave mode, Slave can't display Volume Level LED. This is side effect of //2023-04-06_3
+												{
 #ifdef AD82584F_ENABLE
-												AD82584F_Amp_Volume_Set_with_Index(data[3], TRUE, FALSE);
+													AD82584F_Amp_Volume_Set_with_Index(data[3], TRUE, FALSE);
 #else //AD82584F_ENABLE
-												TAS5806MD_Amp_Volume_Set_with_Index(data[3], TRUE, FALSE);
+													TAS5806MD_Amp_Volume_Set_with_Index(data[3], TRUE, FALSE);
 #endif //TAS5806MD_ENABLE
-												BAlready_Set_Vol = TRUE;
+													BAlready_Set_Vol = TRUE;
+												}
 #endif //#if defined(ADC_VOLUME_STEP_ENABLE) && defined(USEN_BAP)
 											}
 											else

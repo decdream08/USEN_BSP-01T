@@ -2767,7 +2767,7 @@ void GPIOAB_IRQHandler_IT(void)
 					filtering_time_old = filtering_time;
 					key_bk = key;
 
-#ifdef MB3021_ENABLE //2023-05-04_3 : Move to the action of Auto Aux/Fixed Aux
+#if defined(MB3021_ENABLE) && defined(USEN_BAP) //2023-05-15_3 : Under BSP-01T, this statement(BAP-01 solution) makes SW1_KEY error.  //2023-05-04_3 : Move to the action of Auto Aux/Fixed Aux
 					if(key == SW1_KEY)
 					{
 						key = NONE_KEY; //SW1_KEY set to NONE_KEY
