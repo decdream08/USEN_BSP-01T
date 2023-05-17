@@ -198,9 +198,6 @@ static void Serial_Get_Data_Intterupt_Callback(uint8_t *Data);
 #ifdef SPI_11_ENABLE
 static void SPI_Get_Data_Interrupt_Callback(uint8_t *Data);
 #endif
-#ifdef WATCHDOG_TIMER_RESET
-void WDT_ReloadTimeRun(void);
-#endif
 
 #if defined(ADC_VOLUME_STEP_ENABLE) && defined(TAS5806MD_ENABLE) && defined(ADC_INPUT_ENABLE) //Attenuator action is inversed. So fixed it. //2023-02-08_1 : make Attenuator GAP
 uint8_t Convert_ADC_To_Attenuator(uint32_t ADC_Value);
@@ -558,9 +555,13 @@ void WDT_Configure(void)
   /*	WDTDR(0.5s) < WDTWDR(1s), clear in 900ms */
 	wdtCfg.wdtResetEn = ENABLE;
 	wdtCfg.wdtClkDiv = WDT_DIV_4;  	
-	wdtCfg.wdtTmrConst = 7812/2; 		// 0.5s    @31250
-	wdtCfg.wdtWTmrConst = 7812; 		// 1s	 
- 
+#ifdef USEN_BAP //2023-05-16_1
+	wdtCfg.wdtTmrConst = (7812*20)/2; 	// 10s
+	wdtCfg.wdtWTmrConst = 7812*20; 		//20s
+#else
+	wdtCfg.wdtTmrConst = (7812*60)/2; 	// 30s    //7812/2; 		// 0.5s    @31250
+	wdtCfg.wdtWTmrConst = 7812*60; 		//60s	 	//7812; 		// 1s
+#endif
 	if(HAL_WDT_Init(wdtCfg)!= HAL_OK)
 	{
 		/* Initialization Error */
@@ -605,13 +606,11 @@ void WDT_ReloadTimeRun(void)
 {
 	//msec = 900; 
 	//while(msec);
-
-	{
+	
 #ifdef COMMON_DEBUG_MSG
-		_DBG("\n\rWDT_ReloadTimeRun !!!");
+	_DBG("\n\rWDT_ReloadTimeRun !!!");
 #endif
-		HAL_WDT_ReloadTimeCounter();
-	}
+	HAL_WDT_ReloadTimeCounter();
 }
 #endif
 
@@ -657,6 +656,7 @@ void mainloop(void)
 	DEBUG_MenuPrint();
 #ifdef WATCHDOG_TIMER_RESET
 	WDT_Configure();
+	SysTick_Configure(); //2023-05-16_1 : Implemented WDT Reset
 #endif
 
 	/*Configure port peripheral*/
@@ -739,6 +739,10 @@ void mainloop(void)
 	/* Enable IRQ Interrupts */
 	__enable_irq();
 
+#ifdef WATCHDOG_TIMER_RESET //2023-05-16_1
+	/*WDT Reset Start*/
+	WDT_ResetRun();
+#endif
 #ifdef TIMER20_COUNTER_ENABLE //Always On Counter !!!
 	TIMER20_Periodic_Mode_Run(TRUE);
 #endif
@@ -848,10 +852,6 @@ void mainloop(void)
 #else
 	task = TASK_UART;
 #endif
-#ifdef WATCHDOG_TIMER_RESET
-	/*WDT Reset Start*/
-	WDT_ResetRun();
-#endif
 #ifdef FLASH_SELF_WRITE_ERASE_EXTENSION //Set Mute Setting and Power On/Off setting after Power On
 	Flash_Read(FLASH_SAVE_START_ADDR, uFlash_Read_Buf1, FLASH_SAVE_DATA_END);
 #ifdef USEN_BAP //Implemented Power Key Feature //2022-10-07_3
@@ -931,9 +931,6 @@ void mainloop(void)
 
 	while (1)
 	{
-#ifdef WATCHDOG_TIMER_RESET
-		WDT_ReloadTimeRun();
-#endif
 		switch (task)
 		{
 #ifdef TOUCHKEY_ENABLE
@@ -2267,6 +2264,29 @@ void GPIOAB_IRQHandler_IT(void)
 					filtering_time_old = filtering_time;
 					key_bk = key;
 
+#if defined(MB3021_ENABLE) && defined(USEN_BAP) //2023-05-16_2 : This is side effect of //2023-05-04_3
+					if(key == SW1_KEY)
+					{
+						key = NONE_KEY; //SW1_KEY set to NONE_KEY
+#if defined(TIMER20_COUNTER_ENABLE) && defined(AUTO_ONOFF_ENABLE) //Fixed Master SPK do not work Auto power off even though No siganl from BT when user remove Aux jack
+						TIMER20_auto_power_flag_Start();
+#endif
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#ifdef SLAVE_ADD_MUTE_DELAY_ENABLE
+						MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x02);
+#endif
+#ifdef AD82584F_ENABLE
+						AD82584F_Amp_Mute(TRUE, FALSE); //MUTE ON
+#else //TAS5806MD_ENABLE
+						TAS5806MD_Amp_Mute(TRUE, FALSE); //MUTE ON
+#endif
+#endif
+						Set_MB3021_BT_Module_Source_Change();
+
+						ret = -1;
+					}
+#endif
+
 					if(ret != -1)
 					{
 						Send_Remote_Key_Event(key);
@@ -2766,29 +2786,6 @@ void GPIOAB_IRQHandler_IT(void)
 						
 					filtering_time_old = filtering_time;
 					key_bk = key;
-
-#if defined(MB3021_ENABLE) && defined(USEN_BAP) //2023-05-15_3 : Under BSP-01T, this statement(BAP-01 solution) makes SW1_KEY error.  //2023-05-04_3 : Move to the action of Auto Aux/Fixed Aux
-					if(key == SW1_KEY)
-					{
-						key = NONE_KEY; //SW1_KEY set to NONE_KEY
-#if defined(TIMER20_COUNTER_ENABLE) && defined(AUTO_ONOFF_ENABLE) //Fixed Master SPK do not work Auto power off even though No siganl from BT when user remove Aux jack
-						TIMER20_auto_power_flag_Start();
-#endif
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
-#ifdef SLAVE_ADD_MUTE_DELAY_ENABLE
-						MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x02);
-#endif
-#ifdef AD82584F_ENABLE
-						AD82584F_Amp_Mute(TRUE, FALSE); //MUTE ON
-#else //TAS5806MD_ENABLE
-						TAS5806MD_Amp_Mute(TRUE, FALSE); //MUTE ON
-#endif
-#endif
-						Set_MB3021_BT_Module_Source_Change();
-
-						ret = -1;
-					}
-#endif
 
 					if(ret != -1)
 					{
@@ -3367,11 +3364,12 @@ void GPIO_Configure(void)
 		HAL_GPIO_ConfigOutput(PC, i, PUSH_PULL_OUTPUT);
 		HAL_GPIO_ConfigPullup(PC, i, ENPD);
 		HAL_GPIO_ClearPin(PC, _BIT(i));
-
+#if 0 //2023-05-16_3 : To keep PC5(39pin) as RESET_N under BAP-01
 		i = 5;
 		HAL_GPIO_ConfigOutput(PC, i, PUSH_PULL_OUTPUT);
 		HAL_GPIO_ConfigPullup(PC, i, ENPD);
 		HAL_GPIO_ClearPin(PC, _BIT(i));
+#endif
 	}
 
 	for(i=0;i<2;i++) //PD 0 ~ 1
@@ -3554,7 +3552,7 @@ void GPIO_Configure(void)
 	HAL_GPIO_ConfigPullup(PD, 3, DISPUPD);
 	HAL_GPIO_SetPin(PD, _BIT(3));
 #endif
-#if 0//2023-05-12_1 : #ifndef _DEBUG_MSG //If we don't use DEBUG_MSG, we need to set some GPIO like below. Becasue these GPIOs can avoid USART10 UART error. But we don't know why.
+#ifdef _DEBUG_MSG //2023-05-12_1 : #ifndef _DEBUG_MSG //If we don't use DEBUG_MSG, we need to set some GPIO like below. Becasue these GPIOs can avoid USART10 UART error. But we don't know why.
 	HAL_GPIO_ConfigOutput(PB, 7, ALTERN_FUNC); //RX1
 	HAL_GPIO_ConfigFunction(PB, 7, FUNC1);
 	HAL_GPIO_ConfigPullup(PB, 7, 1);

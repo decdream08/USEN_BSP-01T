@@ -458,5 +458,9 @@
   - Under BSP-01T, this statement(BAP-01 solution) makes SW1_KEY error. //2023-05-15_3
   - When Power Off and Power on under Broadcast Slave mode, Slave can't display Volume Level LED. This is side effect of //2023-04-06_3 //2023-05-15_4 (BSP-01T New #11)
   
-
+## 2023-05-16 (BAP-01) - ESD + Others
+  - Implemented WDT Reset under BAP-01. Please refer to "WATCHDOG_TIMER_RESET" //2023-05-16_1
+  - Fixed the side effect of //2023-05-04_3. //2023-05-16_2
+  - To keep PC5(39pin) as RESET_N under BAP-01. //2023-05-16_3
+  - For BAP-01 ESD, when mute on/off, we need to make that the flash access is only availible on actuall mute(display). //2023-05-16_4
   

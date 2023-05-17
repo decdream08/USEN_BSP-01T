@@ -204,7 +204,9 @@ extern "C"
 #endif //I2C_0_ENABLE
 
 // WatchDog **************/
-//#define WATCHDOG_TIMER_RESET				(1)
+#ifdef USEN_BAP
+#define WATCHDOG_TIMER_RESET					(1) //2023-05-16_1
+#endif
 
 // Model Feature (1/2)********************/
 #ifdef USEN_BT_SPK //Need to Check !!!
@@ -423,6 +425,9 @@ extern "C"
 #ifdef MASTER_MODE_ONLY
 //#define MASTER_MODE_ONLY_DEBUG_MSG				(1)
 #endif
+#ifdef WATCHDOG_TIMER_RESET
+//#define WATCHDOG_TIMER_RESET_DEBUG_MSG			(1)
+#endif
 #endif //_DEBUG_MSG
 
 
@@ -507,6 +512,13 @@ extern Bool B_Master_Is_BAP; //2023-01-09_2
 
 /* Private define ------------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
+
+#ifdef WATCHDOG_TIMER_RESET
+void WDT_ReloadTimeRun(void);
+void WDT_Configure(void);
+void WDT_ResetRun(void);
+void SysTick_Handler_IT(void);
+#endif
 
 /* Initialize all port */
 void Port_Init(void); 

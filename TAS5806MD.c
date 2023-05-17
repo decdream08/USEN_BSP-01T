@@ -814,6 +814,7 @@ void TAS5806MD_Amp_Mute(Bool Mute_On, Bool LED_Display) // First of all, You nee
 	}
 #endif
 #ifdef FLASH_SELF_WRITE_ERASE_EXTENSION
+	if(LED_Display) //2023-05-16_4 : For BAP-01 ESD, when mute on/off, we need to make that the flash access is only availible on actuall mute(display).
 	Flash_Read(FLASH_SAVE_START_ADDR, uRead_Buf, FLASH_SAVE_DATA_END);
 #endif
 
