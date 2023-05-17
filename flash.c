@@ -27,6 +27,10 @@
 #include "bt_MB3021.h"
 #endif
 
+#ifdef WATCHDOG_TIMER_RESET
+#include "A31G21x_hal_wdt.h"
+#endif
+
 #define DRIVER_ERROR_PARAMETER				(FALSE)
 #define DRIVER_ERROR_OK						(TRUE)
 #define FLASH_MEMORY_SIZE					(0x10000)
@@ -344,6 +348,11 @@ void FlashWriteErase(uint8_t *uData, uint8_t uSize)//Execute flash erase and wri
 #endif
 		WDT->CR = wdt_value_mirror;
 	}
+
+#ifdef WATCHDOG_TIMER_RESET
+	WDT_Configure();
+	WDT_ResetRun();//NVIC_EnableIRQ(WDT_IRQn);
+#endif
 }
 
 void FlashSaveData(FLASH_SAVE_DATA data_num, uint8_t data) //Now we save FLASH_SAVE_DATA_END byte data only !!!
@@ -650,6 +659,11 @@ void FlashEraseOnly(void)
 #endif
 		WDT->CR = wdt_value_mirror;
 	}
+
+#ifdef WATCHDOG_TIMER_RESET
+	WDT_Configure();
+	WDT_ResetRun();//NVIC_EnableIRQ(WDT_IRQn);
+#endif
 }
 
 #endif //FLASH_SELF_WRITE_ERASE

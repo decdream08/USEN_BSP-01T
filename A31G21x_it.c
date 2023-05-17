@@ -74,6 +74,9 @@ void PendSV_Handler(void)
 #ifndef TOUCHKEY_ENABLE
 void SysTick_Handler(void)
 {
+#ifdef WATCHDOG_TIMER_RESET
+	SysTick_Handler_IT();
+#endif
 }
 #endif
 

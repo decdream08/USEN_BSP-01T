@@ -15,6 +15,10 @@
 #ifdef TIMER20_COUNTER_ENABLE
 #include "timer20.h"
 
+#ifdef WATCHDOG_TIMER_RESET
+#include "A31G21x_hal_wdt.h"
+#endif
+
 #if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
 #ifdef AD82584F_ENABLE
 #include "ad82584f.h"
@@ -900,8 +904,14 @@ void TIMER20_IRQHandler_IT(void)
 #ifdef TIMER20_DEBUG_MSG
 				TIMER20_Display_Flag();
 #endif
+#ifdef WATCHDOG_TIMER_RESET
+				WDT_ReloadTimeRun();
+#endif
 			}
-			
+#ifdef WATCHDOG_TIMER_RESET_DEBUG_MSG
+				_DBG("\n\rStatus = ");_DBH32(HAL_WDT_GetStatus());
+				_DBG("\n\rCount = ");_DBH32(HAL_WDT_GetCurrentCount());
+#endif
 			timer20_500ms_count++;
 		}
 
@@ -1475,7 +1485,9 @@ void TIMER20_IRQHandler_IT(void)
 				_DBG("\n\r##### aux_detecttion_flag meets 5.3ms condition !!! ");
 #endif
 				aux_detecttion_flag = 0;
+#ifdef AUX_DETECT_INTERRUPT_ENABLE
 				Set_Aux_Detection_flag();
+#endif
 #ifdef MB3021_ENABLE
 				MB3021_BT_Module_Forced_Input_Audio_Path_Setting();
 #endif
