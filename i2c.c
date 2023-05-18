@@ -111,8 +111,11 @@ void I2C_Interrupt_Write_Data(uint8_t uDeviceId, uint8_t uAddr, uint8_t *uData, 
 	I2C_M_SETUP_Type transferMCfg;
 	uint8_t i;
 	uint8_t Master_Buf[BUFFER_SIZE] = {0,}; //BUFFER_SIZE = 10;
-#ifdef SOC_ERROR_ALARM
+#if defined(SOC_ERROR_ALARM) || defined(ESD_ERROR_RECOVERY)
 	uint32_t uCount = 0;
+#ifdef ESD_ERROR_RECOVERY
+	Bool B_Error = FALSE;
+#endif
 #endif
 
 #if defined(USEN_BT_SPK) && !defined(NOT_USE_POWER_DOWN_MUTE) //220217 //2022-10-04_1 : To enable I2C communication under power off mode when we use TAS5806MD due to "Deep Sleep + Mute"
@@ -125,76 +128,114 @@ void I2C_Interrupt_Write_Data(uint8_t uDeviceId, uint8_t uAddr, uint8_t *uData, 
 		return;
 	}
 #endif
-	complete = FALSE;
 
-	/* Make I2C Data */
-	Master_Buf[0]=uAddr; //address
+#ifdef ESD_ERROR_RECOVERY
+	do {
+		if(B_Error)
+			_DBG("\n\rI2C_Interrupt_Write_Data !!! = ");
+
+		B_Error = FALSE;
+#endif //ESD_ERROR_RECOVERY
+		complete = FALSE;
+
+		/* Make I2C Data */
+		Master_Buf[0]=uAddr; //address
 
 #ifdef _I2C_DEBUG_MSG
-	_DBG("\n+++I2C uAddr : \n");
-	_DBH(Master_Buf[0]);
-	_DBG("\n+++I2C Write Data : \n");
+		_DBG("\n+++I2C uAddr : \n");
+		_DBH(Master_Buf[0]);
+		_DBG("\n+++I2C Write Data : \n");
 #endif
-	
+
 #if defined(USEN_BAP) && defined(ADC_INPUT_ENABLE) && !defined(TI_AMP_DSP_VOLUME_CONTROL_ENABLE)
-	if(uAddr == 0x4C && !Is_BAmp_Init()) //2022-11-22_1 //#define TAS5806MD_DAC_GAIN_CONTROL_REG					(0x4C)
-	{
+		if(uAddr == 0x4C && !Is_BAmp_Init()) //2022-11-22_1 //#define TAS5806MD_DAC_GAIN_CONTROL_REG					(0x4C)
+		{
 #ifdef ADC_INPUT_DEBUG_MSG
-		_DBG("\n+++I2C Write Vol = \n");
-		_DBH(uData[0]);
+			_DBG("\n+++I2C Write Vol = \n");
+			_DBH(uData[0]);
 #endif
-		if(uData[0] != 0xff)
+			if(uData[0] != 0xff)
 			uData[0] = uData[0] + uAttenuator_Vol_Value();
 #ifdef ADC_INPUT_DEBUG_MSG
-		_DBG("\n===I2C Write Vol = \n");
-		_DBH(uData[0]);
+			_DBG("\n===I2C Write Vol = \n");
+			_DBH(uData[0]);
 #endif
-	}
-#endif
-
-	for(i=0;i<uDataSize;i++)
-	{
-		Master_Buf[i+1] = uData[i];
-		
-#ifdef _I2C_DEBUG_MSG
-		_DBH(Master_Buf[i+1]);
-		_DBG("\n\r ");
-#endif
-	}
-	
-	/* Set I2C condition */	
-	transferMCfg.sl_addr7bit = uDeviceId;
-	transferMCfg.tx_data = Master_Buf;
-	transferMCfg.tx_length = uDataSize+1; //Need to add address byte
-
-	/* Call I2C function */
-	HAL_I2C_Master_Transmit(I2C0, &transferMCfg, I2C_TRANSFER_INTERRUPT);
-
-	/* Wait until interrupt flag is set */
-	while(!complete){
-#ifdef SOC_ERROR_ALARM
-		if(Get_Cur_Status_LED_Mode() == STATUS_SOC_ERROR_MODE)
-		{
-			return; 
 		}
-		
-		uCount++;
+#endif
 
-		if(uCount == 5000000) // 5000000 = 10sec (100000 = 200ms)
+		for(i=0;i<uDataSize;i++)
 		{
+			Master_Buf[i+1] = uData[i];
+
+#ifdef _I2C_DEBUG_MSG
+			_DBH(Master_Buf[i+1]);
+			_DBG("\n\r ");
+#endif
+		}
+
+		/* Set I2C condition */	
+		transferMCfg.sl_addr7bit = uDeviceId;
+		transferMCfg.tx_data = Master_Buf;
+		transferMCfg.tx_length = uDataSize+1; //Need to add address byte
+
+		/* Call I2C function */
+		HAL_I2C_Master_Transmit(I2C0, &transferMCfg, I2C_TRANSFER_INTERRUPT);
+
+		/* Wait until interrupt flag is set */
+		while(!complete)
+		{
+#ifdef ESD_ERROR_RECOVERY
+			uCount++;
+
+			if(uCount == ESD_ERROR_RECOVERY_TIME) // 5000000 = 10sec (100000 = 200ms)
+			{
+				B_Error = TRUE;
+				//I2C_Configure();
+				//NVIC_ClearPendingIRQ(I2C0_IRQn);
+				//NVIC_EnableIRQ(I2C0_IRQn);
+				//HAL_I2C_DeInit(I2C0);
+				I2C_Configure();
+#ifdef ESD_ERROR_RECOVERY_DEBUG_MSG
+				_DBG("\n\rSOC_ERROR - 4");
+#endif
+
+				break;
+			}
+
+#else //ESD_ERROR_RECOVERY
+#ifdef SOC_ERROR_ALARM
+			if(Get_Cur_Status_LED_Mode() == STATUS_SOC_ERROR_MODE)
+			{
+				return; 
+			}
+
+			uCount++;
+
+			if(uCount == 5000000) // 5000000 = 10sec (100000 = 200ms)
+			{
 #ifdef TIMER21_LED_ENABLE
-			Set_Status_LED_Mode(STATUS_SOC_ERROR_MODE);
+				Set_Status_LED_Mode(STATUS_SOC_ERROR_MODE);
 #endif
 #ifdef SOC_ERROR_ALARM_DEBUG_MSG
-			_DBG("\n\rSOC_ERROR - 4");
+				_DBG("\n\rSOC_ERROR - 4");
 #endif
-			TIMER20_SoC_error_flag_Start();
+				TIMER20_SoC_error_flag_Start();
 
-			return;
-		}		
+				return;
+			}		
 #endif				
-
+#endif //ESD_ERROR_RECOVERY
 		};
+
+
+#ifdef ESD_ERROR_RECOVERY
+	}while(B_Error);
+#endif
+#ifdef ESD_ERROR_RECOVERY_DEBUG_MSG
+	if(B_Error)
+		_DBG("\n\rI2C_Interrupt_Write_Data - End");
+#endif
+
 	__NOP();
 
 }
@@ -204,8 +245,11 @@ void I2C_Interrupt_Read_Data(uint8_t uDeviceId, uint8_t uAddr, uint8_t *uData, u
 	I2C_M_SETUP_Type transferMCfg;
 	uint8_t regAddr = 0, i;
 	uint8_t Master_Buf[BUFFER_SIZE] = {0,}; //BUFFER_SIZE = 10;
-#ifdef SOC_ERROR_ALARM
+#if defined(SOC_ERROR_ALARM) || defined(ESD_ERROR_RECOVERY)
 	uint32_t uCount = 0;
+#ifdef ESD_ERROR_RECOVERY
+	Bool B_Error = FALSE;
+#endif
 #endif
 #if defined(USEN_BT_SPK) && !defined(NOT_USE_POWER_DOWN_MUTE) //220217 2022-10-04_1 : To enable I2C communication under power off mode when we use TAS5806MD due to "Deep Sleep + Mute"
 	if(!Power_State())
@@ -217,43 +261,80 @@ void I2C_Interrupt_Read_Data(uint8_t uDeviceId, uint8_t uAddr, uint8_t *uData, u
 		return;
 	}
 #endif
-	complete = FALSE;
 
-	regAddr = uAddr;
-	transferMCfg.sl_addr7bit = uDeviceId;
-	transferMCfg.tx_data = &regAddr;
-	transferMCfg.tx_length = 1;
-	transferMCfg.rx_data = Master_Buf;
-	transferMCfg.rx_length = uDataSize;//5; //2023-03-10_1 : I2C read size should be depends on data size from calling function.
-	transferMCfg.tx_count = 0;
-	transferMCfg.rx_count = 0;
-	
-	HAL_I2C_MasterTransferData(I2C0, &transferMCfg, I2C_TRANSFER_INTERRUPT);
+#ifdef ESD_ERROR_RECOVERY
+	do{
+		if(B_Error)
+			_DBG("\n\rI2C_Interrupt_Read_Data !!! = ");
 
-	while(!complete){
-#ifdef SOC_ERROR_ALARM
-		if(Get_Cur_Status_LED_Mode() == STATUS_SOC_ERROR_MODE)
+		B_Error = FALSE;
+#endif
+
+		complete = FALSE;
+
+		regAddr = uAddr;
+		transferMCfg.sl_addr7bit = uDeviceId;
+		transferMCfg.tx_data = &regAddr;
+		transferMCfg.tx_length = 1;
+		transferMCfg.rx_data = Master_Buf;
+		transferMCfg.rx_length = uDataSize;//5; //2023-03-10_1 : I2C read size should be depends on data size from calling function.
+		transferMCfg.tx_count = 0;
+		transferMCfg.rx_count = 0;
+		
+		HAL_I2C_MasterTransferData(I2C0, &transferMCfg, I2C_TRANSFER_INTERRUPT);
+
+		while(!complete)
 		{
-			return; 
-		}
+#ifdef ESD_ERROR_RECOVERY
+			uCount++;
+
+			if(uCount == ESD_ERROR_RECOVERY_TIME) // 5000000 = 10sec (100000 = 200ms)
+			{
+				B_Error = TRUE;
+				//I2C_Configure();
+				//NVIC_ClearPendingIRQ(I2C0_IRQn);
+				//NVIC_EnableIRQ(I2C0_IRQn);
+				//HAL_I2C_DeInit(I2C0);
+				I2C_Configure();
+#ifdef ESD_ERROR_RECOVERY_DEBUG_MSG
+				_DBG("\n\rSOC_ERROR - 4");
+#endif
 				
-		uCount++;
+				break;
+			}
 
-		if(uCount == 5000000) // 5000000 = 10sec (100000 = 200ms)
-		{
+#else //ESD_ERROR_RECOVERY
+#ifdef SOC_ERROR_ALARM
+			if(Get_Cur_Status_LED_Mode() == STATUS_SOC_ERROR_MODE)
+			{
+				return; 
+			}
+					
+			uCount++;
+
+			if(uCount == 5000000) // 5000000 = 10sec (100000 = 200ms)
+			{
 #ifdef TIMER21_LED_ENABLE
-			Set_Status_LED_Mode(STATUS_SOC_ERROR_MODE);
+				Set_Status_LED_Mode(STATUS_SOC_ERROR_MODE);
 #endif
 #ifdef SOC_ERROR_ALARM_DEBUG_MSG
-			_DBG("\n\rSOC_ERROR - 5");
+				_DBG("\n\rSOC_ERROR - 5");
 #endif
-			TIMER20_SoC_error_flag_Start();
+				TIMER20_SoC_error_flag_Start();
 
-			return;
-		}
-	
+				return;
+			}
+		
 #endif
-	};
+#endif //ESD_ERROR_RECOVERY
+		};
+#ifdef ESD_ERROR_RECOVERY
+	}while(B_Error);
+#endif
+#ifdef ESD_ERROR_RECOVERY_DEBUG_MSG
+	if(B_Error)
+		_DBG("\n\rI2C_Interrupt_Read_Data - End");
+#endif
 
 	__NOP();
 	

@@ -38,10 +38,12 @@
 
 #include "../../main_conf.h" //SOC_ERROR_ALARM
 
-#ifdef SOC_ERROR_ALARM
+#if defined(SOC_ERROR_ALARM) || defined(ESD_ERROR_RECOVERY)
 #include "A31G21x_hal_debug_frmwrk.h"
+#ifdef SOC_ERROR_ALARM
 #include "../../led_display.h"
 #include "../../timer20.h"
+#endif //SOC_ERROR_ALARM
 #endif
 
 /* Private Types -------------------------------------------------------------- */
@@ -447,7 +449,7 @@ Status HAL_I2C_MasterTransferData(I2C_Type* I2Cx, I2C_M_SETUP_Type *TransferCfg,
 	int32_t tmp;
 	uint32_t exitflag;
 	int32_t Ret;
-#ifdef SOC_ERROR_ALARM
+#if defined(SOC_ERROR_ALARM) || defined(ESD_ERROR_RECOVERY)
 	uint32_t uCount = 0;
 #endif
 
@@ -456,6 +458,17 @@ Status HAL_I2C_MasterTransferData(I2C_Type* I2Cx, I2C_M_SETUP_Type *TransferCfg,
 	TransferCfg->rx_count = 0;
 
 	while(I2Cx->ST&0x04){
+#ifdef ESD_ERROR_RECOVERY
+				uCount++;
+				
+				if(uCount == ESD_ERROR_RECOVERY_TIME) // 5000000 = 10sec (100000 = 200ms)
+				{
+#ifdef ESD_ERROR_RECOVERY_DEBUG_MSG
+					_DBG("\n\rSOC_ERROR - 1");
+#endif
+					return ERROR;
+				}
+#else //ESD_ERROR_RECOVERY
 #ifdef SOC_ERROR_ALARM
 				if(Get_Cur_Status_LED_Mode() == STATUS_SOC_ERROR_MODE)
 				{
@@ -478,8 +491,13 @@ Status HAL_I2C_MasterTransferData(I2C_Type* I2Cx, I2C_M_SETUP_Type *TransferCfg,
 				}
 			
 #endif
+#endif //ESD_ERROR_RECOVERY
 	};	// busy check //?
 	
+#if defined(SOC_ERROR_ALARM) || defined(ESD_ERROR_RECOVERY)
+	uCount = 0;
+#endif
+
 	if (Opt == I2C_TRANSFER_POLLING)
 	{
 		/* First Start condition -------------------------------------------------------------- */
@@ -541,6 +559,17 @@ Status HAL_I2C_MasterTransferData(I2C_Type* I2Cx, I2C_M_SETUP_Type *TransferCfg,
 						exitflag=0;
 					}
 				}
+#ifdef ESD_ERROR_RECOVERY
+#ifdef ESD_ERROR_RECOVERY_DEBUG_MSG
+		_DBG("\n\rSOC_ERROR - 2");
+#endif
+				uCount++;
+				
+				if(uCount == ESD_ERROR_RECOVERY_TIME) // 5000000 = 10sec (100000 = 200ms)
+				{
+					return ERROR;
+				}
+#else //ESD_ERROR_RECOVERY
 #ifdef SOC_ERROR_ALARM
 				if(Get_Cur_Status_LED_Mode() == STATUS_SOC_ERROR_MODE)
 				{
@@ -562,10 +591,14 @@ Status HAL_I2C_MasterTransferData(I2C_Type* I2Cx, I2C_M_SETUP_Type *TransferCfg,
 					return ERROR; 
 				}		
 #endif
-
+#endif //ESD_ERROR_RECOVERY
 			}
 		}
 		
+#if defined(SOC_ERROR_ALARM) || defined(ESD_ERROR_RECOVERY)
+	uCount = 0;
+#endif
+
 		if(TransferCfg->rx_count < TransferCfg->rx_length){
 			I2Cx->DR = ((TransferCfg->sl_addr7bit << 1) | 0x01); 
 			I2Cx->CR|=(1<<0);	// START			
@@ -618,6 +651,17 @@ Status HAL_I2C_MasterTransferData(I2C_Type* I2Cx, I2C_M_SETUP_Type *TransferCfg,
 				if(TransferCfg->rx_count == TransferCfg->rx_length){
 					exitflag=0;					
 				}
+#ifdef ESD_ERROR_RECOVERY
+#ifdef ESD_ERROR_RECOVERY_DEBUG_MSG
+				_DBG("\n\rSOC_ERROR - 3");
+#endif
+				uCount++;
+				
+				if(uCount == ESD_ERROR_RECOVERY_TIME) // 5000000 = 10sec (100000 = 200ms)
+				{
+					return ERROR;
+				}
+#else //ESD_ERROR_RECOVERY
 #ifdef SOC_ERROR_ALARM
 				if(Get_Cur_Status_LED_Mode() == STATUS_SOC_ERROR_MODE)
 				{
@@ -639,6 +683,7 @@ Status HAL_I2C_MasterTransferData(I2C_Type* I2Cx, I2C_M_SETUP_Type *TransferCfg,
 					return ERROR;
 				}		
 #endif				
+#endif //ESD_ERROR_RECOVERY
 			}
 			
 			I2Cx->CR|=(1<<1);	// STOP

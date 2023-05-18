@@ -464,3 +464,10 @@
   - To keep PC5(39pin) as RESET_N under BAP-01. //2023-05-16_3
   - For BAP-01 ESD, when mute on/off, we need to make that the flash access is only availible on actuall mute(display). //2023-05-16_4
   
+## 2023-05-17 (BAP-01) - ESD
+  - To SW1_KEY chattering under BAP-01. //2023-05-17_1  
+  
+## 2023-05-18 (BAP-01) - ESD
+  - Implemented ESD Error Recovery under BAP-01. Please refer to ESD_ERROR_RECOVERY. //2023-05-18_1
+  
+  

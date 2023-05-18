@@ -545,23 +545,24 @@ void SysTick_Handler_IT (void)
  **********************************************************************/
 void WDT_Configure(void)
 {
-  /*WDT clock source from WDTRC. WDTRC must set LSI clock enable!!*/
+  	/* WDT clock source from WDTRC. WDTRC must set LSI clock enable!!*/
 	HAL_SCU_LSI_ClockConfig(LSIOSC_EN);
 	HAL_SCU_WDT_ClockConfig(WDTCLK_WDTRC);	// 31250 hz	
 
 	HAL_SCU_SetResetSrc(RST_WDTRST, ENABLE);
 	HAL_SCU_ClearResetStatus(0xff); // clear all reset status 
 
-  /*	WDTDR(0.5s) < WDTWDR(1s), clear in 900ms */
+	/* WDTDR(0.5s) < WDTWDR(1s), clear in 900ms */
 	wdtCfg.wdtResetEn = ENABLE;
-	wdtCfg.wdtClkDiv = WDT_DIV_4;  	
+	wdtCfg.wdtClkDiv = WDT_DIV_4; 
 #ifdef USEN_BAP //2023-05-16_1
-	wdtCfg.wdtTmrConst = (7812*20)/2; 	// 10s
-	wdtCfg.wdtWTmrConst = 7812*20; 		//20s
+	wdtCfg.wdtTmrConst = (7812*60)/2; 	// 30s //wdtCfg.wdtTmrConst = (7812*20)/2; 	// 10s
+	wdtCfg.wdtWTmrConst = 7812*60; 		//60s //wdtCfg.wdtWTmrConst = 7812*20; 		//20s
 #else
 	wdtCfg.wdtTmrConst = (7812*60)/2; 	// 30s    //7812/2; 		// 0.5s    @31250
 	wdtCfg.wdtWTmrConst = 7812*60; 		//60s	 	//7812; 		// 1s
 #endif
+
 	if(HAL_WDT_Init(wdtCfg)!= HAL_OK)
 	{
 		/* Initialization Error */
@@ -607,7 +608,7 @@ void WDT_ReloadTimeRun(void)
 	//msec = 900; 
 	//while(msec);
 	
-#ifdef COMMON_DEBUG_MSG
+#ifdef WATCHDOG_TIMER_RESET_DEBUG_MSG
 	_DBG("\n\rWDT_ReloadTimeRun !!!");
 #endif
 	HAL_WDT_ReloadTimeCounter();
@@ -811,7 +812,7 @@ void mainloop(void)
 			FlashSaveData(FLASH_SAVE_GENERAL_MODE_KEEP, 1); //Save GENERAL MODE Status(GENERAL Mode/GIA Mode) to Flash
 		}
 	
-		BBT_Pairing_Key_In = TRUE;		
+		BBT_Pairing_Key_In = TRUE;	
 #endif
 	}
 #ifndef MASTER_MODE_ONLY
@@ -894,7 +895,7 @@ void mainloop(void)
 		{
 #if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
 #ifdef AD82584F_ENABLE
-	AD82584F_Amp_Mute(TRUE, FALSE); //Power Mute On
+			AD82584F_Amp_Mute(TRUE, FALSE); //Power Mute On
 #else //TAS5806MD_ENABLE
 			TAS5806MD_Amp_Mute(TRUE, FALSE); //Power Mute On
 #endif //AD82584F_ENABLE
@@ -907,7 +908,7 @@ void mainloop(void)
 #endif
 #if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
 #ifdef AD82584F_ENABLE
-	AD82584F_Amp_Mute(TRUE, FALSE); //Power Mute On
+		AD82584F_Amp_Mute(TRUE, FALSE); //Power Mute On
 #else //TAS5806MD_ENABLE
 		TAS5806MD_Amp_Mute(TRUE, FALSE); //Power Mute On
 #endif //AD82584F_ENABLE
@@ -1014,7 +1015,7 @@ void mainloop(void)
 							for(i=1;i<51;i++)
 #endif //ADC_VOLUME_64_STEP_ENABLE
 							{
-								B_Update = FALSE; //2023-02-06_3 
+								B_Update = FALSE; //2023-02-06_3 	
 #ifdef ADC_VOLUME_64_STEP_ENABLE
 								ADC_Level_Min = (i-1)*4; //0 4 8
 								ADC_Level_Max = (i*4)-1; //3 7 11 //2023-02-06_3 : To make ADC Gap
@@ -1101,7 +1102,7 @@ void mainloop(void)
 							if(B_Update) //2023-02-06_3
 							{
 #ifdef ADC_VOLUME_64_STEP_ENABLE //2023-02-06_3 : If cur volume level is not different with previous one, we need to update it
-								uCurVolLevel = 64 - i; //0 ~ 63(64 Step / 0 - MAX)							
+								uCurVolLevel = 64 - i; //0 ~ 63(64 Step / 0 - MAX)
 #else //2023-02-27_3 : Changed ADC volume step from 64 step to 50 step.
 								uCurVolLevel = 50 - i;
 #endif
@@ -1203,7 +1204,7 @@ void mainloop(void)
 									else
 									{
 										uCurAttenuator = Convert_ADC_To_Attenuator(i);
-										
+
 										if(uCurAttenuator > uAttenuator_Vol)
 										{
 											if((uCurAttenuator - uAttenuator_Vol) > 1)
@@ -1684,9 +1685,9 @@ void GPIOCD_IRQHandler_IT2(void)
 			{
 #ifdef AUX_CHATTERING_ENABLE
 				delay_ms(80); //2023-04-28_3 : Changed Aux detection check delay from 40ms to 80ms. //For Aux Chattering
-			
-			if(!(HAL_GPIO_ReadPin(PC) & (1<<3)) )//PC3 : Low -Aux In
-			{
+				
+				if(!(HAL_GPIO_ReadPin(PC) & (1<<3)) )//PC3 : Low -Aux In
+				{
 					if(!Aux_In_Exist())
 					{
 						B_AUX_DET = TRUE; //TURE -Aux In
@@ -1931,9 +1932,20 @@ void GPIOAB_IRQHandler_IT(void)
 				else
 #endif
 				{
-					cur_button_status = button_release; //High -> Low
-					key = SW1_KEY;
-					B_Auto_AUX_Mode = TRUE; //Auto Aux Mode //B_Auto_AUX_Mode = FALSE; //Aux Fixed Mode //2022-12-20_2
+					if(!B_Auto_AUX_Mode) //2023-05-17_1 : To SW1_KEY chattering under BAP-01
+					{
+#ifdef SWITCH_BUTTON_KEY_ENABLE_DEBUG_MSG
+						_DBG("\n\rSW1_KEY : Auto Aux Mode");
+#endif
+						cur_button_status = button_release; //High -> Low
+						key = SW1_KEY;
+						B_Auto_AUX_Mode = TRUE; //Auto Aux Mode //B_Auto_AUX_Mode = FALSE; //Aux Fixed Mode //2022-12-20_2
+					}
+					else
+					{
+						shift_bit = 0xffffffff;
+						key = NONE_KEY;
+					}
 				}
 			}
 			else //status == 0x00000002
@@ -1947,9 +1959,15 @@ void GPIOAB_IRQHandler_IT(void)
 				else
 #endif
 				{
-					cur_button_status = button_release; //Low -> High
-					key = SW1_KEY;
-					B_Auto_AUX_Mode = FALSE; //Aux Fixed Mode //B_Auto_AUX_Mode = TRUE; //Auto Aux Mode //2022-12-20_2
+					if(B_Auto_AUX_Mode) //2023-05-17_1 : To SW1_KEY chattering under BAP-01
+					{
+#ifdef SWITCH_BUTTON_KEY_ENABLE_DEBUG_MSG
+						_DBG("\n\rSW1_KEY : Aux Fixed Mode");
+#endif
+						cur_button_status = button_release; //Low -> High
+						key = SW1_KEY;
+						B_Auto_AUX_Mode = FALSE; //Aux Fixed Mode //B_Auto_AUX_Mode = TRUE; //Auto Aux Mode //2022-12-20_2
+					}
 				}
 			}
 
@@ -2141,7 +2159,7 @@ void GPIOAB_IRQHandler_IT(void)
 			clear_bit = status & 0x0000000c;
 		}
 #endif //MASTER_MODE_ONLY
-                else if(status & 0x00003000) //PA6 : POWER_Off(short)/POWER_ON(Long) //Implemented Power Key Feature //2022-10-07_3
+        else if(status & 0x00003000) //PA6 : POWER_Off(short)/POWER_ON(Long) //Implemented Power Key Feature //2022-10-07_3
 		{
 			shift_bit = 12;
 
@@ -2242,7 +2260,7 @@ void GPIOAB_IRQHandler_IT(void)
 #endif
 				if(key != NONE_KEY)
 				{
-#ifdef VOLUME_KEY_FILTERING
+#ifdef VOLUME_KEY_FILTERING					
 					if(key == key_bk)
 					{
 						if((filtering_time - filtering_time_old) <= KEY_FILTERING_TIME)
@@ -2765,7 +2783,7 @@ void GPIOAB_IRQHandler_IT(void)
 #endif
 				if(key != NONE_KEY)
 				{
-#ifdef VOLUME_KEY_FILTERING
+#ifdef VOLUME_KEY_FILTERING			
 					if(key == key_bk)
 					{
 						if((filtering_time - filtering_time_old) <= KEY_FILTERING_TIME)
@@ -3171,7 +3189,7 @@ void GPIOF_IRQHandler_IT(void)
 				_DBG("\n\rDAMP_ERROR - ERROR");
 #endif
 #ifdef SOC_ERROR_ALARM_DEBUG_MSG
-                                _DBG("\n\rSOC_ERROR - 6");
+                _DBG("\n\rSOC_ERROR - 6");
 #endif
 #ifdef TAS5806MD_ENABLE
 				if(!Is_BAmp_Init()) //2023-02-21_5 : We can't access TI AMP during TI AMP initializing.
@@ -3555,7 +3573,7 @@ void GPIO_Configure(void)
 #ifdef _DEBUG_MSG //2023-05-12_1 : #ifndef _DEBUG_MSG //If we don't use DEBUG_MSG, we need to set some GPIO like below. Becasue these GPIOs can avoid USART10 UART error. But we don't know why.
 	HAL_GPIO_ConfigOutput(PB, 7, ALTERN_FUNC); //RX1
 	HAL_GPIO_ConfigFunction(PB, 7, FUNC1);
-	HAL_GPIO_ConfigPullup(PB, 7, 1);
+	HAL_GPIO_ConfigPullup(PB, 7, 1); 
 
 	HAL_GPIO_ConfigOutput(PB, 6, ALTERN_FUNC); //TX1
 	HAL_GPIO_ConfigFunction(PB, 6, FUNC1);
@@ -3566,7 +3584,7 @@ void GPIO_Configure(void)
 	HAL_GPIO_SetPin(PA, _BIT(5)); //+3.3V_DAMP_SW_1
 	delay_ms(20);
 	HAL_GPIO_SetPin(PD, _BIT(4)); //+24V_DAMP_SW
-	delay_ms(20);	
+	delay_ms(20);
 	HAL_GPIO_SetPin(PF, _BIT(4)); //DAMP_PDN
 
 	/* GPIO Output setting PC4 - +3.3V_SIG_SW */

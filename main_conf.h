@@ -56,6 +56,7 @@ extern "C"
 #define USEN_BT_SPK				(1)
 #define AMP_ERROR_ALARM			(1)
 #define ADC_VOLUME_STEP_ENABLE			(1) //2023-01-04
+#define ESD_ERROR_RECOVERY		(1) //2023-05-18_1 : For ESD Error Recovery under BAP-01
 #ifdef ADC_VOLUME_STEP_ENABLE //2023-02-27 : Changed ADC volume step from 64 step to 50 step.
 //#define ADC_VOLUME_64_STEP_ENABLE				(1)
 #define ADC_VOLUME_50_STEP_ENABLE				(1)
@@ -428,10 +429,16 @@ extern "C"
 #ifdef WATCHDOG_TIMER_RESET
 //#define WATCHDOG_TIMER_RESET_DEBUG_MSG			(1)
 #endif
+#ifdef ESD_ERROR_RECOVERY
+//#define ESD_ERROR_RECOVERY_DEBUG_MSG				(1)
+#endif
 #endif //_DEBUG_MSG
 
-
 // End Define *************************************************/
+
+#ifdef ESD_ERROR_RECOVERY
+#define ESD_ERROR_RECOVERY_TIME           (500000)	//1sec // (5000000/2) // 5000000 = 10sec (100000 = 200ms)
+#endif
 
 typedef enum {
 	Mute_Status_Mute,
