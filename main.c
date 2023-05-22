@@ -1744,11 +1744,16 @@ void GPIOCD_IRQHandler_IT2(void)
 #ifdef SLAVE_ADD_MUTE_DELAY_ENABLE
 			MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x02);
 #endif
-#ifdef AD82584F_ENABLE
-			AD82584F_Amp_Mute(TRUE, FALSE); //MUTE ON
-#else //TAS5806MD_ENABLE
-			TAS5806MD_Amp_Mute(TRUE, FALSE); //MUTE ON
+#ifdef USEN_BAP //2023-05-19_1 : Under BAP-01 Aux mode, customer wants to output audio at once when user change BT to Aux.
+			if(!Aux_In_Exist())
 #endif
+			{
+#ifdef AD82584F_ENABLE
+				AD82584F_Amp_Mute(TRUE, FALSE); //MUTE ON
+#else //TAS5806MD_ENABLE
+				TAS5806MD_Amp_Mute(TRUE, FALSE); //MUTE ON
+#endif
+			}
 #endif
 #ifdef TWS_MODE_ENABLE
 			if(Get_Cur_LR_Stereo_Mode() == Switch_LR_Mode) //2022-11-17_2
@@ -1765,7 +1770,11 @@ void GPIOCD_IRQHandler_IT2(void)
 				}
 			}
 #endif
+#ifdef USEN_BAP //2023-05-19_1 : Under BAP-01 Aux mode, customer wants to output audio at once when user change BT to Aux.
+			Set_MB3021_BT_Module_Source_Change_Direct();
+#else
 			Set_MB3021_BT_Module_Source_Change();
+#endif
 		}
 #endif
 

@@ -445,7 +445,7 @@
   - Under BAP-01, we need to add power check condition for Power key chattering. //2023-05-04_5
   
 ## 2023-05-09 (BAP-01)
-  - Reduced the checking time from 5.3s to 2.6s //2023-05-09_1
+  - Reduced the checking time from 5.3s to 2.6s for changing BT <--> Aux. //2023-05-09_1
   - Changed DRC Table for BAP-01(Normal/Pop) //2023-05-09_2
 
 ## 2023-05-12_1 (BAP-01) - ESD
@@ -470,4 +470,5 @@
 ## 2023-05-18 (BAP-01) - ESD
   - Implemented ESD Error Recovery under BAP-01. Please refer to ESD_ERROR_RECOVERY. //2023-05-18_1
   
-  
+## 2023-05-19 (BAP-01)
+  - Under BAP-01 Aux mode, customer wants to output audio at once when user change BT to Aux. //2023-05-19_1

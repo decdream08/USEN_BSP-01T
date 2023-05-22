@@ -680,7 +680,7 @@ void TIMER20_auto_power_flag_Start(void) //This feature is only available under 
 
 void TIMER20_auto_power_flag_Stop()
 {
-#ifdef TIMER20_DEBUG_MSG
+#ifdef AUTO_ONOFF_DEBUG_MSG
 	_DBG("\n\rTIMER20_auto_power_flag_Stop() !!! ");
 #endif
 	auto_power_flag = 0;
@@ -1142,8 +1142,9 @@ void TIMER20_IRQHandler_IT(void)
 			
 				mode = Get_Cur_Master_Slave_Mode();
 #endif
-				//_DBG("\n\rAuto Power Off !!! ");
-				
+#ifdef AUTO_ONOFF_DEBUG_MSG
+				_DBG("\n\rAuto Power Off !!! ");
+#endif
 				auto_power_flag = 0;
 				auto_power_off = TRUE;
 #ifndef MASTER_MODE_ONLY

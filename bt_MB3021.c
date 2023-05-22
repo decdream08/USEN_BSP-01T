@@ -377,7 +377,7 @@ typedef enum {
 
 //Variable
 #ifdef VERSION_INFORMATION_SUPPORT
-char MCU_Version[6] = "230518"; //MCU Version Info
+char MCU_Version[6] = "230519"; //MCU Version Info
 #ifdef SPP_EXTENSION_V50_ENABLE
 char BT_Version[7]; //MCU Version Info
 #endif
@@ -4261,11 +4261,16 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 #ifdef SLAVE_ADD_MUTE_DELAY_ENABLE
 								MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x02);
 #endif
+#ifdef USEN_BAP //2023-05-19_1 : Under BAP-01 Aux mode, customer wants to output audio at once when user change BT to Aux.
+								if(!Aux_In_Exist())
+#endif
+								{
 #ifdef AD82584F_ENABLE
-								AD82584F_Amp_Mute(TRUE, FALSE); //Mute On	
+									AD82584F_Amp_Mute(TRUE, FALSE); //Mute On	
 #else //AD82584F_ENABLE
-								TAS5806MD_Amp_Mute(TRUE, FALSE); //Mute On	
+									TAS5806MD_Amp_Mute(TRUE, FALSE); //Mute On
 #endif //TAS5806MD_ENABLE
+								}
 							}
 #endif //#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
 						}
