@@ -30,7 +30,7 @@ typedef enum {
 /* Private function prototypes -----------------------------------------------*/
 
 
-#ifdef USEN_IT_AMP_EQ_ENABLE //2023-05-09_2
+#ifdef USEN_TI_AMP_EQ_ENABLE //2023-05-09_2
 void TIMER20_drc_eq_set_flag_start(void);
 void TIMER20_drc_eq_set_flag_stop(void);
 #endif

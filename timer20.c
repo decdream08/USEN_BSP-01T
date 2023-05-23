@@ -108,11 +108,11 @@ int32_t tws_grouping_send_flag = 0; //2023-02-20_2
 int32_t aux_detecttion_flag = 0;
 #endif
 
-#ifdef USEN_IT_AMP_EQ_ENABLE //2023-05-09_2
+#ifdef USEN_TI_AMP_EQ_ENABLE //2023-05-09_2
 int32_t drc_eq_set_recovery_flag = 0;
 #endif
 
-#ifdef USEN_IT_AMP_EQ_ENABLE //2023-05-09_2
+#ifdef USEN_TI_AMP_EQ_ENABLE //2023-05-09_2
 void TIMER20_drc_eq_set_flag_start(void)
 {
 #ifdef TIMER20_DEBUG_MSG
@@ -1465,6 +1465,9 @@ void TIMER20_IRQHandler_IT(void)
 #ifdef TIMER20_DEBUG_MSG
 						_DBG("\n\r+++ Mute off using user_eq_mute_flag !!!");
 #endif					
+#ifdef USE_TI_AMP_HI_Z_MUTE //2023-05-22_1
+						if(mute_flag == 0)
+#endif
 						TAS5806MD_Amp_Mute(FALSE, FALSE); //MUTE OFF
 
 #endif //TAS5806MD_ENABLE
@@ -1623,7 +1626,7 @@ void TIMER20_IRQHandler_IT(void)
 		}
 #endif
 
-#ifdef USEN_IT_AMP_EQ_ENABLE //2023-05-09_2 : To recovery DRC/EQ Setting
+#ifdef USEN_TI_AMP_EQ_ENABLE //2023-05-09_2 : To recovery DRC/EQ Setting
 		if(drc_eq_set_recovery_flag && !Is_BAmp_Init())
 		{
 			if(drc_eq_set_recovery_flag == 3) //check time 200ms

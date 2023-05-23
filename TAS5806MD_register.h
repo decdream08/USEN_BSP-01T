@@ -357,7 +357,7 @@ const uint8_t TAS5806MD_EQ_Table_BAP_NORMAL_MODE[][2] = //2023-03-28_6 : Added E
 };
 #endif //2023-04-28_1
 
-#ifdef USEN_IT_AMP_EQ_ENABLE //2023-03-02_2 //2023-02-27_1
+#ifdef USEN_TI_AMP_EQ_ENABLE //2023-03-02_2 //2023-02-27_1
 const uint8_t TAS5806MD_EQ_Table_NORMAL[][2] = 
 {
 	{ 0x18, 0x08 }, //  Biquad -  BQ1 Left   -     Filter: Peaking EQ  Frequency: 85.71 Hz  Gain: 5dB  QVal: 3  Bandwidth: 1000 Hz
@@ -2929,7 +2929,7 @@ const uint8_t TAS5806MD_DRC_Table_POP_ROCK[][2] =
     { 0x7f, 0x00 }
 };
 #endif //USEN_BAP
-#endif //USEN_IT_AMP_EQ_ENABLE
+#endif //USEN_TI_AMP_EQ_ENABLE
 
 
 //TAS5806_DEVICE_ADDR_15K = (0x2D), //8bit - 0x5A
@@ -5183,7 +5183,7 @@ const uint8_t TAS5806MD_registers[][2] =
     { 0x30, 0x00 },
     { 0x4c, DAC_GAIN_DEFAULT_VALUE },
     { 0x77, 0xff }, // Headphone
-    { 0x03, 0x0b }, //MUTE - bit3 : 1 //Set Default Amp Mute after Amp init //2022-10-12_1
+    { 0x03, 0x0a }, //2023-05-22_1(USE_TI_AMP_HI_Z_MUTE) : Defualt setting of audio output is Hi-Z //{ 0x03, 0x0b }, //MUTE - bit3 : 1 //Set Default Amp Mute after Amp init //2022-10-12_1
     //{ 0x74, 0xff }, //FAULT PIN CONTROL1 setting //2022-10-25_1
     //{ 0x75, 0x3c }, //FAULT PIN CONTROL2 setting //2022-10-25_1
     //{ 0x76, 0x10 }, //MICS_ONCTROL(OTSD_AUTO_REC_EN) setting //2022-10-25_1

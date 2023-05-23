@@ -95,7 +95,7 @@ static Bool Display_Mute = FALSE;
 Bool volatile BAmp_Init = TRUE; //2023-02-21_5 : To aovid AMP access after boot on
 Bool volatile BAmp_COM = FALSE; //2023-02-27_3 : To check whether AMP is busy(can't access - TRUE) or not(FALSE)
 
-#ifdef USEN_IT_AMP_EQ_ENABLE //2023-04-28_1 : To apply BSP-01T EQ Setting to BAP-01 under EQ BSP Mode //#if !defined(USEN_BAP) && defined(USEN_IT_AMP_EQ_ENABLE)  //2023-03-08_3
+#ifdef USEN_TI_AMP_EQ_ENABLE //2023-04-28_1 : To apply BSP-01T EQ Setting to BAP-01 under EQ BSP Mode //#if !defined(USEN_BAP) && defined(USEN_TI_AMP_EQ_ENABLE)  //2023-03-08_3
 static EQ_Mode_Setting Cur_EQ_Mode = EQ_NORMAL_MODE;
 #endif
 
@@ -411,7 +411,7 @@ const uint8_t TAS5806MD_AGL_Table[][2] =
 };
 #endif
 
-#ifdef USEN_IT_AMP_EQ_ENABLE //2023-05-09_2
+#ifdef USEN_TI_AMP_EQ_ENABLE //2023-05-09_2
 void TAS5806MD_Set_Cur_EQ_DRC_Mode(void)
 {
 	TAS5806MD_Amp_EQ_DRC_Control(Cur_EQ_Mode);
@@ -544,11 +544,11 @@ void TAS5806MD_Amp_Init(void)
 	Display_Mute = FALSE;
 #endif
 #endif
-	
+#ifndef USE_TI_AMP_HI_Z_MUTE //2023-05-22_1
 	TAS5806MD_Amp_Reset(TRUE);
 	delay_ms(10);
 	TAS5806MD_Amp_Reset(FALSE);
-
+#endif
 	//Write TAS5806MD_Init	
 	uSize = sizeof(TAS5806MD_registers)/2;
 
@@ -660,7 +660,7 @@ void TAS5806MD_Amp_Init(void)
 				break;
 			}
 		}		
-#ifndef USEN_IT_AMP_EQ_ENABLE //2023-02-27_1 : Move to down side
+#ifndef USEN_TI_AMP_EQ_ENABLE //2023-02-27_1 : Move to down side
 		TAS5806MD_Amp_EQ_DRC_Control(EQ_NORMAL_MODE); //DRC / EQ Setting
 #endif
 #endif //TI_AMP_DSP_VOLUME_CONTROL_ENABLE
@@ -677,7 +677,7 @@ void TAS5806MD_Amp_Init(void)
 		_DBG("\n\r#### Flash Data : Find Volume Level");
 #endif
 
-#ifdef USEN_IT_AMP_EQ_ENABLE //#if defined(USEN_BAP) && defined(USEN_IT_AMP_EQ_ENABLE) //2023-04-25_1 : Need to set EQ Mode after AMP Init
+#ifdef USEN_TI_AMP_EQ_ENABLE //#if defined(USEN_BAP) && defined(USEN_TI_AMP_EQ_ENABLE) //2023-04-25_1 : Need to set EQ Mode after AMP Init
 		TAS5806MD_Amp_EQ_DRC_Control(Cur_EQ_Mode); //2023-05-02_2 : To keep current EQ mode under Amp init //(EQ_NORMAL_MODE); //DRC / EQ Setting
 #endif
 
@@ -703,7 +703,7 @@ void TAS5806MD_Amp_Init(void)
 	_DBH(uRead);
 #endif
 
-#ifdef USEN_IT_AMP_EQ_ENABLE //2023-02-27_1
+#ifdef USEN_TI_AMP_EQ_ENABLE //2023-02-27_1
 	TAS5806MD_Amp_EQ_DRC_Control(EQ_NORMAL_MODE); //DRC / EQ Setting
 #endif
 
@@ -843,9 +843,16 @@ void TAS5806MD_Amp_Mute(Bool Mute_On, Bool LED_Display) // First of all, You nee
 #endif
 		}
 #ifdef NOT_USE_POWER_DOWN_MUTE
+#ifdef USE_TI_AMP_HI_Z_MUTE //2023-05-22_1
+		//Set Mute On using Hi-Z
+		uRead |= TAS5806MD_MUTE_ON;
+		I2C_Interrupt_Write_Data(TAS5806MD_I2C_ADDR, TAS5806MD_MUTE_CONTROL_REG,&uRead,1);
+		TAS5806MD_Amp_Set_PWR_Control_Mode(TAS5806MD_PWR_Mode_HIZ);
+#else //USE_TI_AMP_HI_Z_MUTE
 		//Set Mute On
 		uRead |= TAS5806MD_MUTE_ON;
 		I2C_Interrupt_Write_Data(TAS5806MD_I2C_ADDR, TAS5806MD_MUTE_CONTROL_REG,&uRead,1);
+#endif //USE_TI_AMP_HI_Z_MUTE
 #else //NOT_USE_POWER_DOWN_MUTE
 		HAL_GPIO_ClearPin(PF, _BIT(4)); //DAMP_PDN : ON //Mute On
 #endif //NOT_USE_POWER_DOWN_MUTE
@@ -882,10 +889,16 @@ void TAS5806MD_Amp_Mute(Bool Mute_On, Bool LED_Display) // First of all, You nee
 #ifdef MUTE_CHECK_DEBUG_MSG	
 			_DBG("\n\rMute Off - Actual Mute Off !!!");
 #endif
-
+#ifdef USE_TI_AMP_HI_Z_MUTE //2023-05-22_1
 			//Set Mute Off
 			uRead &= TAS5806MD_MUTE_OFF;
 			I2C_Interrupt_Write_Data(TAS5806MD_I2C_ADDR, TAS5806MD_MUTE_CONTROL_REG,&uRead,1);
+			TAS5806MD_Amp_Set_PWR_Control_Mode(TAS5806MD_PWR_Mode_PLAY);
+#else //USE_TI_AMP_HI_Z_MUTE
+			//Set Mute Off
+			uRead &= TAS5806MD_MUTE_OFF;
+			I2C_Interrupt_Write_Data(TAS5806MD_I2C_ADDR, TAS5806MD_MUTE_CONTROL_REG,&uRead,1);
+#endif //USE_TI_AMP_HI_Z_MUTE
 		}
 #else //NOT_USE_POWER_DOWN_MUTE
 		HAL_GPIO_SetPin(PF, _BIT(4)); //DAMP_PDN : OFF //Mute Off
@@ -1026,9 +1039,17 @@ void TAS5806MD_Amp_Mute_Toggle(void) //Toggle
 			FlashSaveData(FLASH_SAVE_DATA_MUTE, 1); //Save mute on status to Flash
 #endif
 #ifdef NOT_USE_POWER_DOWN_MUTE
+#ifdef USE_TI_AMP_HI_Z_MUTE //2023-05-22_1
+		//Set Mute On using Hi-Z
+		uRead |= TAS5806MD_MUTE_ON;
+		I2C_Interrupt_Write_Data(TAS5806MD_I2C_ADDR, TAS5806MD_MUTE_CONTROL_REG,&uRead,1);
+		TAS5806MD_Amp_Set_PWR_Control_Mode(TAS5806MD_PWR_Mode_HIZ);
+#else //USE_TI_AMP_HI_Z_MUTE
 		//Set Mute On
 		uRead |= TAS5806MD_MUTE_ON;
 		I2C_Interrupt_Write_Data(TAS5806MD_I2C_ADDR, TAS5806MD_MUTE_CONTROL_REG,&uRead,1);
+#endif //USE_TI_AMP_HI_Z_MUTE
+
 #else //NOT_USE_POWER_DOWN_MUTE
 		HAL_GPIO_ClearPin(PF, _BIT(4)); //DAMP_PDN : ON
 #endif //NOT_USE_POWER_DOWN_MUTE
@@ -1061,9 +1082,16 @@ void TAS5806MD_Amp_Mute_Toggle(void) //Toggle
 #ifdef MUTE_CHECK_DEBUG_MSG	
 			_DBG("\n\rMute Off for Actual Mute Key - Actual Mute Off !!!");
 #endif
+#ifdef USE_TI_AMP_HI_Z_MUTE //2023-05-22_1
 			//Set Mute Off
 			uRead &= TAS5806MD_MUTE_OFF;
 			I2C_Interrupt_Write_Data(TAS5806MD_I2C_ADDR, TAS5806MD_MUTE_CONTROL_REG,&uRead,1);
+			TAS5806MD_Amp_Set_PWR_Control_Mode(TAS5806MD_PWR_Mode_PLAY);
+#else //USE_TI_AMP_HI_Z_MUTE
+			//Set Mute Off
+			uRead &= TAS5806MD_MUTE_OFF;
+			I2C_Interrupt_Write_Data(TAS5806MD_I2C_ADDR, TAS5806MD_MUTE_CONTROL_REG,&uRead,1);
+#endif //USE_TI_AMP_HI_Z_MUTE
 		}
 #else //NOT_USE_POWER_DOWN_MUTE
 		HAL_GPIO_SetPin(PF, _BIT(4)); //DAMP_PDN : OFF
@@ -1399,10 +1427,10 @@ void TAS5806MD_Amp_Mode_Control(Audio_Output_Setting mode) //To Do !!!
 
 void TAS5806MD_Amp_EQ_DRC_Control(EQ_Mode_Setting EQ_mode)
 {
-#ifdef USEN_IT_AMP_EQ_ENABLE //2023-02-27_1
+#ifdef USEN_TI_AMP_EQ_ENABLE //2023-02-27_1
 	uint16_t uSize, i;
 	uint8_t Data, uCommand;
-	uint8_t uCurVolLevel; //2023-04-28_1 : To apply BSP-01T EQ Setting to BAP-01 under EQ BSP Mode  //#if !defined(USEN_BAP) && defined(USEN_IT_AMP_EQ_ENABLE) //2023-03-08_3 : Control volume level for each EQ Mode
+	uint8_t uCurVolLevel; //2023-04-28_1 : To apply BSP-01T EQ Setting to BAP-01 under EQ BSP Mode  //#if !defined(USEN_BAP) && defined(USEN_TI_AMP_EQ_ENABLE) //2023-03-08_3 : Control volume level for each EQ Mode
 
 #ifdef TAS5806MD_DEBUG_MSG
 	_DBG("\n\r+++ TAS5806MD_Amp_EQ_DRC_Control() !!!!");
@@ -1410,7 +1438,7 @@ void TAS5806MD_Amp_EQ_DRC_Control(EQ_Mode_Setting EQ_mode)
 
 	if(Is_BAmp_Init()) //2023-02-22_1
 	{
-#ifdef USEN_IT_AMP_EQ_ENABLE //2023-05-09_2
+#ifdef USEN_TI_AMP_EQ_ENABLE //2023-05-09_2
 		TIMER20_drc_eq_set_flag_start();
 #endif
 		return;
@@ -1425,7 +1453,7 @@ void TAS5806MD_Amp_EQ_DRC_Control(EQ_Mode_Setting EQ_mode)
 	}
 #endif
 
-#ifdef USEN_IT_AMP_EQ_ENABLE //2023-05-09_2
+#ifdef USEN_TI_AMP_EQ_ENABLE //2023-05-09_2
 	TIMER20_drc_eq_set_flag_stop();
 #endif
 
@@ -1438,7 +1466,7 @@ void TAS5806MD_Amp_EQ_DRC_Control(EQ_Mode_Setting EQ_mode)
 	}
 #endif
 	
-#ifdef USEN_IT_AMP_EQ_ENABLE //2023-04-28_1 : To apply BSP-01T EQ Setting to BAP-01 under EQ BSP Mode  //#if !defined(USEN_BAP) && defined(USEN_IT_AMP_EQ_ENABLE)
+#ifdef USEN_TI_AMP_EQ_ENABLE //2023-04-28_1 : To apply BSP-01T EQ Setting to BAP-01 under EQ BSP Mode  //#if !defined(USEN_BAP) && defined(USEN_TI_AMP_EQ_ENABLE)
 	Cur_EQ_Mode = EQ_mode; //2023-03-08_3
 #endif
 	
@@ -1454,7 +1482,7 @@ void TAS5806MD_Amp_EQ_DRC_Control(EQ_Mode_Setting EQ_mode)
 	//Write TAS5806MD_Init
 	switch(EQ_mode)
 	{
-#if defined(USEN_BAP) && defined(USEN_IT_AMP_EQ_ENABLE) //2023-03-28_6 : Added EQ NORMAL switch mode from EJT
+#if defined(USEN_BAP) && defined(USEN_TI_AMP_EQ_ENABLE) //2023-03-28_6 : Added EQ NORMAL switch mode from EJT
 		case EQ_BAP_NORMAL_MODE:
 		{
 #if 0//2023-04-28_1 //def USEN_BAP 
@@ -1625,22 +1653,23 @@ void TAS5806MD_Amp_EQ_DRC_Control(EQ_Mode_Setting EQ_mode)
 		break;
 	}
 	
-#ifdef USEN_IT_AMP_EQ_ENABLE
-//2023-04-28_1 //#ifndef USEN_BAP //2023-03-23_1 : Changed condition //#if !defined(USEN_BAP) && defined(USEN_IT_AMP_EQ_ENABLE) //2023-03-08_3 : Control volume level for each EQ Mode
+#ifdef USEN_TI_AMP_EQ_ENABLE
+//2023-04-28_1 //#ifndef USEN_BAP //2023-03-23_1 : Changed condition //#if !defined(USEN_BAP) && defined(USEN_TI_AMP_EQ_ENABLE) //2023-03-08_3 : Control volume level for each EQ Mode
 	uCurVolLevel = TAS5806MD_Amp_Get_Cur_Volume_Level();
 	TAS5806MD_Amp_Volume_Register_Writing(uCurVolLevel);
 #ifdef INPUT_KEY_SYNC_WITH_SLAVE_ENABLE
 	MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_EQ, EQ_mode);
 #endif
 //2023-04-28_1 //#endif
-#else //USEN_IT_AMP_EQ_ENABLE
+#else //USEN_TI_AMP_EQ_ENABLE
 	TAS5806MD_Amp_Move_to_Control_Page();
-#endif //USEN_IT_AMP_EQ_ENABLE
+#endif //USEN_TI_AMP_EQ_ENABLE
 
 	BAmp_COM = FALSE;
 #endif
 }
 
+#ifndef USE_TI_AMP_HI_Z_MUTE
 Bool TAS5806MD_Amp_Get_Cur_Mute_Status(uint8_t *buffer) //TRUE : Mute On / FALSE : Mute Off
 {
 	uint8_t uRead = 0;
@@ -1680,6 +1709,7 @@ Bool TAS5806MD_Amp_Get_Cur_Mute_Status(uint8_t *buffer) //TRUE : Mute On / FALSE
 	
 	return Mute_Status;
 }
+#endif
 
 void TAS5806MD_Amp_Set_Cur_Volume_Level(uint8_t volume)
 {
@@ -1797,7 +1827,7 @@ void TAS5806MD_Amp_Move_to_Volume_Control_Page(void)
 }
 #endif //TI_AMP_DSP_VOLUME_CONTROL_ENABLE
 
-#ifdef USEN_IT_AMP_EQ_ENABLE //2023-02-27_1
+#ifdef USEN_TI_AMP_EQ_ENABLE //2023-02-27_1
 void TAS5806MD_Amp_Move_to_DSP_Control_Page(void)
 {
 	uint8_t uRead;
@@ -1841,6 +1871,16 @@ void TAS5806MD_Amp_Set_PWR_Control_Mode(TAS5806MD_Power_Mode mode) //Power Contr
 		
 	I2C_Interrupt_Read_Data(TAS5806MD_I2C_ADDR, TAS5806MD_PWR_CONTROL_REG,&uRead,1); //Read Current mute status
 	
+#ifdef USE_TI_AMP_HI_Z_MUTE //2023-05-22_1
+	if(TAS5806MD_CLK_Detect_Count() != 0xffffffff && mode == TAS5806MD_PWR_Mode_PLAY)
+	{
+		mode = TAS5806MD_PWR_Mode_HIZ;
+#ifdef TAS5806MD_DEBUG_MSG
+		_DBG("\n\rTAS5806MD_Amp_Set_PWR_Control_Mode() - No Signal so it need to make Hi-Z !!! : ");
+#endif
+	}
+#endif
+
 	switch(mode)
 	{
 		case TAS5806MD_PWR_Mode_DEEP_SLEEP:
@@ -2372,7 +2412,7 @@ void TAS5806MD_Amp_Volume_Register_Writing(uint8_t uVolumeLevel)
 
 	uArrayLevel = Find_Volume_Level[uVolumeLevel];
 
-#ifdef USEN_IT_AMP_EQ_ENABLE //2023-04-28_1 : To apply BSP-01T EQ Setting to BAP-01 under EQ BSP Mode //#if !defined(USEN_BAP) && defined(USEN_IT_AMP_EQ_ENABLE) //2023-03-08_3 : Control volume level for each EQ Mode
+#ifdef USEN_TI_AMP_EQ_ENABLE //2023-04-28_1 : To apply BSP-01T EQ Setting to BAP-01 under EQ BSP Mode //#if !defined(USEN_BAP) && defined(USEN_TI_AMP_EQ_ENABLE) //2023-03-08_3 : Control volume level for each EQ Mode
 #ifdef USEN_BAP //2023-04-28_1
 	if(uVolumeLevel != 49)
 #else

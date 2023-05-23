@@ -377,7 +377,7 @@ typedef enum {
 
 //Variable
 #ifdef VERSION_INFORMATION_SUPPORT
-char MCU_Version[6] = "230519"; //MCU Version Info
+char MCU_Version[6] = "230522"; //MCU Version Info
 #ifdef SPP_EXTENSION_V50_ENABLE
 char BT_Version[7]; //MCU Version Info
 #endif
@@ -2847,10 +2847,10 @@ static void MB3021_BT_Module_Remote_Data_Receive(uint8_t source_type, uint8_t da
 #endif											
 #endif //TAS5806MD_ENABLE
 											TIMER20_user_eq_mute_flag_start();
-#ifdef USEN_IT_AMP_EQ_ENABLE //2023-02-27_1
+#ifdef USEN_TI_AMP_EQ_ENABLE //2023-02-27_1
 											uEQ_Mode = data[4];
 											TAS5806MD_Amp_EQ_DRC_Control((EQ_Mode_Setting)uEQ_Mode);
-#else //USEN_IT_AMP_EQ_ENABLE
+#else //USEN_TI_AMP_EQ_ENABLE
 #ifdef SPP_EXTENSION_ENABLE
 											uEQ_Mode = data[4];
 											MB3021_BT_Module_Send_cmd_param(CMD_A2DP_USER_EQ_CONTROL_32, &uEQ_Mode);
@@ -4672,7 +4672,7 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 												TIMER20_user_eq_mute_flag_start();	
 
 												uBuf = data[4+6];
-#ifdef USEN_IT_AMP_EQ_ENABLE //2023-02-27_1
+#ifdef USEN_TI_AMP_EQ_ENABLE //2023-02-27_1
 												TAS5806MD_Amp_EQ_DRC_Control((EQ_Mode_Setting)uBuf);
 #else
 												MB3021_BT_Module_Send_cmd_param(CMD_A2DP_USER_EQ_CONTROL_32, &uBuf);
@@ -5345,7 +5345,7 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 												TIMER20_user_eq_mute_flag_start();	
 
 												uBuf = data[4];
-#ifdef USEN_IT_AMP_EQ_ENABLE //2023-02-27_1
+#ifdef USEN_TI_AMP_EQ_ENABLE //2023-02-27_1
 												TAS5806MD_Amp_EQ_DRC_Control((EQ_Mode_Setting)uBuf);
 #else
 												MB3021_BT_Module_Send_cmd_param(CMD_A2DP_USER_EQ_CONTROL_32, &uBuf);
@@ -6237,7 +6237,7 @@ Bool MB3021_BT_Module_CMD_Execute(uint8_t major_id, uint8_t minor_id, uint8_t *d
 							_DBG("\n\rEQ Mode : EQ Mode setting with flash data ===");
 #endif
 							uEQ_Mode = uFlash_Read_Buf[FLASH_SAVE_DATA_EQ];
-#ifdef USEN_IT_AMP_EQ_ENABLE //2023-02-27_1
+#ifdef USEN_TI_AMP_EQ_ENABLE //2023-02-27_1
 							TAS5806MD_Amp_EQ_DRC_Control(uEQ_Mode);
 #else
 							MB3021_BT_Module_Send_cmd_param(CMD_A2DP_USER_EQ_CONTROL_32, &uEQ_Mode);

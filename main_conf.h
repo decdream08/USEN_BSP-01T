@@ -195,13 +195,16 @@ extern "C"
 #define TAS5806MD_ENABLE					(1) //Use TAS5806DM
 #define USEN_EQ_ENABLE							(1) //Use USEN EQ Setting
 //#ifdef USEN_BT_SPK_TI //2023-03-23_1
-#define USEN_IT_AMP_EQ_ENABLE							(1) //Use New USEN EQ Setting using TI AMP //2023-02-27_1
+#define USEN_TI_AMP_EQ_ENABLE							(1) //Use New USEN EQ Setting using TI AMP //2023-02-27_1
 //#endif
 #define AD82584F_USE_POWER_DOWN_MUTE 		(1) //To use PD pin instead of MUTE
 #define NOT_USE_POWER_DOWN_MUTE				(1) //To use Deep Sleep mode instead of PD pin low under power off.  2022-10-04
 #define TI_AMP_DSP_VOLUME_CONTROL_ENABLE	(1) //To enable DSP Volume control instead of DAC Gain. 2023-01-04
-#endif
-#endif
+#ifdef USEN_BAP
+#define USE_TI_AMP_HI_Z_MUTE					(1) //To use HI_Z mode mute instead of mute register to improve the noise on DC power on and etc. 2023-05-22_1
+#endif //USEN_BAP
+#endif //AD82584F_ENABLE
+#endif //USEN_BT_SPK
 #endif //I2C_0_ENABLE
 
 // WatchDog **************/
@@ -308,7 +311,7 @@ extern "C"
 #define FIVE_USER_EQ_ENABLE						(1)
 #ifdef TIMER20_COUNTER_ENABLE
 #if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) //To Do !!! - Need to check with TAS5806MD
-#ifdef AUX_INPUT_DET_ENABLE
+#if defined(AUX_INPUT_DET_ENABLE) && !defined(USEN_BAP) //2023-05-22_2 : Delete AUTO_ONOFF_ENABLE for changing BAP-01 spec.
 #define AUTO_ONOFF_ENABLE						(1) //To implemet Auto OnOff(5min) feature //Only valid this feature under master mode
 #endif
 #endif
@@ -469,7 +472,7 @@ typedef enum {
 	EQ_CLUB_MODE,
 	EQ_JAZZ_MODE,
 	EQ_VOCAL_MODE,
-#if defined(USEN_BAP) && defined(USEN_IT_AMP_EQ_ENABLE)
+#if defined(USEN_BAP) && defined(USEN_TI_AMP_EQ_ENABLE)
 	EQ_BAP_NORMAL_MODE, //2023-03-28_6 : Added EQ NORMAL switch mode from EJT
 #endif
 #ifdef EQ_TOGGLE_ENABLE //2023-01-17

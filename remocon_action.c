@@ -373,7 +373,7 @@ void Remocon_BSP_NORMAL_Mode_Switch_Action(void)
 		_DBG("\n\rSwitch_EQ_BSP_Mode");
 #endif
 		//EQ Setting from USEN Tablet
-#ifdef USEN_IT_AMP_EQ_ENABLE //2023-02-27_1
+#ifdef USEN_TI_AMP_EQ_ENABLE //2023-02-27_1
 		TAS5806MD_Amp_EQ_DRC_Control(EQ_NORMAL_MODE); //DRC / EQ Setting				
 #ifdef INPUT_KEY_SYNC_WITH_SLAVE_ENABLE
 		MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_EQ, EQ_NORMAL_MODE);
@@ -386,7 +386,7 @@ void Remocon_BSP_NORMAL_Mode_Switch_Action(void)
 		_DBG("\n\rSwitch_EQ_NORMAL_Mode");
 #endif
 		//EQ Normal Setting				
-#ifdef USEN_IT_AMP_EQ_ENABLE //2023-02-27_1
+#ifdef USEN_TI_AMP_EQ_ENABLE //2023-02-27_1
 		TAS5806MD_Amp_EQ_DRC_Control(EQ_BAP_NORMAL_MODE); //DRC / EQ Setting				
 #ifdef INPUT_KEY_SYNC_WITH_SLAVE_ENABLE
 		MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_EQ, EQ_NORMAL_MODE);

@@ -71,7 +71,7 @@ typedef enum {
 #define TAS5806MD_I2C_ADDR						(TAS5806_DEVICE_ADDR_15K) //2022-11-14_1
 
 //Function
-#ifdef USEN_IT_AMP_EQ_ENABLE //2023-05-09_2
+#ifdef USEN_TI_AMP_EQ_ENABLE //2023-05-09_2
 void TAS5806MD_Set_Cur_EQ_DRC_Mode(void);
 #endif
 Bool Is_Mute(void);
@@ -80,8 +80,9 @@ void Set_Is_Mute(Bool mute_on);
 Bool IS_Display_Mute(void);
 void Set_Display_Mute(Bool B_Mute_On_Display); //For LED Display
 #endif
+#ifndef USE_TI_AMP_HI_Z_MUTE
 Bool TAS5806MD_Amp_Get_Cur_Mute_Status(uint8_t *buffer); //TRUE : Mute On / FALSE : Mute Off
-
+#endif
 void TAS5806MD_Amp_EQ_DRC_Control(EQ_Mode_Setting EQ_mode);
 
 #ifdef FLASH_SELF_WRITE_ERASE
@@ -95,7 +96,7 @@ void TAS5806MD_Amp_Move_to_Control_Page(void);
 #ifdef TI_AMP_DSP_VOLUME_CONTROL_ENABLE
 void TAS5806MD_Amp_Move_to_Volume_Control_Page(void);
 #endif
-#ifdef USEN_IT_AMP_EQ_ENABLE //2023-02-27_1
+#ifdef USEN_TI_AMP_EQ_ENABLE //2023-02-27_1
 void TAS5806MD_Amp_Move_to_DSP_Control_Page(void);
 void TAS58066MD_Amp_Move_to_DRC_band3_Page(void); //2023-03-02_2
 #endif

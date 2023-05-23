@@ -471,4 +471,8 @@
   - Implemented ESD Error Recovery under BAP-01. Please refer to ESD_ERROR_RECOVERY. //2023-05-18_1
   
 ## 2023-05-19 (BAP-01)
-  - Under BAP-01 Aux mode, customer wants to output audio at once when user change BT to Aux. //2023-05-19_1
+  - Under BAP-01 Aux mode, customer wants to output audio at once when user change BT to Aux. //2023-05-19_1  
+  
+## 2023-05-22 (BAP-01)
+  - To use HI_Z mode mute instead of mute register to improve the noise on DC power on and etc. //2023-05-22_1
+  - Delete AUTO_ONOFF_ENABLE for changing BAP-01 spec. //2023-05-22_2
