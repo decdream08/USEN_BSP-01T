@@ -926,7 +926,11 @@ void TIMER20_IRQHandler_IT(void)
 #ifdef TIMER20_DEBUG_MSG
 			_DBG("\n\rAux Detect Timer is working !!!");
 #endif
+#ifdef AUX_INPUT_INVERSE_ENABLE
+				if(HAL_GPIO_ReadPin(PC) & (1<<3)) //Check if Aux Detect Pin is High(Aux In)
+#else
 				if(!(HAL_GPIO_ReadPin(PC) & (1<<3))) //Check if Aux Detect Pin is Low(Aux In)
+#endif
 				{
 #ifdef TIMER20_DEBUG_MSG
 					_DBG("\n\rAux Detect Timer : Detect Aux In !!!");

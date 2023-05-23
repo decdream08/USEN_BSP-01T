@@ -121,6 +121,9 @@ extern "C"
 #ifdef USEN_BT_SPK
 #define AUX_INPUT_DET_ENABLE						(1) // PC3 : interrupt Input for Aux In Detect.
 #define USEN_GPIO_OTHERS_ENABLE					(1) //PF0(FACTORY RESET)/PF2(+3.3V_DAMP_SW_1)/PF3(+14V_DAMP_SW_1)/PF4(+14V_DAMP_PDN) /PF5(DAMP_ERROR)
+#if defined(AUX_INPUT_DET_ENABLE) && defined(ESD_ERROR_RECOVERY)
+#define AUX_INPUT_INVERSE_ENABLE				(1) //PC3 wil be worked inverse type as High(1) is Aux and Low(0) is BT //2023-05-23_1
+#endif
 #endif
 
 // Button/Touch Key Feature **************/

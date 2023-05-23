@@ -475,4 +475,7 @@
   
 ## 2023-05-22 (BAP-01)
   - To use HI_Z mode mute instead of mute register to improve the noise on DC power on and etc. //2023-05-22_1
-  - Delete AUTO_ONOFF_ENABLE for changing BAP-01 spec. //2023-05-22_2
+  - Delete AUTO_ONOFF_ENABLE for changing BAP-01 spec. //2023-05-22_2  
+  
+## 2023-05-23 (BAP-01) - ESD
+  - Appleed Inverse Aux detection input to avoid mode change for ESD. Please refer to AUX_INPUT_INVERSE_ENABLE. //2023-05-23_1

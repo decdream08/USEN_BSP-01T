@@ -256,8 +256,12 @@ void Aux_Mode_Setting_After_Timer_Checking(Bool Aux_In)
 }
 
 void Set_Aux_Detection_flag(void) //2023-04-12_1
-{
+{	
+#ifdef AUX_INPUT_INVERSE_ENABLE
+	if(!(HAL_GPIO_ReadPin(PC) & (1<<3))) //Input(Aux Detec Pin) : High -Aux In / Low -Aux Low
+#else
 	if(HAL_GPIO_ReadPin(PC) & (1<<3)) //Input(Aux Detec Pin) : High -Aux Out / Low -Aux In
+#endif
 	{
 		B_AUX_DET = FALSE; //FALSE - Aux Out
 	}
@@ -1620,12 +1624,130 @@ void GPIOCD_IRQHandler_IT2(void)
 		clear_bit = status & 0x000000c0;
 				
 		/* bit 0 : Falling Edge / bit 1 : Rising Edge */
-#ifdef AUX_INPUT_DET_ENABLE //Input(Aux Detec Pin) : High -Aux Out / Low -Aux In
-		if(status & 0x00000080) //Rising Edge : High check - Aux Out
+#ifdef AUX_INPUT_INVERSE_ENABLE
+		if(status & 0x00000080) //Rising Edge : High check - Aux In (#ifdef AUX_INPUT_INVERSE_ENABLE - Aux In)
+		{
+#ifndef MASTER_MODE_ONLY
+			if(Master_Slave == Switch_Slave_Mode) //Under Slave, we don't need to set AUX mode
+				BRet = FALSE;
+			else
+#endif
+			{
+#ifdef AUX_CHATTERING_ENABLE
+				delay_ms(80); //2023-04-28_3 : Changed Aux detection check delay from 40ms to 80ms. //For Aux Chattering
+
+				if(HAL_GPIO_ReadPin(PC) & (1<<3)) //PC3 : High - Aux In
+				{
+					if(!Aux_In_Exist())
+					{
+						B_AUX_DET = TRUE; //TURE -Aux In
+#ifdef AUX_INPUT_DET_DEBUG
+						_DBG("\n\rB_AUX_DET = TRUE(Aux In)");
+#endif
+						BRet = TRUE;
+					}
+					else //To recover mute off when user alternate Aux mode and BT mode repeatly
+					{
+#ifdef AUX_INPUT_DET_DEBUG
+						_DBG("\n\rB_AUX_DET = Already TRUE(Aux In)");
+#endif
+#ifdef TIMER20_COUNTER_ENABLE
+#ifdef AUTO_ONOFF_ENABLE
+						TIMER20_auto_power_flag_Stop();
+#endif
+#ifdef AD82584F_USE_POWER_DOWN_MUTE
+						if(!IS_Display_Mute()) //&& AD82584F_Amp_Get_Cur_CLK_Status()) //When Mute On status, we don't need to mute off. This function is for LED Display
+						{
+#ifdef AUX_INPUT_DET_DEBUG
+							_DBG("\n\r****** Forced Mute Off w/1.5 sec delay");
+#endif
+							TIMER20_mute_flag_Start();
+						}
+#endif
+#endif
+					}
+				}
+				else //High - Aux out //Invalid value in here
+				{
+#ifdef AUX_INPUT_DET_DEBUG
+					_DBG("\n\rxxxxxx No Aux In - Actually Aux In");
+#endif
+#ifndef AUX_INPUT_INVERSE_ENABLE //2023-05-23_1 : Don't need Mute On/Off
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#ifdef AD82584F_ENABLE
+					AD82584F_Amp_Mute(TRUE, FALSE); //MUTE ON
+#else //TAS5806MD_ENABLE
+					TAS5806MD_Amp_Mute(TRUE, FALSE); //MUTE ON
+#endif //AD82584F_ENABLE
+#endif
+#endif
+				}
+#endif
+			}
+		}
+		else //0x00000040 //Falling Edge : Low check - Aux Out
 		{
 #ifdef AUX_CHATTERING_ENABLE
 			delay_ms(80); //2023-04-28_3 : Changed Aux detection check delay from 40ms to 80ms.  //For Aux Chattering
-			
+
+			if(!(HAL_GPIO_ReadPin(PC) & (1<<3)) )//PC3 : Low -Aux Out
+			{
+				if(Aux_In_Exist())//if(B_AUX_DET) //Aux In
+				{
+#if defined(USEN_BAP) && defined(TIMER20_COUNTER_ENABLE) //2023-01-10_3
+					TIMER20_aux_detect_check_flag_start();
+#else //USEN_BAP
+					B_AUX_DET = FALSE; //FALSE - Aux Out
+
+					BRet = TRUE;
+#endif //USEN_BAP
+#ifdef AUX_INPUT_DET_DEBUG
+					_DBG("\n\rB_AUX_DET = FALSE(Aux Out)");
+#endif
+
+				}
+				else
+				{
+#ifdef AUX_INPUT_DET_DEBUG
+					_DBG("\n\rB_AUX_DET = Already FALSE(Aux Out)");
+#endif
+				}
+			}
+			else //Low - Aux In //Invalid value in here
+			{
+#ifdef AUX_INPUT_DET_DEBUG
+				_DBG("\n\rxxxxxx No Aux Out - Actually Aux In");
+#endif
+
+#ifdef TIMER20_COUNTER_ENABLE
+#ifdef USEN_BAP //2023-01-10_3
+				TIMER20_aux_detect_check_flag_stop();
+#endif
+#ifdef AUTO_ONOFF_ENABLE
+				TIMER20_auto_power_flag_Stop();
+#endif
+#ifdef AD82584F_USE_POWER_DOWN_MUTE
+				if(!IS_Display_Mute()) //&& AD82584F_Amp_Get_Cur_CLK_Status()) //When Mute On status, we don't need to mute off. This function is for LED Display
+				{
+#ifdef AUX_INPUT_DET_DEBUG
+					_DBG("\n\r++++++++ Forced Mute Off w/1.5 sec delay");
+#endif
+					TIMER20_mute_flag_Start();
+				}
+#endif
+#endif //TIMER20_COUNTER_ENABLE
+			}
+#endif
+		}
+		
+#else //#ifdef AUX_INPUT_INVERSE_ENABLE
+
+#ifdef AUX_INPUT_DET_ENABLE //Input(Aux Detec Pin) : High -Aux Out / Low -Aux In
+		if(status & 0x00000080) //Rising Edge : High check - Aux Out (AUX_INPUT_INVERSE_ENABLE - Aux In)
+		{
+#ifdef AUX_CHATTERING_ENABLE
+			delay_ms(80); //2023-04-28_3 : Changed Aux detection check delay from 40ms to 80ms.  //For Aux Chattering
+
 			if(HAL_GPIO_ReadPin(PC) & (1<<3)) //PC3 : High - Aux Out
 			{
 				if(Aux_In_Exist())//if(B_AUX_DET) //Aux In
@@ -1685,7 +1807,7 @@ void GPIOCD_IRQHandler_IT2(void)
 			{
 #ifdef AUX_CHATTERING_ENABLE
 				delay_ms(80); //2023-04-28_3 : Changed Aux detection check delay from 40ms to 80ms. //For Aux Chattering
-				
+
 				if(!(HAL_GPIO_ReadPin(PC) & (1<<3)) )//PC3 : Low -Aux In
 				{
 					if(!Aux_In_Exist())
@@ -1733,7 +1855,10 @@ void GPIOCD_IRQHandler_IT2(void)
 #endif
 			}
 		}
+#endif //AUX_INPUT_DET_ENABLE
+#endif //#ifdef AUX_INPUT_INVERSE_ENABLE
 
+#ifdef AUX_INPUT_DET_ENABLE
 #ifdef MB3021_ENABLE
 		if(BRet)
 		{
@@ -3546,7 +3671,11 @@ void GPIO_Configure(void)
 #ifdef AUX_INPUT_DET_ENABLE
 	/* External interrupt pin PC3 */
 	HAL_GPIO_ConfigOutput(PC, 3, INPUT);
+#ifdef AUX_INPUT_INVERSE_ENABLE
+	HAL_GPIO_ConfigPullup(PC, 3, ENPD);
+#else
 	HAL_GPIO_ConfigPullup(PC, 3, ENPU);
+#endif
 	HAL_GPIO_ClearPin(PC, _BIT(3));
 #endif
 #endif
