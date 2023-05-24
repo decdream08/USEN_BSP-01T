@@ -513,13 +513,9 @@ void Remocon_Power_Key_Action_Toggle(uint8_t Input_Key) //For only Power Key inp
 #if defined(TIMER20_COUNTER_ENABLE) && defined(AUX_INPUT_DET_ENABLE) && defined(MB3021_ENABLE)
 #ifndef AUX_DETECT_INTERRUPT_ENABLE //2023-01-10_3 //2022-10-17 //To Do !!! after implementing aux detection check
 		if(HAL_GPIO_ReadPin(PA) & (1<<0)) //To Do !!! after implementing aux detection check
-#else //AUX_DETECT_INTERRUPT_ENABLE
-#ifdef AUX_INPUT_INVERSE_ENABLE
-		if(!(HAL_GPIO_ReadPin(PC) & (1<<3))) //Input(Aux Detec Pin) : High -Aux In / Low -Aux Out
 #else
 		if(HAL_GPIO_ReadPin(PC) & (1<<3)) //Input(Aux Detec Pin) : High -Aux Out / Low -Aux In
 #endif
-#endif //AUX_DETECT_INTERRUPT_ENABLE
 		{
 			BNeed_Mute_Off_Delay = FALSE;
 		}
@@ -864,11 +860,7 @@ void Remocon_Power_Key_Action(Bool Power_on, Bool Slave_Sync, Bool Vol_Sync) //F
 #ifndef AUX_DETECT_INTERRUPT_ENABLE //2023-01-10_3
 			if(HAL_GPIO_ReadPin(PA) & (1<<0)) //2022-10-17 //To Do !!! after implementing aux detection check
 #else //AUX_DETECT_INTERRUPT_ENABLE
-#ifdef AUX_INPUT_INVERSE_ENABLE
-			if(!(HAL_GPIO_ReadPin(PC) & (1<<3))) //Input(Aux Detec Pin) : High -Aux In / Low -Aux Out
-#else
 			if(HAL_GPIO_ReadPin(PC) & (1<<3)) //Input(Aux Detec Pin) : High -Aux Out / Low -Aux In
-#endif
 #endif //AUX_DETECT_INTERRUPT_ENABLE
 			{
 				BNeed_Mute_Off_Delay = FALSE;

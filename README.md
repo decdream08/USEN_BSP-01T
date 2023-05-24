@@ -478,4 +478,11 @@
   - Delete AUTO_ONOFF_ENABLE for changing BAP-01 spec. //2023-05-22_2  
   
 ## 2023-05-23 (BAP-01) - ESD
-  - Appleed Inverse Aux detection input to avoid mode change for ESD. Please refer to AUX_INPUT_INVERSE_ENABLE. //2023-05-23_1
+  - Appleed Inverse Aux detection input to avoid mode change for ESD. Please refer to AUX_INPUT_INVERSE_ENABLE. //2023-05-23_1  
+  
+## 2023-05-24 (BAP-01) - ESD
+  - Deleted 2023-05-23_1 solution
+  - Added ESD Error(Aux Detection) solution due to mode change(BT-->Aux-->BT) by ESD. //2023-05-24_1
+
+
+  

@@ -211,9 +211,13 @@ void EXTI_PortC_Configure(void);
 #if defined(USEN_BAP) && defined(AUX_INPUT_DET_ENABLE) && defined(TIMER20_COUNTER_ENABLE) //2023-01-10_3
 void Aux_Mode_Setting_After_Timer_Checking(Bool Aux_In)
 {
+#ifdef AUX_INPUT_DET_DEBUG
+	_DBG("\n\r ### Aux_Mode_Setting_After_Timer_Checking()");
+#endif
+
 	B_AUX_DET = Aux_In;
 
-	if(B_AUX_DET == FALSE)
+	//if(B_AUX_DET == FALSE) //2023-05-24_1 : To avoid ESD Error(Aux Detection)
 	{
 #ifdef MB3021_ENABLE
 #if defined(TIMER20_COUNTER_ENABLE) && defined(AUTO_ONOFF_ENABLE) //Fixed Master SPK do not work Auto power off even though No siganl from BT when user remove Aux jack
@@ -223,13 +227,16 @@ void Aux_Mode_Setting_After_Timer_Checking(Bool Aux_In)
 #ifdef SLAVE_ADD_MUTE_DELAY_ENABLE
 		MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x02);
 #endif
-#if 0 //2023-05-09_1 : Reduced time for changing from Aux to BT. Do not need Mute On.
+#ifdef USEN_BAP //2023-05-19_1 : Under BAP-01 Aux mode, customer wants to output audio at once when user change BT to Aux.
+		if(!Aux_In_Exist())
+#endif
+		{
 #ifdef AD82584F_ENABLE
-		AD82584F_Amp_Mute(TRUE, FALSE); //MUTE ON
+			AD82584F_Amp_Mute(TRUE, FALSE); //MUTE ON
 #else //TAS5806MD_ENABLE
-		TAS5806MD_Amp_Mute(TRUE, FALSE); //MUTE ON
+			TAS5806MD_Amp_Mute(TRUE, FALSE); //MUTE ON
 #endif
-#endif
+		}
 #endif
 #ifdef TWS_MODE_ENABLE
 		if(Get_Cur_LR_Stereo_Mode() == Switch_LR_Mode) //2022-11-17_2
@@ -246,22 +253,18 @@ void Aux_Mode_Setting_After_Timer_Checking(Bool Aux_In)
 			}
 		}
 #endif
-#ifdef USEN_BAP //2023-05-09_1
+#ifdef USEN_BAP //2023-05-19_1 : Under BAP-01 Aux mode, customer wants to output audio at once when user change BT to Aux.
 		Set_MB3021_BT_Module_Source_Change_Direct();
 #else
 		Set_MB3021_BT_Module_Source_Change();
 #endif
-#endif
+#endif //MB3021_ENABLE
 	}
 }
 
 void Set_Aux_Detection_flag(void) //2023-04-12_1
 {	
-#ifdef AUX_INPUT_INVERSE_ENABLE
-	if(!(HAL_GPIO_ReadPin(PC) & (1<<3))) //Input(Aux Detec Pin) : High -Aux In / Low -Aux Low
-#else
 	if(HAL_GPIO_ReadPin(PC) & (1<<3)) //Input(Aux Detec Pin) : High -Aux Out / Low -Aux In
-#endif
 	{
 		B_AUX_DET = FALSE; //FALSE - Aux Out
 	}
@@ -1624,126 +1627,8 @@ void GPIOCD_IRQHandler_IT2(void)
 		clear_bit = status & 0x000000c0;
 				
 		/* bit 0 : Falling Edge / bit 1 : Rising Edge */
-#ifdef AUX_INPUT_INVERSE_ENABLE
-		if(status & 0x00000080) //Rising Edge : High check - Aux In (#ifdef AUX_INPUT_INVERSE_ENABLE - Aux In)
-		{
-#ifndef MASTER_MODE_ONLY
-			if(Master_Slave == Switch_Slave_Mode) //Under Slave, we don't need to set AUX mode
-				BRet = FALSE;
-			else
-#endif
-			{
-#ifdef AUX_CHATTERING_ENABLE
-				delay_ms(80); //2023-04-28_3 : Changed Aux detection check delay from 40ms to 80ms. //For Aux Chattering
-
-				if(HAL_GPIO_ReadPin(PC) & (1<<3)) //PC3 : High - Aux In
-				{
-					if(!Aux_In_Exist())
-					{
-						B_AUX_DET = TRUE; //TURE -Aux In
-#ifdef AUX_INPUT_DET_DEBUG
-						_DBG("\n\rB_AUX_DET = TRUE(Aux In)");
-#endif
-						BRet = TRUE;
-					}
-					else //To recover mute off when user alternate Aux mode and BT mode repeatly
-					{
-#ifdef AUX_INPUT_DET_DEBUG
-						_DBG("\n\rB_AUX_DET = Already TRUE(Aux In)");
-#endif
-#ifdef TIMER20_COUNTER_ENABLE
-#ifdef AUTO_ONOFF_ENABLE
-						TIMER20_auto_power_flag_Stop();
-#endif
-#ifdef AD82584F_USE_POWER_DOWN_MUTE
-						if(!IS_Display_Mute()) //&& AD82584F_Amp_Get_Cur_CLK_Status()) //When Mute On status, we don't need to mute off. This function is for LED Display
-						{
-#ifdef AUX_INPUT_DET_DEBUG
-							_DBG("\n\r****** Forced Mute Off w/1.5 sec delay");
-#endif
-							TIMER20_mute_flag_Start();
-						}
-#endif
-#endif
-					}
-				}
-				else //High - Aux out //Invalid value in here
-				{
-#ifdef AUX_INPUT_DET_DEBUG
-					_DBG("\n\rxxxxxx No Aux In - Actually Aux In");
-#endif
-#ifndef AUX_INPUT_INVERSE_ENABLE //2023-05-23_1 : Don't need Mute On/Off
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
-#ifdef AD82584F_ENABLE
-					AD82584F_Amp_Mute(TRUE, FALSE); //MUTE ON
-#else //TAS5806MD_ENABLE
-					TAS5806MD_Amp_Mute(TRUE, FALSE); //MUTE ON
-#endif //AD82584F_ENABLE
-#endif
-#endif
-				}
-#endif
-			}
-		}
-		else //0x00000040 //Falling Edge : Low check - Aux Out
-		{
-#ifdef AUX_CHATTERING_ENABLE
-			delay_ms(80); //2023-04-28_3 : Changed Aux detection check delay from 40ms to 80ms.  //For Aux Chattering
-
-			if(!(HAL_GPIO_ReadPin(PC) & (1<<3)) )//PC3 : Low -Aux Out
-			{
-				if(Aux_In_Exist())//if(B_AUX_DET) //Aux In
-				{
-#if defined(USEN_BAP) && defined(TIMER20_COUNTER_ENABLE) //2023-01-10_3
-					TIMER20_aux_detect_check_flag_start();
-#else //USEN_BAP
-					B_AUX_DET = FALSE; //FALSE - Aux Out
-
-					BRet = TRUE;
-#endif //USEN_BAP
-#ifdef AUX_INPUT_DET_DEBUG
-					_DBG("\n\rB_AUX_DET = FALSE(Aux Out)");
-#endif
-
-				}
-				else
-				{
-#ifdef AUX_INPUT_DET_DEBUG
-					_DBG("\n\rB_AUX_DET = Already FALSE(Aux Out)");
-#endif
-				}
-			}
-			else //Low - Aux In //Invalid value in here
-			{
-#ifdef AUX_INPUT_DET_DEBUG
-				_DBG("\n\rxxxxxx No Aux Out - Actually Aux In");
-#endif
-
-#ifdef TIMER20_COUNTER_ENABLE
-#ifdef USEN_BAP //2023-01-10_3
-				TIMER20_aux_detect_check_flag_stop();
-#endif
-#ifdef AUTO_ONOFF_ENABLE
-				TIMER20_auto_power_flag_Stop();
-#endif
-#ifdef AD82584F_USE_POWER_DOWN_MUTE
-				if(!IS_Display_Mute()) //&& AD82584F_Amp_Get_Cur_CLK_Status()) //When Mute On status, we don't need to mute off. This function is for LED Display
-				{
-#ifdef AUX_INPUT_DET_DEBUG
-					_DBG("\n\r++++++++ Forced Mute Off w/1.5 sec delay");
-#endif
-					TIMER20_mute_flag_Start();
-				}
-#endif
-#endif //TIMER20_COUNTER_ENABLE
-			}
-#endif
-		}
-		
-#else //#ifdef AUX_INPUT_INVERSE_ENABLE
-
 #ifdef AUX_INPUT_DET_ENABLE //Input(Aux Detec Pin) : High -Aux Out / Low -Aux In
-		if(status & 0x00000080) //Rising Edge : High check - Aux Out (AUX_INPUT_INVERSE_ENABLE - Aux In)
+		if(status & 0x00000080) //Rising Edge : High check - Aux Out
 		{
 #ifdef AUX_CHATTERING_ENABLE
 			delay_ms(80); //2023-04-28_3 : Changed Aux detection check delay from 40ms to 80ms.  //For Aux Chattering
@@ -1770,6 +1655,9 @@ void GPIOCD_IRQHandler_IT2(void)
 					_DBG("\n\rB_AUX_DET = Already FALSE(Aux Out)");
 #endif
 				}
+#if defined(USEN_BAP) && defined(TIMER20_COUNTER_ENABLE) && defined(ESD_ERROR_RECOVERY) //2023-05-24_1
+				TIMER20_aux_input_check_flag_stop();
+#endif
 			}
 			else //Low - Aux In //Invalid value in here
 			{
@@ -1812,7 +1700,11 @@ void GPIOCD_IRQHandler_IT2(void)
 				{
 					if(!Aux_In_Exist())
 					{
+#if defined(USEN_BAP) && defined(TIMER20_COUNTER_ENABLE) && defined(ESD_ERROR_RECOVERY) //2023-05-24_1
+						TIMER20_aux_input_check_flag_start();
+#else
 						B_AUX_DET = TRUE; //TURE -Aux In
+#endif
 #ifdef AUX_INPUT_DET_DEBUG
 						_DBG("\n\rB_AUX_DET = TRUE(Aux In)");
 #endif
@@ -1855,11 +1747,8 @@ void GPIOCD_IRQHandler_IT2(void)
 #endif
 			}
 		}
-#endif //AUX_INPUT_DET_ENABLE
-#endif //#ifdef AUX_INPUT_INVERSE_ENABLE
 
-#ifdef AUX_INPUT_DET_ENABLE
-#ifdef MB3021_ENABLE
+#if defined(MB3021_ENABLE) && !defined(USEN_BAP) //2023-05-24_1 : Under BAP-01, Implemented this statement using 
 		if(BRet)
 		{
 #if defined(TIMER20_COUNTER_ENABLE) && defined(AUTO_ONOFF_ENABLE) //Fixed Master SPK do not work Auto power off even though No siganl from BT when user remove Aux jack
@@ -1901,7 +1790,7 @@ void GPIOCD_IRQHandler_IT2(void)
 			Set_MB3021_BT_Module_Source_Change();
 #endif
 		}
-#endif
+#endif //MB3021_ENABLE
 
 		HAL_GPIO_EXTI_ClearPin(PC, status&clear_bit);
 
@@ -3671,11 +3560,7 @@ void GPIO_Configure(void)
 #ifdef AUX_INPUT_DET_ENABLE
 	/* External interrupt pin PC3 */
 	HAL_GPIO_ConfigOutput(PC, 3, INPUT);
-#ifdef AUX_INPUT_INVERSE_ENABLE
-	HAL_GPIO_ConfigPullup(PC, 3, ENPD);
-#else
 	HAL_GPIO_ConfigPullup(PC, 3, ENPU);
-#endif
 	HAL_GPIO_ClearPin(PC, _BIT(3));
 #endif
 #endif
