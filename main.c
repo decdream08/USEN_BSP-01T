@@ -1608,7 +1608,9 @@ void GPIOCD_IRQHandler_IT2(void)
 {
 	static uint32_t status = 0, clear_bit = 0;
 #ifdef AUX_INPUT_DET_ENABLE
+#if !defined(ESD_ERROR_RECOVERY) && !defined(USEN_BAP)
 	Bool BRet = FALSE;
+#endif //ESD_ERROR_RECOVERY
 #ifndef MASTER_MODE_ONLY
 	Switch_Master_Slave_Mode Master_Slave;
 
@@ -1689,7 +1691,11 @@ void GPIOCD_IRQHandler_IT2(void)
 		{
 #ifndef MASTER_MODE_ONLY
 			if(Master_Slave == Switch_Slave_Mode) //Under Slave, we don't need to set AUX mode
+			{
+#if !defined(ESD_ERROR_RECOVERY) && !defined(USEN_BAP)
 				BRet = FALSE;
+#endif
+			}
 			else
 #endif
 			{
@@ -1708,7 +1714,9 @@ void GPIOCD_IRQHandler_IT2(void)
 #ifdef AUX_INPUT_DET_DEBUG
 						_DBG("\n\rB_AUX_DET = TRUE(Aux In)");
 #endif
+#if !defined(ESD_ERROR_RECOVERY) && !defined(USEN_BAP)
 						BRet = TRUE;
+#endif
 					}
 					else //To recover mute off when user alternate Aux mode and BT mode repeatly
 					{
@@ -1748,7 +1756,7 @@ void GPIOCD_IRQHandler_IT2(void)
 			}
 		}
 
-#if defined(MB3021_ENABLE) && !defined(USEN_BAP) //2023-05-24_1 : Under BAP-01, Implemented this statement using 
+#if defined(MB3021_ENABLE) && !defined(ESD_ERROR_RECOVERY) && !defined(USEN_BAP) //2023-05-24_1 : Under BAP-01, Implemented this statement using 
 		if(BRet)
 		{
 #if defined(TIMER20_COUNTER_ENABLE) && defined(AUTO_ONOFF_ENABLE) //Fixed Master SPK do not work Auto power off even though No siganl from BT when user remove Aux jack

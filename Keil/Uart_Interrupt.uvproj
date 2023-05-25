@@ -490,6 +490,11 @@
               <FileType>1</FileType>
               <FilePath>..\Drivers\source\A31G21x_hal_adc.c</FilePath>
             </File>
+            <File>
+              <FileName>A31G21x_hal_wdt.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Drivers\source\A31G21x_hal_wdt.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
