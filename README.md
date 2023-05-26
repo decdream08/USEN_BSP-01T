@@ -481,7 +481,7 @@
   - Appleed Inverse Aux detection input to avoid mode change for ESD. Please refer to AUX_INPUT_INVERSE_ENABLE. //2023-05-23_1  
   
 ## 2023-05-24 (BAP-01) - ESD
-  - Deleted 2023-05-23_1 solution
+  - Deleted 2023-05-23_1 solution because this solution is made with wrong HW platform.
   - Added ESD Error(Aux Detection) solution due to mode change(BT-->Aux-->BT) by ESD. //2023-05-24_1
 
 
