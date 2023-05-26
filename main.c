@@ -217,7 +217,7 @@ void Aux_Mode_Setting_After_Timer_Checking(Bool Aux_In)
 
 	B_AUX_DET = Aux_In;
 
-	//if(B_AUX_DET == FALSE) //2023-05-24_1 : To avoid ESD Error(Aux Detection)
+	if(B_AUX_DET == FALSE)
 	{
 #ifdef MB3021_ENABLE
 #if defined(TIMER20_COUNTER_ENABLE) && defined(AUTO_ONOFF_ENABLE) //Fixed Master SPK do not work Auto power off even though No siganl from BT when user remove Aux jack
@@ -1608,9 +1608,7 @@ void GPIOCD_IRQHandler_IT2(void)
 {
 	static uint32_t status = 0, clear_bit = 0;
 #ifdef AUX_INPUT_DET_ENABLE
-#if !defined(ESD_ERROR_RECOVERY) && !defined(USEN_BAP)
 	Bool BRet = FALSE;
-#endif //ESD_ERROR_RECOVERY
 #ifndef MASTER_MODE_ONLY
 	Switch_Master_Slave_Mode Master_Slave;
 
@@ -1657,9 +1655,6 @@ void GPIOCD_IRQHandler_IT2(void)
 					_DBG("\n\rB_AUX_DET = Already FALSE(Aux Out)");
 #endif
 				}
-#if defined(USEN_BAP) && defined(TIMER20_COUNTER_ENABLE) && defined(ESD_ERROR_RECOVERY) //2023-05-24_1
-				TIMER20_aux_input_check_flag_stop();
-#endif
 			}
 			else //Low - Aux In //Invalid value in here
 			{
@@ -1691,11 +1686,7 @@ void GPIOCD_IRQHandler_IT2(void)
 		{
 #ifndef MASTER_MODE_ONLY
 			if(Master_Slave == Switch_Slave_Mode) //Under Slave, we don't need to set AUX mode
-			{
-#if !defined(ESD_ERROR_RECOVERY) && !defined(USEN_BAP)
 				BRet = FALSE;
-#endif
-			}
 			else
 #endif
 			{
@@ -1706,17 +1697,11 @@ void GPIOCD_IRQHandler_IT2(void)
 				{
 					if(!Aux_In_Exist())
 					{
-#if defined(USEN_BAP) && defined(TIMER20_COUNTER_ENABLE) && defined(ESD_ERROR_RECOVERY) //2023-05-24_1
-						TIMER20_aux_input_check_flag_start();
-#else
 						B_AUX_DET = TRUE; //TURE -Aux In
-#endif
 #ifdef AUX_INPUT_DET_DEBUG
 						_DBG("\n\rB_AUX_DET = TRUE(Aux In)");
 #endif
-#if !defined(ESD_ERROR_RECOVERY) && !defined(USEN_BAP)
 						BRet = TRUE;
-#endif
 					}
 					else //To recover mute off when user alternate Aux mode and BT mode repeatly
 					{
@@ -1756,7 +1741,7 @@ void GPIOCD_IRQHandler_IT2(void)
 			}
 		}
 
-#if defined(MB3021_ENABLE) && !defined(ESD_ERROR_RECOVERY) && !defined(USEN_BAP) //2023-05-24_1 : Under BAP-01, Implemented this statement using 
+#ifdef MB3021_ENABLE
 		if(BRet)
 		{
 #if defined(TIMER20_COUNTER_ENABLE) && defined(AUTO_ONOFF_ENABLE) //Fixed Master SPK do not work Auto power off even though No siganl from BT when user remove Aux jack
@@ -1798,7 +1783,7 @@ void GPIOCD_IRQHandler_IT2(void)
 			Set_MB3021_BT_Module_Source_Change();
 #endif
 		}
-#endif //MB3021_ENABLE
+#endif
 
 		HAL_GPIO_EXTI_ClearPin(PC, status&clear_bit);
 

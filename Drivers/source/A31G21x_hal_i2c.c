@@ -461,7 +461,7 @@ Status HAL_I2C_MasterTransferData(I2C_Type* I2Cx, I2C_M_SETUP_Type *TransferCfg,
 #ifdef ESD_ERROR_RECOVERY
 				uCount++;
 				
-				if(uCount == ESD_ERROR_RECOVERY_TIME) // 5000000 = 10sec (100000 = 200ms)
+				if(uCount == ESD_ERROR_RECOVERY_TIME)
 				{
 #ifdef ESD_ERROR_RECOVERY_DEBUG_MSG
 					_DBG("\n\rSOC_ERROR - 1");

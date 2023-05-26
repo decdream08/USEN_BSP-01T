@@ -106,9 +106,6 @@ int32_t tws_grouping_send_flag = 0; //2023-02-20_2
 #endif
 #if defined(USEN_BAP) && defined(AUX_INPUT_DET_ENABLE) && defined(TIMER20_COUNTER_ENABLE) //2023-04-12_1
 int32_t aux_detecttion_flag = 0;
-#ifdef ESD_ERROR_RECOVERY
-int32_t aux_input_check_flag = 0;  //2023-05-24_1 : To avoid ESD Error(Aux Detection)
-#endif
 #endif
 
 #ifdef USEN_TI_AMP_EQ_ENABLE //2023-05-09_2
@@ -288,25 +285,6 @@ void TIMER20_aux_detect_check_flag_stop(void)
 #endif
 	aux_detect_check_flag = 0;
 }
-
-#ifdef ESD_ERROR_RECOVERY //2023-05-24_1 : To avoid ESD Error(Aux Detection)
-void TIMER20_aux_input_check_flag_start(void) //2023-05-24_1 : To check whether current input is aux or ESD
-{
-#ifdef TIMER20_DEBUG_MSG
-		_DBG("\n\rTIMER20_aux_input_check_flag_start() !!! ");
-#endif
-	aux_input_check_flag = 21;
-
-}
-
-void TIMER20_aux_input_check_flag_stop(void) //2023-05-24_1 : To check whether current input is aux or ESD
-{
-#ifdef TIMER20_DEBUG_MSG
-		_DBG("\n\rTIMER20_aux_input_check_flag_stop() !!! ");
-#endif
-	aux_input_check_flag = 0;	
-}
-#endif //ESD_ERROR_RECOVERY
 #endif
 #endif //AUX_INPUT_DET_ENABLE
 
@@ -1521,39 +1499,6 @@ void TIMER20_IRQHandler_IT(void)
 			else
 				aux_detecttion_flag++;
 		}
-#ifdef ESD_ERROR_RECOVERY //2023-05-24_1 : To avoid ESD Error(Aux Detection)
-		if(aux_input_check_flag)
-		{
-			if(aux_input_check_flag < 11)
-			{		
-#ifdef TIMER20_DEBUG_MSG
-				_DBG("\n\r##### aux_input_check_flag = ");_DBD(aux_input_check_flag);
-#endif
-				aux_input_check_flag--;
-
-				if(HAL_GPIO_ReadPin(PC) & (1<<3)) //Input(Aux Detec Pin) : High -Aux Out / Low -Aux In
-				{
-					aux_input_check_flag = 0;
-#ifdef TIMER20_DEBUG_MSG
-					_DBG("\n\r##### aux_input_check_flag = 0. This is not real Aux Input");
-#endif
-
-				}
-				else
-				{
-					if(!aux_input_check_flag) //Recoginize real Aux
-					{
-						Aux_Mode_Setting_After_Timer_Checking(TRUE);
-#ifdef TIMER20_DEBUG_MSG
-						_DBG("\n\r##### aux_input_check_flag = 0. This means real Aux Input");
-#endif
-					}
-				}
-			}
-			else
-				aux_input_check_flag--;
-		}
-#endif //ESD_ERROR_RECOVERY
 #endif //USEN_BAP
 
 		if(aux_setting_flag)

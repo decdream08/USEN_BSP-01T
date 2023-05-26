@@ -484,5 +484,8 @@
   - Deleted 2023-05-23_1 solution because this solution is made with wrong HW platform.
   - Added ESD Error(Aux Detection) solution due to mode change(BT-->Aux-->BT) by ESD. //2023-05-24_1
 
+## 2023-05-26 (BAP-01) - ESD
+  - Deleted 2023-05-24_1 solution because customer does not want to change spec.
+
 
   

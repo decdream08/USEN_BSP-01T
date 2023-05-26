@@ -606,11 +606,7 @@ void EXIT_PortE_Configure(void); //2023-01-03_2
 #if defined(USEN_BAP) && defined(AUX_INPUT_DET_ENABLE) && defined(TIMER20_COUNTER_ENABLE) //2023-01-10_3
 void Aux_Mode_Setting_After_Timer_Checking(Bool Aux_In);
 void Set_Aux_Detection_flag(void); //2023-04-12_1
-#ifdef ESD_ERROR_RECOVERY //2023-05-24_1 : To avoid ESD Error(Aux Detection)
-void TIMER20_aux_input_check_flag_start(void);
-void TIMER20_aux_input_check_flag_stop(void);
-#endif //ESD_ERROR_RECOVERY
-#endif //#if defined(USEN_BAP) && defined(AUX_INPUT_DET_ENABLE) && defined(TIMER20_COUNTER_ENABLE)
+#endif
 #ifdef AUX_INPUT_DET_ENABLE
 Bool Aux_In_Exist(void);
 #endif
