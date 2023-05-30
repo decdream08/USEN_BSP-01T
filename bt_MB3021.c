@@ -377,7 +377,7 @@ typedef enum {
 
 //Variable
 #ifdef VERSION_INFORMATION_SUPPORT
-char MCU_Version[6] = "230526"; //MCU Version Info
+char MCU_Version[6] = "230530"; //MCU Version Info
 #ifdef SPP_EXTENSION_V50_ENABLE
 char BT_Version[7]; //MCU Version Info
 #endif
@@ -893,6 +893,36 @@ uint8_t Convert_16Step_to_50Step(uint8_t uVol) //2023-02-28_1 : Changed volume t
 
 #endif //ADC_VOLUME_64_STEP_ENABLE
 #endif		
+
+void MB3021_BT_Module_Set_Discoverable_Mode_by_Param(Set_Discoverable_Mode_Param uParam) //2023-05-30_2 : To make Limitted Access Code Mode
+{
+	uint8_t uBuf;
+#ifdef BT_DEBUG_MSG
+	_DBG("\n\rMB3021_BT_Module_Set_Discoverable_Mode_by_Param()");
+#endif
+	uBuf = uParam;
+
+	switch(uBuf)
+	{
+		case SET_DISABLE_DISCOVERABLE_MODE:
+			uBuf = 0x00; //Disable Discoverable Mode
+		break;
+		
+		case SET_ENABLE_LIMITED_DISCOVERABLE_MODE:
+			uBuf = 0x01; //Enable Limitted Access Code Mode
+		break;
+
+		case SET_ENABLE_GENERAL_DISCOVERABLE_MODE:
+			uBuf = 0x02; //Enable General Discoverable Mode
+		break;
+		
+		case SET_ENABLE_DUAL_DISCOVERABLE_MODE:
+			uBuf = 0x03; //Enable Dual Discoverable Mode
+		break;
+	}
+
+	MB3021_BT_Module_Send_cmd_param(CMD_SET_DISCOVERABLE_MODE_32, &uBuf);
+}
 
 #ifdef TWS_MASTER_SLAVE_COM_ENABLE
 TWS_Connect_Status Is_TWS_Master_Slave_Connect(void) //TRUE : TWS Mode / FALSE : Not TWS Mode(But it's not Broadcast Mode and may just TWS Mode Ready)
@@ -3834,8 +3864,11 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 							if(!(Get_Cur_LR_Stereo_Mode() == Switch_LR_Mode && BBT_Is_Connected && strncmp(uBT_Cur_A2DP_Device_Address, (char *)data, 6))) //2023-04-03_2: When TWS slave is conected, we don't need to display BT STATUS LED on TWS Master.
 #endif
 							{
-								BBT_Is_Connected = FALSE; //2023-03-29_1 : When user disconnects BSP-01 in BT Menu on Peerdevice, If user executes power off->on over power button, Master has BT LED On(It should be blinking).
-								bPolling_Get_BT_Profile_State |= BT_PROFILE_STATE_READY;
+								if(strncmp(uBT_Cur_A2DP_Device_Address, (char *)data, 6) == 0) //2023-05-30_3 : Under Broadcast mode, when Other A2DP source try to connect SPK even though current A2DP source is connected with SPK, we don't need to display BT STAUS LED(Blinking for disconnection).
+								{
+									BBT_Is_Connected = FALSE; //2023-03-29_1 : When user disconnects BSP-01 in BT Menu on Peerdevice, If user executes power off->on over power button, Master has BT LED On(It should be blinking).
+									bPolling_Get_BT_Profile_State |= BT_PROFILE_STATE_READY;
+								}
 							}
 
 #ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-04-26_13 : If the address of closed device is A2DP, we need to make "BBT_Is_Connected = FALSE"
@@ -3937,6 +3970,10 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 #endif
 						bPolling_Get_BT_Profile_State |= BT_PROFILE_STATE_READY;
 						BBT_Is_Routed = FALSE;
+
+#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-05-30_1 : current A2DP device is only available until user select BT Long Key to connect other device.
+						Peer_Device_Status = PEER_DEVICE_DISCONNECTED;
+#endif
 					}
 #ifndef NEW_TWS_MASTER_SLAVE_LINK //2023-04-26_13 : To clear BT related address in ACL_CLOSE
 #ifdef DEVICE_NAME_CHECK_PAIRING //Disconnect BT
@@ -5751,7 +5788,9 @@ Bool MB3021_BT_Module_CMD_Execute(uint8_t major_id, uint8_t minor_id, uint8_t *d
 #endif
 									{
 #ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-04-26_16 : Added condition to avoid sending connectable mode and discoverable mode again and again.
-										if(Peer_Device_Status == PEER_DEVICE_NONE || Peer_Device_Status == PEER_DEVICE_DISCONNECTED)
+
+										//if(Peer_Device_Status == PEER_DEVICE_NONE || Peer_Device_Status == PEER_DEVICE_DISCONNECTED)
+										if(Peer_Device_Status == PEER_DEVICE_NONE) //2023-05-30_1 : Changed condition because we don't send SET_DISCOVERABLE_MODE
 										{
 											Peer_Device_Status = PEER_DEVICE_DISCOVERABLE_CONNECTABLE_MODE_1;
 											bPolling_Get_Data |= BCRF_SET_DISCOVERABLE_MODE;
@@ -7384,7 +7423,8 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 #endif
 		{
 			BKeep_Connectable = TRUE;
-#if defined(BT_GENERAL_MODE_KEEP_ENABLE) && defined(SWITCH_BUTTON_KEY_ENABLE) //2022-12-27 : To keep connectable mode when BT is not connected with Peer Device
+#if 0 //2023-05-30_1 : Added this condition. Only current A2DP device is available until user select BT Long Key to connect other device.
+//defined(BT_GENERAL_MODE_KEEP_ENABLE) && defined(SWITCH_BUTTON_KEY_ENABLE) //2022-12-27 : To keep connectable mode when BT is not connected with Peer Device
 			if(BBT_Pairing_Key_In)
 				bPolling_Get_Data |= BCRF_SET_DISCOVERABLE_MODE; //To keep connectable mode when BT is not connected with Peer Device
 			else
@@ -7470,6 +7510,12 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 			MB3021_BT_Module_TWS_Set_Discoverable_Mode();
 		}
 #endif
+#ifndef MASTER_MODE_ONLY //2023-05-30_2 : Under Broadcast mode, when A2DP is conected, we need to disable DICOVERABLE_MODE to avoid other device searching. Need to check this under BAP-01
+		if(Get_Cur_Master_Slave_Mode() == Switch_Master_Mode && Get_Cur_LR_Stereo_Mode() == Switch_Stereo_Mode)
+#endif
+		{
+			MB3021_BT_Module_Set_Discoverable_Mode_by_Param(SET_DISABLE_DISCOVERABLE_MODE);
+		}
 #ifdef PRODUCT_LINE_TEST_MASTER_ID2_FIXED
 		B_Auto_FactoryRST_On = TRUE; //2023-04-03_1
 #endif

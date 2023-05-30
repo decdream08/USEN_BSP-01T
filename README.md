@@ -487,5 +487,8 @@
 ## 2023-05-26 (BAP-01) - ESD
   - Deleted 2023-05-24_1 solution because customer does not want to change spec.
 
-
+## 2023-05-30 (BSP-01T)
+  - Only Current A2DP device is available until user select BT Long Key to connect other device. //2023-05-30_1 (BSP-01T New USEN#1)
+  - Under Broadcast mode, when A2DP is conected, we need to disable DICOVERABLE_MODE to avoid connection from other source device searching. //2023-05-30_2 (BSP-01T New USEN#2)
+  - Under Broadcast mode, when Other A2DP source try to connect SPK even though current A2DP source is connected with SPK, we don't need to display BT STAUS LED(Blinking for disconnection). //2023-05-30_3 (BSP-01T #13)
   

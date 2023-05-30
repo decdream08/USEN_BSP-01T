@@ -88,6 +88,13 @@ typedef enum {
 } A2DP_PTS_Event;
 #endif
 
+typedef enum {
+	SET_DISABLE_DISCOVERABLE_MODE,
+	SET_ENABLE_LIMITED_DISCOVERABLE_MODE,
+	SET_ENABLE_GENERAL_DISCOVERABLE_MODE,
+	SET_ENABLE_DUAL_DISCOVERABLE_MODE
+} Set_Discoverable_Mode_Param; //2023-05-30_2
+
 #ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-04-26_15 : To make current status of Peer device(A2DP) and TWS Slave device
 typedef enum {
 	PEER_DEVICE_NONE,
@@ -157,6 +164,8 @@ extern Bool bIs_USEN_Device; //Check if current connected device is USEN MUSIC L
 #ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-04-26_15 : To make current status of Peer device(A2DP)
 void Set_Peer_Device_Status(Peer_Device_Connection_Status Status);
 #endif
+
+void MB3021_BT_Module_Set_Discoverable_Mode_by_Param(Set_Discoverable_Mode_Param uParam); //2023-05-30_2 : To make Limitted Access Code Mode
 
 #ifdef TWS_MASTER_SLAVE_COM_ENABLE
 TWS_Connect_Status Is_TWS_Master_Slave_Connect(void); //TRUE : TWS Mode / FALSE : Not TWS Mode(But it's not Broadcast Mode and may just TWS Mode Ready)
