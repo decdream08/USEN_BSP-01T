@@ -207,6 +207,11 @@ Port Configuration:
 #define MINOR_ID_SET_BLE_MANUFACTURE_DATA		0x03
 #define CMD_SET_BLE_MANUFACTURE_DATA_32			(0x0701UL|((MINOR_ID_SET_BLE_MANUFACTURE_DATA|(MAJOR_ID_BLE_CONTROL << 8)) << PACKET_CMD_SHIFT_BIT))
 
+#if defined(VERSION_INFORMATION_SUPPORT) && defined(TWS_MASTER_SLAVE_COM_ENABLE) && defined(MCU_VERSION_INFO_DISPLAY_W_UART) //2023-06-07_3 : To send MCU Version informaiton under BSP-01T
+#define MAJOR_ID_MCU_VERSION					0x20
+#define CMD_SEND_MCU_VERSION_INFO_32			(0x0601UL|((MAJOR_ID_MCU_VERSION << 8) << PACKET_CMD_SHIFT_BIT))
+#endif
+
 //INDIGATOR
 //MINOR ID - MAJOR_ID_GENERAL_CONTROL
 #define MINOR_ID_MODULE_STATE_CHANGED_IND		0x00 //Data[0] : 0x0 - initialising / 0x1 - Ready
@@ -377,7 +382,7 @@ typedef enum {
 
 //Variable
 #ifdef VERSION_INFORMATION_SUPPORT
-char MCU_Version[6] = "230530"; //MCU Version Info
+char MCU_Version[6] = "230607"; //MCU Version Info
 #ifdef SPP_EXTENSION_V50_ENABLE
 char BT_Version[7]; //MCU Version Info
 #endif
@@ -3607,6 +3612,12 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 					break;
 #endif
 				case MINOR_ID_FIRMWARE_VERSION_IND: //Init //0x00 : 0x0E
+#if defined(VERSION_INFORMATION_SUPPORT) && defined(TWS_MASTER_SLAVE_COM_ENABLE) && defined(MCU_VERSION_INFO_DISPLAY_W_UART) //2023-06-07_3 : To send MCU Version informaiton under BSP-01T
+					if(Get_Cur_Master_Slave_Mode() == Switch_Master_Mode)
+					{
+					   MB3021_BT_Module_Send_cmd_param(CMD_SEND_MCU_VERSION_INFO_32, (uint8_t *)MCU_Version);
+					}
+#endif
 #ifdef SOC_ERROR_ALARM
 					TIMER20_uart_error_flag_Stop();
 #endif

@@ -173,6 +173,7 @@ extern "C"
 
 #ifdef TWS_MODE_ENABLE
 #define NEW_TWS_MASTER_SLAVE_LINK			(1) //2023-04-26_1 : To make new spec which is new tws master slave link.
+#define MCU_VERSION_INFO_DISPLAY_W_UART 	(1) //2023-06-07_3 : To send MCU version info using UART under TWS Mode
 #endif
 
 // Amp **************/

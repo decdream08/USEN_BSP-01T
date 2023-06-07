@@ -588,7 +588,7 @@ void FlashSave_SET_DEVICE_ID(uint8_t data_num, uint8_t data) //2022-12-15 //TWS 
 			_DBH(data);
 #endif
 		}
-
+		break;
 #endif
 
 		default:

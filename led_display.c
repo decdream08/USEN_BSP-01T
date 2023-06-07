@@ -520,7 +520,7 @@ void LED_Status_Display_WR_Color(Status_LED_Mode mode) //L1/L3 LED
 #endif
 			{
 #if defined(AUX_INPUT_DET_ENABLE) && defined(LED_DISPLAY_CHANGE)
-#ifdef USEN_BAP //2023-04-13_3 : Changed BAP-01 Spec which BAP-01 should be supported LED display for Master/Slave grouping under aux mode also.
+#ifdef MASTER_SLAVE_GROUPING_LED_DISPLAY //2023-06-07_2 : Applied "2023-04-13_3" solution under BSP-01T //def USEN_BAP //2023-04-13_3 : Changed BAP-01 Spec which BAP-01 should be supported LED display for Master/Slave grouping under aux mode also.
 				if(!Aux_In_Exist()|| Get_master_slave_grouping_flag()) //2023-04-18_1 : Added Grouping LED display condition under Aux Mode to avoid display LED under other case(BT connection disconnect from Peer Device and White LED is blinking).
 #else //USEN_BAP
 				if(!Aux_In_Exist())
@@ -701,7 +701,7 @@ void LED_Status_Display_Blinking(Status_LED_Color Color, Bool On)
 
 		case L3_LED_WHITE:
 #if defined(AUX_INPUT_DET_ENABLE) && defined(LED_DISPLAY_CHANGE) //Fixed Master L3 White LED ON after factory reset with Aux In
-#ifdef USEN_BAP //2023-04-13_3 : Changed BAP-01 Spec which BAP-01 should be supported LED display for Master/Slave grouping under aux mode also.
+#ifdef MASTER_SLAVE_GROUPING_LED_DISPLAY //2023-06-07_2 : Applied "2023-04-13_3" solution under BSP-01T //def USEN_BAP //2023-04-13_3 : Changed BAP-01 Spec which BAP-01 should be supported LED display for Master/Slave grouping under aux mode also.
 			if(Aux_In_Exist() && !Get_master_slave_grouping_flag()) //2023-04-18_1 : Added Grouping LED display condition under Aux Mode to avoid display LED under other case(BT connection disconnect from Peer Device and White LED is blinking).
 				break;
 #else //USEN_BAP

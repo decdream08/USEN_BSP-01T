@@ -683,6 +683,18 @@ void Remocon_Power_Key_Action_Toggle(uint8_t Input_Key) //For only Power Key inp
 		TAS5806MD_Amp_Volume_Set_with_Index(bVolume_Level, FALSE, TRUE);
 #endif
 #endif
+#if defined(NEW_TWS_MASTER_SLAVE_LINK) && defined(SW1_KEY_TWS_MODE) && defined(FLASH_SELF_WRITE_ERASE) && defined(TWS_MASTER_SLAVE_GROUPING) //2023-06-07_1 : When Power On using Power key w/o TWS connection Info, SPK should be blinking white to blue under BSP-01T
+		if(Get_Cur_LR_Stereo_Mode() == Switch_LR_Mode)
+		{
+			if(uFlash_Read_Buf3[FLASH_SAVE_SET_DEVICE_ID_0] == 0x00 || uFlash_Read_Buf3[FLASH_SAVE_SET_DEVICE_ID_0] == 0xff) //we don't to execute this when SET_DEVICE_ID is 0xffffffffffff(6Byte)
+			{
+#ifdef BT_DEBUG_MSG
+				_DBG("\n\rMaster Execute new TWS link start under Power On - MB3021_BT_Module_TWS_Start_Master_Slave_Grouping() !!!");
+#endif
+				MB3021_BT_TWS_Master_Slave_Grouping_Start();
+			}
+		}
+#endif
 #ifdef USEN_BAP //2023-04-06_4 : To recognize the place which call this function is whther SW start or Power On
 		Init_Value_Setting(FALSE);
 #else

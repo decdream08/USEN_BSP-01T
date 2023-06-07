@@ -379,7 +379,7 @@
   - If this condition is not true, we'll retry again and again under mute off function. So, we don't need to send same mute off CMD to slave. //2023-04-12_2
   - Changed ADC checking speed from 100ms to 50msec //2023-04-12_3 (BAP-01 USEN#17)
   
-## 2023-04-13 (BAP-01) : Changed Spe which BT short key is available for master/slave grouping under Aux mode
+## 2023-04-13 (BAP-01) : Changed Spec which BT short key is available for master/slave grouping under Aux mode
   - Under BAP-01, Aux mode shoud be accepted BT short key. //2023-04-13_1 (BAP-01 USEN#23/USEN#24)
   - Under Aux mode, when broadcast master/slave grouping, we need to make mute off. //2023-04-13_2 (BAP-01 USEN#23/USEN#24)
   - Changed BAP-01 Spec which BAP-01 should be supported LED display for Master/Slave grouping under aux mode also. //2023-04-13_3 (BAP-01 USEN#23/USEN#24)
@@ -491,4 +491,9 @@
   - Only Current A2DP device is available until user select BT Long Key to connect other device. //2023-05-30_1 (BSP-01T New USEN#1)
   - Under Broadcast mode, when A2DP is conected, we need to disable DICOVERABLE_MODE to avoid connection from other source device searching. //2023-05-30_2 (BSP-01T New USEN#2)
   - Under Broadcast mode, when Other A2DP source try to connect SPK even though current A2DP source is connected with SPK, we don't need to display BT STAUS LED(Blinking for disconnection). //2023-05-30_3 (BSP-01T #13)
+
+## 2023-06-07 (BSP-01T)
+  - When Power On using Power key w/o TWS connection Info, SPK should be blinking white to blue under BSP-01T. //2023-06-07_1
+  - Applied "2023-04-13_3" solution under BSP-01T //def USEN_BAP //2023-04-13_3 : Changed BAP-01 Spec which BAP-01 should be supported LED display for Master/Slave grouping under aux mode also. //2023-06-07_2
+  - To send MCU Version informaiton to UART under BSP-01T //2023-06-07_3
   
