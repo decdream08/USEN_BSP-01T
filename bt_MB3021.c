@@ -7227,7 +7227,7 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 #endif
 		}
 		
-#if defined(AUX_INPUT_DET_ENABLE) && defined(USEN_BAP) //2023-04-13_2 : Under Aux mode, when broadcast master/slave grouping, we need to make mute off.
+#if defined(AUX_INPUT_DET_ENABLE) //2023-06-07_4 : Uner Aux mode, BSP-01T shoud send "BCRF_INFORM_HOST_MODE" like 2023-04-13_2 solution. //&& defined(USEN_BAP) //2023-04-13_2 : Under Aux mode, when broadcast master/slave grouping, we need to make mute off.
 		if(Aux_In_Exist() //Need to keep LED off under Aux Mode
 #ifdef AD82584F_USE_POWER_DOWN_MUTE
 		&& !IS_Display_Mute()//This is mute off delay and that's means this action should be worked in mute off. //if(Is_Mute())
@@ -7238,6 +7238,7 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 #endif
 		)
 		{
+#ifdef USEN_BAP
 #ifdef AD82584F_ENABLE
 			AD82584F_Amp_Mute(FALSE, FALSE); //MUTE OFF
 #else //TAS5806MD_ENABLE						
@@ -7245,7 +7246,7 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 			TAS5806MD_Amp_Mute(FALSE, FALSE); //MUTE OFF
 #endif
 #endif //TAS5806MD_ENABLE
-
+#endif
 		MB3021_BT_Module_Forced_Input_Audio_Path_Setting();
 
 		}

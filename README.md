@@ -496,4 +496,4 @@
   - When Power On using Power key w/o TWS connection Info, SPK should be blinking white to blue under BSP-01T. //2023-06-07_1
   - Applied "2023-04-13_3" solution under BSP-01T //def USEN_BAP //2023-04-13_3 : Changed BAP-01 Spec which BAP-01 should be supported LED display for Master/Slave grouping under aux mode also. //2023-06-07_2
   - To send MCU Version informaiton to UART under BSP-01T //2023-06-07_3
-  
+  - Uner Aux mode, BSP-01T shoud send "BCRF_INFORM_HOST_MODE" like 2023-04-13_2 solution. //&& defined(USEN_BAP) //2023-04-13_2 : Under Aux mode, when broadcast master/slave grouping, we need to make mute off. //2023-06-07_4
