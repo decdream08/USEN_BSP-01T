@@ -2186,28 +2186,42 @@ void TAS5806MD_Register_Read(void) //2022-10-25 : FAULT PIN
 	
 	_DBG("\n\r +++TAS5806MD_Register_Read()");
 	
-	for(j=0;j<4;j++)
+	for(j=0;j<5;j++)
 	{
 		switch(j)
 		{
 			case 0:
-			TAS5806MD_Amp_Move_to_Control_Page();
+			TAS5806MD_Amp_Move_to_Control_Page(); //Book : 0x00 / Page : 0x00
 			_DBG("\n\r ===TAS5806MD_Amp_Move_to_Control_Page()");
 			break;
 
 			case 1:
-			TAS5806MD_Amp_Move_to_DSP_Control_Page();
+			TAS5806MD_Amp_Move_to_DSP_Control_Page(); //Book : 0xAA / Page : 0x24
 			_DBG("\n\r ===TAS5806MD_Amp_Move_to_DSP_Control_Page()");
 			break;
 
 			case 2:
-			TAS5806MD_Amp_Move_to_Volume_Control_Page();
+			TAS5806MD_Amp_Move_to_Volume_Control_Page(); //Book : 0x8C / Page : 0x2A
 			_DBG("\n\r ===TAS5806MD_Amp_Move_to_Volume_Control_Page()");
 			break;
 
 			case 3:
-			TAS58066MD_Amp_Move_to_DRC_band3_Page();
+			TAS58066MD_Amp_Move_to_DRC_band3_Page();   //Book : 0x8C / Page : 0x2d
 			_DBG("\n\r ===TAS58066MD_Amp_Move_to_DRC_band3_Page()");
+			break;
+
+			case 4:
+			//Book : 0x8C / Page : 0x2C
+			uRead = 0x00;
+			I2C_Interrupt_Write_Data(TAS5806MD_I2C_ADDR, MOVE_PAGE,&uRead,1);
+
+			uRead = 0x8c;
+			I2C_Interrupt_Write_Data(TAS5806MD_I2C_ADDR, MOVE_BOOK,&uRead,1);
+
+			uRead = 0x2c;
+			I2C_Interrupt_Write_Data(TAS5806MD_I2C_ADDR, MOVE_PAGE,&uRead,1);
+
+			_DBG("\n\r ===TAS58066MD_Amp_Move_to_Book : 0x8C / Page : 0x2C()");
 			break;
 		}
 

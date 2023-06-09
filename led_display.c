@@ -186,6 +186,10 @@ Status_LED_Mode Get_Return_Background_Status_LED_Mode(void)
 
 Status_LED_Mode Get_Return_Status_LED_Mode(void) //When user select un-mute, BT SPK should return latest status led mode. this variable must update status led mode excepting MUTE mode.
 {
+#if defined(NEW_TWS_MASTER_SLAVE_LINK) && defined(MASTER_SLAVE_GROUPING_LED_DISPLAY) //2023-06-09_1 : When user executes Mute On-->Mute Off under Grouping mode on TWS Master SPK, Mute LED still keep on.
+	if(Get_master_slave_grouping_flag() == TRUE && Get_Cur_LR_Stereo_Mode() == Switch_LR_Mode)
+		return_status_led_mode = STATUS_BT_MASTER_SLAVE_PAIRING_MODE;
+#endif
 	return return_status_led_mode;
 }
 
