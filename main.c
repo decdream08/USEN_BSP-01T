@@ -781,7 +781,9 @@ void mainloop(void)
 #endif
 #ifdef TAS5806MD_ENABLE
 	delay_ms(300); //Need delay 300ms to guarantee I2C working with TI AMP //2022-11-24
-#ifdef FLASH_SELF_WRITE_ERASE
+#if defined(USEN_BT_SPK_TI) //2023-06-09_2
+	TAS5806MD_Amp_Init(TAS5806MD_Init_Mode_Power_On);
+#elif defined(FLASH_SELF_WRITE_ERASE)
 	TAS5806MD_Amp_Init(TRUE);
 #else
 	TAS5806MD_Amp_Init();

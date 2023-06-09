@@ -511,7 +511,9 @@ void Set_Is_Mute(Bool mute_on) //For Actual Mute Status
 	IS_Mute = mute_on;
 }
 
-#ifdef FLASH_SELF_WRITE_ERASE
+#if defined(USEN_BT_SPK_TI)
+void TAS5806MD_Amp_Init(TAS5806MD_Init_Mode Amp_Init_Mode)
+#elif defined(FLASH_SELF_WRITE_ERASE)
 void TAS5806MD_Amp_Init(Bool Power_On_Init)
 #else
 void TAS5806MD_Amp_Init(void)
@@ -579,6 +581,9 @@ void TAS5806MD_Amp_Init(void)
 #endif
 
 #if defined(TIMER30_LED_PWM_ENABLE) && defined(TIMER1n_LED_PWM_ENABLE) //Default Volume LED display
+#ifdef USEN_BT_SPK_TI
+	if(Amp_Init_Mode == TAS5806MD_Init_Mode_Power_On) //2023-06-09_2 : After power plug-In, when user connected BT source and play music on it, Volume LED is off and turned on due to this line.
+#endif
 	LED_Display_Volume_All_Off(); //All Volume LEDs are turned off upon initializing
 #endif //TIMER30_LED_PWM_ENABLE
 
@@ -681,7 +686,11 @@ void TAS5806MD_Amp_Init(void)
 		TAS5806MD_Amp_EQ_DRC_Control(Cur_EQ_Mode); //2023-05-02_2 : To keep current EQ mode under Amp init //(EQ_NORMAL_MODE); //DRC / EQ Setting
 #endif
 
+#ifdef USEN_BT_SPK_TI
+		if(Amp_Init_Mode != TAS5806MD_Init_Mode_Common) //2023-06-09_2
+#else
 		if(Power_On_Init == TRUE)
+#endif
 #ifdef USEN_BAP //2023-04-28_2 : Under BSP-01T broadcast mode, we need to return back to original code to avoid to send "BLE_SET_MANUFACTURER_DATA" when DC Power on.
 			TAS5806MD_Amp_Volume_Set_with_Index(uVol_Level, FALSE, TRUE); //Power On Init Call //2023-03-28_5 : Changed condition actual_key from FALSE to TRUE. When power on init, BAP-01 Master send wrong volume data until user changed voluem thru rotary button or remote app. Also, BAP-01 can use ACTUAL KEY in this case.
 #else
@@ -1982,7 +1991,11 @@ Bool TAS5806MD_Amp_Detect_FS(Bool BInit) //Detect Audio Sampling Feq //2022-10-0
 			HAL_GPIO_ClearPin(PF, _BIT(4)); //DAMP_PDN : ON
 #endif //NOT_USE_POWER_DOWN_MUTE
 #endif
+#ifdef USEN_BT_SPK_TI //2023-06-09_2
+			TAS5806MD_Amp_Init(TAS5806MD_Init_Mode_CLK_Detect);
+#else
 			TAS5806MD_Amp_Init(TRUE);
+#endif
 		}
 
 		TIMER20_mute_flag_Start(); //Added Mute Off(TIMER20_mute_flag_Start()) in TAS5806MD_Amp_Detect_FS() function. //2022-10-12_6

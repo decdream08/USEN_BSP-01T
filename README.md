@@ -500,4 +500,4 @@
 
 ## 2023-06-09 (BSP-01T)
   - When user executes Mute On-->Mute Off under Grouping mode on TWS Master SPK, Mute LED still keep on. //2023-06-09_1
-
+  - After power plug-In, when user connected BT source and play music on it, Volume LED is off and turned on due to this line. //2023-06-09_2

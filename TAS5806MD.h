@@ -68,6 +68,14 @@ typedef enum {
 	TAS5806MD_PWR_Mode_PLAY
 }TAS5806MD_Power_Mode;
 
+#ifdef USEN_BT_SPK_TI //2023-06-09_2
+typedef enum {
+	TAS5806MD_Init_Mode_Power_On,
+	TAS5806MD_Init_Mode_CLK_Detect,
+	TAS5806MD_Init_Mode_Common
+}TAS5806MD_Init_Mode;
+#endif
+
 #define TAS5806MD_I2C_ADDR						(TAS5806_DEVICE_ADDR_15K) //2022-11-14_1
 
 //Function
@@ -85,7 +93,9 @@ Bool TAS5806MD_Amp_Get_Cur_Mute_Status(uint8_t *buffer); //TRUE : Mute On / FALS
 #endif
 void TAS5806MD_Amp_EQ_DRC_Control(EQ_Mode_Setting EQ_mode);
 
-#ifdef FLASH_SELF_WRITE_ERASE
+#if defined(USEN_BT_SPK_TI) //2023-06-09_2
+void TAS5806MD_Amp_Init(TAS5806MD_Init_Mode Amp_Init_Mode);
+#elif defined(FLASH_SELF_WRITE_ERASE)
 void TAS5806MD_Amp_Init(Bool Power_On_Init);
 #else //FLASH_SELF_WRITE_ERASE
 void TAS5806MD_Amp_Init();
