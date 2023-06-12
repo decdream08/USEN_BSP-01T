@@ -616,7 +616,7 @@ void TAS5806MD_Amp_Init(void)
 #ifdef TI_AMP_DSP_VOLUME_CONTROL_ENABLE
 	//DAC Gain Default Volume Setting
 #ifdef USEN_BAP
-	uBuffer = 0x07; //20.5dB
+	uBuffer = 0x00;//2023-06-12_1 : Fixed DAC Volume to 0x00(24dB) for AGL Enable //0x07; //20.5dB
 	I2C_Interrupt_Write_Data(TAS5806MD_I2C_ADDR, TAS5806MD_DAC_GAIN_CONTROL_REG,&uBuffer,1);
 #else
 	uBuffer = 0x11; //15.5dB //2023-02-23_2 : Changed Default DAC GAIN for EQ BYPASS BT FW //0x0F; //16.5dB //2023-02-09_3 : Changed Default DAC GAIN
@@ -2205,22 +2205,22 @@ void TAS5806MD_Register_Read(void) //2022-10-25 : FAULT PIN
 		{
 			case 0:
 			TAS5806MD_Amp_Move_to_Control_Page(); //Book : 0x00 / Page : 0x00
-			_DBG("\n\r ===TAS5806MD_Amp_Move_to_Control_Page()");
+			_DBG("\n\r === TAS5806MD Read //Book : 0x00 / Page : 0x00");
 			break;
 
 			case 1:
 			TAS5806MD_Amp_Move_to_DSP_Control_Page(); //Book : 0xAA / Page : 0x24
-			_DBG("\n\r ===TAS5806MD_Amp_Move_to_DSP_Control_Page()");
+			_DBG("\n\r === TAS5806MD Read //Book : 0xAA / Page : 0x24");
 			break;
 
 			case 2:
 			TAS5806MD_Amp_Move_to_Volume_Control_Page(); //Book : 0x8C / Page : 0x2A
-			_DBG("\n\r ===TAS5806MD_Amp_Move_to_Volume_Control_Page()");
+			_DBG("\n\r === TAS5806MD Read //Book : 0x8C / Page : 0x2A");
 			break;
 
 			case 3:
 			TAS58066MD_Amp_Move_to_DRC_band3_Page();   //Book : 0x8C / Page : 0x2d
-			_DBG("\n\r ===TAS58066MD_Amp_Move_to_DRC_band3_Page()");
+			_DBG("\n\r === TAS5806MD Read //Book : 0x8C / Page : 0x2d");
 			break;
 
 			case 4:
@@ -2234,7 +2234,7 @@ void TAS5806MD_Register_Read(void) //2022-10-25 : FAULT PIN
 			uRead = 0x2c;
 			I2C_Interrupt_Write_Data(TAS5806MD_I2C_ADDR, MOVE_PAGE,&uRead,1);
 
-			_DBG("\n\r ===TAS58066MD_Amp_Move_to_Book : 0x8C / Page : 0x2C()");
+			_DBG("\n\r === TAS5806MD Read //Book : 0x8C / Page : 0x2C");
 			break;
 		}
 
@@ -2322,6 +2322,9 @@ void TAS5806MD_AGL_Value_Change(void)
 {
 	uint8_t uSize, i, Data;
 	
+#ifdef TAS5806MD_DEBUG_MSG
+	_DBG("\n\rTAS5806MD_AGL_Value_Change()");
+#endif
 	//Write TAS5806MD_Init	
 	uSize = sizeof(TAS5806MD_AGL_Table)/2;
 

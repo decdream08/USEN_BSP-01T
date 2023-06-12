@@ -382,7 +382,7 @@ typedef enum {
 
 //Variable
 #ifdef VERSION_INFORMATION_SUPPORT
-char MCU_Version[6] = "230609"; //MCU Version Info
+char MCU_Version[6] = "230612"; //MCU Version Info
 #ifdef SPP_EXTENSION_V50_ENABLE
 char BT_Version[7]; //MCU Version Info
 #endif
@@ -7523,10 +7523,10 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 #endif
 #ifndef MASTER_MODE_ONLY //2023-05-30_2 : Under Broadcast mode, when A2DP is conected, we need to disable DICOVERABLE_MODE to avoid other device searching. Need to check this under BAP-01
 		if(Get_Cur_Master_Slave_Mode() == Switch_Master_Mode && Get_Cur_LR_Stereo_Mode() == Switch_Stereo_Mode)
-#endif
 		{
 			MB3021_BT_Module_Set_Discoverable_Mode_by_Param(SET_DISABLE_DISCOVERABLE_MODE);
 		}
+#endif
 #ifdef PRODUCT_LINE_TEST_MASTER_ID2_FIXED
 		B_Auto_FactoryRST_On = TRUE; //2023-04-03_1
 #endif

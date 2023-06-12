@@ -4064,7 +4064,7 @@ const uint8_t TAS5806MD_registers[][2] =
 
 #else //DEFAULT_AMP_SETTING
 
-#ifdef USEN_BAP //2023-05-09_2 : Changed the default table into BSP Normal.
+#ifdef USEN_BAP //2023-05-09_2 : Changed the default table into BSP Normal. //2023-06-12_1 : Applied AGL under BAP-01. Please refer to AGL Registers in TAS5806MD_registers array.
 const uint8_t TAS5806MD_registers[][2] = 
 {
 //RESET
@@ -4135,14 +4135,14 @@ const uint8_t TAS5806MD_registers[][2] =
     { 0x26, 0x00 },
     { 0x27, 0x00 },
     { 0x00, 0x2a },
-    { 0x24, 0x00 }, //  Volume Left = -17 dB
-    { 0x25, 0x12 },
-    { 0x26, 0x14 },
-    { 0x27, 0x9a },
-    { 0x28, 0x00 }, //  Volume Right = -17 dB
-    { 0x29, 0x12 },
-    { 0x2a, 0x14 },
-    { 0x2b, 0x9a },
+    { 0x24, 0x00 }, //  Volume Left = -8 dB
+    { 0x25, 0x32 },
+    { 0x26, 0xf5 },
+    { 0x27, 0x2d },
+    { 0x28, 0x00 }, //  Volume Right = -8 dB
+    { 0x29, 0x32 },
+    { 0x2a, 0xf5 },
+    { 0x2b, 0x2d },
     { 0x30, 0x00 }, //  Volume Alpha = 3 ms
     { 0x31, 0x71 },
     { 0x32, 0x94 },
@@ -4204,11 +4204,11 @@ const uint8_t TAS5806MD_registers[][2] =
     { 0x61, 0x89 },
     { 0x62, 0x37 },
     { 0x63, 0x4c },
-    { 0x64, 0x01 }, //  AGL Threshold: -15 dB
-    { 0x65, 0x6f },
-    { 0x66, 0xa9 },
-    { 0x67, 0xbb },
-    { 0x68, 0x40 }, //  AGL OnOff: 0
+    { 0x64, 0x00 }, //  AGL Threshold: -27 dB
+    { 0x65, 0x5c },
+    { 0x66, 0x5a },
+    { 0x67, 0x4f },
+    { 0x68, 0xc0 }, //  AGL OnOff: 1
     { 0x69, 0x00 },
     { 0x6a, 0x00 },
     { 0x6b, 0x00 },
