@@ -531,7 +531,7 @@ void TAS5806MD_Amp_Init(void)
 	uint8_t uVol_Level = 0;
 	uint8_t uFlash_Read_Buf[FLASH_SAVE_DATA_END];
 #endif
-#ifdef TI_AMP_DSP_VOLUME_CONTROL_ENABLE
+#if defined(TI_AMP_DSP_VOLUME_CONTROL_ENABLE) && !defined(USEN_BAP)
 	uint8_t uBuffer = 0;
 #endif
 
@@ -616,8 +616,7 @@ void TAS5806MD_Amp_Init(void)
 #ifdef TI_AMP_DSP_VOLUME_CONTROL_ENABLE
 	//DAC Gain Default Volume Setting
 #ifdef USEN_BAP
-	uBuffer = 0x00;//2023-06-12_1 : Fixed DAC Volume to 0x00(24dB) for AGL Enable //0x07; //20.5dB
-	I2C_Interrupt_Write_Data(TAS5806MD_I2C_ADDR, TAS5806MD_DAC_GAIN_CONTROL_REG,&uBuffer,1);
+	TAS5806MD_Dac_Volume_Set(Get_Cur_BAP_EQ_Mode()); //2023-06-12_1 : Fixed DAC Volume for AGL Enable depends on EQ Mode.
 #else
 	uBuffer = 0x11; //15.5dB //2023-02-23_2 : Changed Default DAC GAIN for EQ BYPASS BT FW //0x0F; //16.5dB //2023-02-09_3 : Changed Default DAC GAIN
 	I2C_Interrupt_Write_Data(TAS5806MD_I2C_ADDR, TAS5806MD_DAC_GAIN_CONTROL_REG,&uBuffer,1);
@@ -2516,6 +2515,31 @@ void TAS5806MD_Amp_Volume_Register_Writing(uint8_t uVolumeLevel)
 
 	BAmp_COM = FALSE;
 }
+
+#ifdef USEN_BAP //2023-06-12_1 : Fixed DAC Volume for AGL Enable like below.
+void TAS5806MD_Dac_Volume_Set(Switch_BAP_EQ_Mode EQ_Mode)
+{
+	uint8_t uBuffer;
+	
+	if(EQ_Mode == Switch_EQ_NORMAL_Mode) //BAP NORMAL EQ : 4ohm SPK
+	{
+#ifdef TAS5806MD_DEBUG_MSG
+		_DBG("\n\rTAS5806MD_Dac_Volume_Set() : BAP NORMAL AGL");
+#endif
+		uBuffer = 0x0A; //19.0dB
+	}
+	else //BSP-01 EQ : 8ohm SPK
+	{
+#ifdef TAS5806MD_DEBUG_MSG
+		_DBG("\n\rTAS5806MD_Dac_Volume_Set() : BAP BSP AGL");
+#endif
+		uBuffer = 0x00; //24dB
+	}
+
+	I2C_Interrupt_Write_Data(TAS5806MD_I2C_ADDR, TAS5806MD_DAC_GAIN_CONTROL_REG,&uBuffer,1);
+}
+#endif
+
 #endif //#ifdef TI_AMP_DSP_VOLUME_CONTROL_ENABLE
 
 #endif //TAS5806MD_ENABLE

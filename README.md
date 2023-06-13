@@ -503,5 +503,5 @@
   - After power plug-In, when user connected BT source and play music on it, Volume LED is off and turned on due to this line. //2023-06-09_2
   
 ## 2023-06-12 (BAP-01)
-  - Applied AGL under BAP-01. Please refer to AGL Registers in TAS5806MD_registers array. //2023-06-12_1
+  - Applied AGL under BAP-01. Please refer to AGL Registers in TAS5806MD_registers array and Fixed DAC Volume for AGL Enable depends on EQ Mode.. //2023-06-12_1
 

@@ -141,6 +141,9 @@ void TAS5806MD_DRC_OnOff(Bool BDRC_On);
 #endif
 #ifdef TI_AMP_DSP_VOLUME_CONTROL_ENABLE
 void TAS5806MD_Amp_Volume_Register_Writing(uint8_t uVolumeLevel);
+#ifdef USEN_BAP //2023-06-12_1 : Fixed DAC Volume for AGL Enable like below.
+void TAS5806MD_Dac_Volume_Set(Switch_BAP_EQ_Mode EQ_Mode);
+#endif
 #endif
 #endif //TAS5806MD_H
 

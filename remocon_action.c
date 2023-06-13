@@ -375,6 +375,9 @@ void Remocon_BSP_NORMAL_Mode_Switch_Action(void)
 		//EQ Setting from USEN Tablet
 #ifdef USEN_TI_AMP_EQ_ENABLE //2023-02-27_1
 		TAS5806MD_Amp_EQ_DRC_Control(EQ_NORMAL_MODE); //DRC / EQ Setting				
+#ifdef USEN_BAP
+		TAS5806MD_Dac_Volume_Set(Switch_EQ_BSP_Mode); //2023-06-12_1 : Fixed DAC Volume for AGL Enable depends on EQ Mode.
+#endif
 #ifdef INPUT_KEY_SYNC_WITH_SLAVE_ENABLE
 		MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_EQ, EQ_NORMAL_MODE);
 #endif
@@ -388,6 +391,9 @@ void Remocon_BSP_NORMAL_Mode_Switch_Action(void)
 		//EQ Normal Setting				
 #ifdef USEN_TI_AMP_EQ_ENABLE //2023-02-27_1
 		TAS5806MD_Amp_EQ_DRC_Control(EQ_BAP_NORMAL_MODE); //DRC / EQ Setting				
+#ifdef USEN_BAP
+		TAS5806MD_Dac_Volume_Set(Switch_EQ_NORMAL_Mode); //2023-06-12_1 : Fixed DAC Volume for AGL Enable depends on EQ Mode.
+#endif
 #ifdef INPUT_KEY_SYNC_WITH_SLAVE_ENABLE
 		MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_EQ, EQ_NORMAL_MODE);
 #endif
