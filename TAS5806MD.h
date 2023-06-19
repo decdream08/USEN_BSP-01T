@@ -135,14 +135,14 @@ void TAS5806MD_DRC_Off(void);
 Bool Is_BAmp_Init(void);
 Bool Is_I2C_Access_OK(void); //2023-02-27_2
 #ifdef USEN_BAP
-void TAS5806MD_AGL_Value_Change(void);
+void TAS5806MD_AGL_Value_Change(Switch_BAP_EQ_Mode EQ_Mode, Bool BT_mode); //2023-06-13_1
 void TAS5806MD_EQ_OnOff(Bool BEQ_On);
 void TAS5806MD_DRC_OnOff(Bool BDRC_On);
 #endif
 #ifdef TI_AMP_DSP_VOLUME_CONTROL_ENABLE
 void TAS5806MD_Amp_Volume_Register_Writing(uint8_t uVolumeLevel);
 #ifdef USEN_BAP //2023-06-12_1 : Fixed DAC Volume for AGL Enable like below.
-void TAS5806MD_Dac_Volume_Set(Switch_BAP_EQ_Mode EQ_Mode);
+void TAS5806MD_Dac_Volume_Set(Switch_BAP_EQ_Mode EQ_Mode, Bool Aux_Mode); //2023-06-13_1 : Added Parameter
 #endif
 #endif
 #endif //TAS5806MD_H

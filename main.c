@@ -1653,6 +1653,9 @@ void GPIOCD_IRQHandler_IT2(void)
 				}
 				else
 				{
+#ifdef USEN_BAP
+					B_AUX_DET = FALSE; //2023-06-19_3
+#endif
 #ifdef AUX_INPUT_DET_DEBUG
 					_DBG("\n\rB_AUX_DET = Already FALSE(Aux Out)");
 #endif
@@ -1707,6 +1710,9 @@ void GPIOCD_IRQHandler_IT2(void)
 					}
 					else //To recover mute off when user alternate Aux mode and BT mode repeatly
 					{
+#ifdef USEN_BAP
+						B_AUX_DET = TRUE; //2023-06-19_3 : Under BAP-01, we need to set B_AUX_DET value in every interrupt condition. //TURE -Aux In
+#endif
 #ifdef AUX_INPUT_DET_DEBUG
 						_DBG("\n\rB_AUX_DET = Already TRUE(Aux In)");
 #endif

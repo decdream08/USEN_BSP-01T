@@ -409,6 +409,103 @@ const uint8_t TAS5806MD_AGL_Table[][2] =
     { 0x66, 0x3a },
     { 0x67, 0xa2 },
 };
+
+const uint8_t TAS5806MD_AGL_EQ_BSP_BT[][2] = //2023-06-19_1 : Changed AGL for EQ BSP BT(Dac Volume : 18dB)
+{
+	{ 0x00, 0x00 }, //0x00 : 0x00
+	{ 0x7F, 0x8C }, //0x7F : 0x8C
+	{ 0x00, 0x2C }, //0x00 : 0x2C
+	{ 0x64, 0x00 }, //  AGL Threshold: -26 dB
+    { 0x65, 0x67 },
+    { 0x66, 0x9f },
+    { 0x67, 0x1c },
+    { 0x68, 0xc0 }, //  AGL OnOff: 1
+    { 0x69, 0x00 },
+    { 0x6a, 0x00 },
+    { 0x6b, 0x00 },
+    { 0x6c, 0x02 }, //  AGL Softening Alpha: 0.5 ms
+    { 0x6d, 0xa3 },
+    { 0x6e, 0x9a },
+    { 0x6f, 0xcc },
+    { 0x00, 0x2d },
+    { 0x18, 0x7d }, //  AGL Softening Omega: 0.5 ms
+    { 0x19, 0x5c },
+    { 0x1a, 0x65 },
+    { 0x1b, 0x34 },
+	
+};
+
+const uint8_t TAS5806MD_AGL_EQ_BSP_AUX[][2] = //2023-06-19_1 : Changed AGL for EQ BSP AUX(Dac Volume : 19dB)
+{
+	{ 0x00, 0x00 }, //0x00 : 0x00
+	{ 0x7F, 0x8C }, //0x7F : 0x8C
+	{ 0x00, 0x2C }, //0x00 : 0x2C
+	{ 0x64, 0x00 }, //  AGL Threshold: -27 dB
+    { 0x65, 0x5c },
+    { 0x66, 0x5a },
+    { 0x67, 0x4f },
+    { 0x68, 0xc0 }, //  AGL OnOff: 1
+    { 0x69, 0x00 },
+    { 0x6a, 0x00 },
+    { 0x6b, 0x00 },
+    { 0x6c, 0x02 }, //  AGL Softening Alpha: 0.5 ms
+    { 0x6d, 0xa3 },
+    { 0x6e, 0x9a },
+    { 0x6f, 0xcc },
+    { 0x00, 0x2d },
+    { 0x18, 0x7d }, //  AGL Softening Omega: 0.5 ms
+    { 0x19, 0x5c },
+    { 0x1a, 0x65 },
+    { 0x1b, 0x34 },
+};
+
+const uint8_t TAS5806MD_AGL_EQ_NORMAL_BT[][2] = //2023-06-19_1 : Changed AGL for EQ NORMAL BT(Dac Volume : 18dB)
+{
+	{ 0x00, 0x00 }, //0x00 : 0x00
+	{ 0x7F, 0x8C }, //0x7F : 0x8C
+	{ 0x00, 0x2C }, //0x00 : 0x2C
+	{ 0x64, 0x00 }, //  AGL Threshold: -26 dB
+    { 0x65, 0x67 },
+    { 0x66, 0x9f },
+    { 0x67, 0x1c },
+    { 0x68, 0xc0 }, //  AGL OnOff: 1
+    { 0x69, 0x00 },
+    { 0x6a, 0x00 },
+    { 0x6b, 0x00 },
+    { 0x6c, 0x02 }, //  AGL Softening Alpha: 0.55 ms
+    { 0x6d, 0x66 },
+    { 0x6e, 0xc4 },
+    { 0x6f, 0x1b },
+    { 0x00, 0x2d },
+    { 0x18, 0x7d }, //  AGL Softening Omega: 0.55 ms
+    { 0x19, 0x99 },
+    { 0x1a, 0x3b },
+    { 0x1b, 0xe5 },
+};
+
+const uint8_t TAS5806MD_AGL_EQ_NORMAL_AUX[][2] = //2023-06-19_1 : Changed AGL for EQ NORMAL AUX(Dac Volume : 19dB)
+{
+	{ 0x00, 0x00 }, //0x00 : 0x00
+	{ 0x7F, 0x8C }, //0x7F : 0x8C
+	{ 0x00, 0x2C }, //0x00 : 0x2C
+	{ 0x64, 0x00 }, //  AGL Threshold: -27 dB
+    { 0x65, 0x5c },
+    { 0x66, 0x5a },
+    { 0x67, 0x4f },
+    { 0x68, 0xc0 }, //  AGL OnOff: 1
+    { 0x69, 0x00 },
+    { 0x6a, 0x00 },
+    { 0x6b, 0x00 },
+    { 0x6c, 0x02 }, //  AGL Softening Alpha: 0.55 ms
+    { 0x6d, 0x66 },
+    { 0x6e, 0xc4 },
+    { 0x6f, 0x1b },
+    { 0x00, 0x2d },
+    { 0x18, 0x7d }, //  AGL Softening Omega: 0.55 ms
+    { 0x19, 0x99 },
+    { 0x1a, 0x3b },
+    { 0x1b, 0xe5 },
+};
 #endif
 
 #ifdef USEN_TI_AMP_EQ_ENABLE //2023-05-09_2
@@ -616,7 +713,7 @@ void TAS5806MD_Amp_Init(void)
 #ifdef TI_AMP_DSP_VOLUME_CONTROL_ENABLE
 	//DAC Gain Default Volume Setting
 #ifdef USEN_BAP
-	TAS5806MD_Dac_Volume_Set(Get_Cur_BAP_EQ_Mode()); //2023-06-12_1 : Fixed DAC Volume for AGL Enable depends on EQ Mode.
+	TAS5806MD_Dac_Volume_Set(Get_Cur_BAP_EQ_Mode(), Aux_In_Exist()); //2023-06-12_1 : Fixed DAC Volume for AGL Enable depends on EQ Mode.
 #else
 	uBuffer = 0x11; //15.5dB //2023-02-23_2 : Changed Default DAC GAIN for EQ BYPASS BT FW //0x0F; //16.5dB //2023-02-09_3 : Changed Default DAC GAIN
 	I2C_Interrupt_Write_Data(TAS5806MD_I2C_ADDR, TAS5806MD_DAC_GAIN_CONTROL_REG,&uBuffer,1);
@@ -2317,7 +2414,7 @@ void TAS5806MD_Fault_Clear_Reg(void)
 }
 
 #ifdef USEN_BAP
-void TAS5806MD_AGL_Value_Change(void)
+void TAS5806MD_AGL_Value_Change(Switch_BAP_EQ_Mode EQ_Mode, Bool BT_mode) //2023-06-19_1 : Added parameter in TAS5806MD_AGL_Value_Change to apply AGL for each mode(BT or Aux)
 {
 	uint8_t uSize, i, Data;
 	
@@ -2325,12 +2422,52 @@ void TAS5806MD_AGL_Value_Change(void)
 	_DBG("\n\rTAS5806MD_AGL_Value_Change()");
 #endif
 	//Write TAS5806MD_Init	
-	uSize = sizeof(TAS5806MD_AGL_Table)/2;
+
+	if(BT_mode) //BT Mode
+	{
+		if(EQ_Mode == Switch_EQ_BSP_Mode) //BT Mode : BSP Mode
+		{
+			uSize = sizeof(TAS5806MD_AGL_EQ_BSP_BT)/2;
+
+			for(i =0;i<uSize;i++)
+			{
+				Data = TAS5806MD_AGL_EQ_BSP_BT[i][1];
+				I2C_Interrupt_Write_Data(TAS5806MD_I2C_ADDR, TAS5806MD_AGL_EQ_BSP_BT[i][0],&Data,1);
+			}
+		}
+		else //BT Mode : NORMAL Mode
+		{
+			uSize = sizeof(TAS5806MD_AGL_EQ_NORMAL_BT)/2;
 
 	for(i =0;i<uSize;i++)
 	{
-		Data = TAS5806MD_AGL_Table[i][1];
-		I2C_Interrupt_Write_Data(TAS5806MD_I2C_ADDR, TAS5806MD_AGL_Table[i][0],&Data,1);
+				Data = TAS5806MD_AGL_EQ_NORMAL_BT[i][1];
+				I2C_Interrupt_Write_Data(TAS5806MD_I2C_ADDR, TAS5806MD_AGL_EQ_NORMAL_BT[i][0],&Data,1);
+			}
+		}
+	}
+	else //Aux Mode
+	{
+		if(EQ_Mode == Switch_EQ_BSP_Mode) //Aux Mode : BSP Mode
+		{
+			uSize = sizeof(TAS5806MD_AGL_EQ_BSP_AUX)/2;
+
+			for(i =0;i<uSize;i++)
+			{
+				Data = TAS5806MD_AGL_EQ_BSP_AUX[i][1];
+				I2C_Interrupt_Write_Data(TAS5806MD_I2C_ADDR, TAS5806MD_AGL_EQ_BSP_AUX[i][0],&Data,1);
+			}
+		}
+		else //Aux Mode : NORMAL Mode
+		{
+			uSize = sizeof(TAS5806MD_AGL_EQ_NORMAL_AUX)/2;
+
+			for(i =0;i<uSize;i++)
+			{
+				Data = TAS5806MD_AGL_EQ_NORMAL_AUX[i][1];
+				I2C_Interrupt_Write_Data(TAS5806MD_I2C_ADDR, TAS5806MD_AGL_EQ_NORMAL_AUX[i][0],&Data,1);
+			}
+		}
 	}
 }
 
@@ -2517,26 +2654,46 @@ void TAS5806MD_Amp_Volume_Register_Writing(uint8_t uVolumeLevel)
 }
 
 #ifdef USEN_BAP //2023-06-12_1 : Fixed DAC Volume for AGL Enable like below.
-void TAS5806MD_Dac_Volume_Set(Switch_BAP_EQ_Mode EQ_Mode)
+void TAS5806MD_Dac_Volume_Set(Switch_BAP_EQ_Mode EQ_Mode, Bool Aux_Mode) //2023-06-13_1 : Added parameter "Aux_Mode" and changed this function
 {
 	uint8_t uBuffer;
+	Switch_BAP_EQ_Mode cur_EQ_Mode;
 	
-	if(EQ_Mode == Switch_EQ_NORMAL_Mode) //BAP NORMAL EQ : 4ohm SPK
+	TAS5806MD_Amp_Move_to_Control_Page();
+
+	if(EQ_Mode == Switch_EQ_NORMAL_Mode) //BAP NORMAL EQ
 	{
 #ifdef TAS5806MD_DEBUG_MSG
 		_DBG("\n\rTAS5806MD_Dac_Volume_Set() : BAP NORMAL AGL");
 #endif
+		if(Aux_Mode)
 		uBuffer = 0x0A; //19.0dB
+		else
+			uBuffer = 0x0c; //18.0dB
+
+		cur_EQ_Mode = Switch_EQ_NORMAL_Mode;
 	}
-	else //BSP-01 EQ : 8ohm SPK
+	else //Switch_EQ_BSP_Mode //BSP EQ
 	{
 #ifdef TAS5806MD_DEBUG_MSG
 		_DBG("\n\rTAS5806MD_Dac_Volume_Set() : BAP BSP AGL");
 #endif
-		uBuffer = 0x00; //24dB
+		if(Aux_Mode)
+			uBuffer = 0x0A; //19.0dB //0x00; //24.0dB
+		else
+			uBuffer = 0x0c; //18.0dB //0x02; //23.0dB
+
+		cur_EQ_Mode = Switch_EQ_BSP_Mode;
 	}
 
 	I2C_Interrupt_Write_Data(TAS5806MD_I2C_ADDR, TAS5806MD_DAC_GAIN_CONTROL_REG,&uBuffer,1);
+
+	if(Aux_Mode)
+		TAS5806MD_AGL_Value_Change(cur_EQ_Mode, FALSE);
+	else
+		TAS5806MD_AGL_Value_Change(cur_EQ_Mode, TRUE);
+
+	TAS5806MD_Amp_Move_to_Control_Page();
 }
 #endif
 

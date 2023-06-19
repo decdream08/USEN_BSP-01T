@@ -503,5 +503,14 @@
   - After power plug-In, when user connected BT source and play music on it, Volume LED is off and turned on due to this line. //2023-06-09_2
   
 ## 2023-06-12 (BAP-01)
-  - Applied AGL under BAP-01. Please refer to AGL Registers in TAS5806MD_registers array and Fixed DAC Volume for AGL Enable depends on EQ Mode.. //2023-06-12_1
+  - Applied AGL under BAP-01. Please refer to AGL Registers in TAS5806MD_registers array and Fixed DAC Volume for AGL Enable depends on EQ Mode. //2023-06-12_1
 
+## 2023-06-13 (BAP-01)
+  - Applied AGL for each mode(BT or Aux). //2023-06-13_1
+
+## 2023-06-19 (BAP-01)
+  - Changed AGL for each mode(EQ BSP + BT/EQ BSP + Aux/EQ NORMAL + BT/EQ NORMAL + AUX). //2023-06-19_1
+  - To disable SET_CONNECTABLE_MODE under BAP-01 because we apply  "2023-06-19_1" solution to send DISCOVERABLE_MODE(Disable). //2023-06-19_2 - Need to check apply this solution to BSP-01T Broadcast mode
+  - Under BAP-01, we need to set B_AUX_DET value in every interrupt condition. //2023-06-19_3
+  
+  

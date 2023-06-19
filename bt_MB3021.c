@@ -382,7 +382,7 @@ typedef enum {
 
 //Variable
 #ifdef VERSION_INFORMATION_SUPPORT
-char MCU_Version[6] = "230613"; //MCU Version Info
+char MCU_Version[6] = "230619"; //MCU Version Info
 #ifdef SPP_EXTENSION_V50_ENABLE
 char BT_Version[7]; //MCU Version Info
 #endif
@@ -396,6 +396,9 @@ Bool B_SSP_REBOOT_KEY_In = FALSE; //To send Reboot BLE DATA and execute Reboot
 Bool B_SSP_FACTORY_RESET_KEY_In = FALSE; //To send FACTORY RESET KEY and execute it.
 Bool BBT_Is_Routed = FALSE; //To check whether BT(excepting Aux) has music steam or not but TWS Mode has some different/wrong value.
 
+#ifdef USEN_BAP //2023-06-19_2 : To disable SET_CONNECTABLE_MODE under BAP-01 because we apply  "2023-06-19_1" solution to send DISCOVERABLE_MODE(Disable)
+Bool BDoNotSend_Connectable_Mode = FALSE;
+#endif
 #ifdef AVRCP_ENABLE
 Bool BBT_Is_Last_Connection_for_AVRCP = FALSE;
 Bool BBT_Need_Sequence = FALSE;
@@ -1389,7 +1392,9 @@ void MB3021_BT_Module_Value_Init(void)
 	Peer_Device_Status = PEER_DEVICE_NONE;
 	TWS_Slave_Status = TWS_SLAVE_NONE_CONNECTION;
 #endif
-
+#ifdef USEN_BAP //2023-06-19_2 : To disable SET_CONNECTABLE_MODE under BAP-01 because we apply  "2023-06-19_1" solution to send DISCOVERABLE_MODE(Disable)
+	BDoNotSend_Connectable_Mode = FALSE;
+#endif
 }
 
 void MB3021_BT_Module_HW_Reset(void)
@@ -2050,7 +2055,12 @@ void Set_MB3021_BT_Module_Source_Change_Direct(void)
 		else
 			uMode_Change = uBuf[0];
 #endif //#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
-
+#ifdef USEN_BAP //2023-06-13_1
+		if(uBuf[0] == 0x07) //Bluetooth Mode
+			TAS5806MD_Dac_Volume_Set(Get_Cur_BAP_EQ_Mode(), FALSE);
+		else //Aux Mode
+			TAS5806MD_Dac_Volume_Set(Get_Cur_BAP_EQ_Mode(), TRUE);
+#endif
 		MB3021_BT_Module_Send_cmd_param(CMD_INFORM_HOST_MODE_32, uBuf);
 #ifdef SWITCH_BUTTON_KEY_ENABLE
 		bFactory_Reset_Mode = FALSE;
@@ -5824,7 +5834,7 @@ Bool MB3021_BT_Module_CMD_Execute(uint8_t major_id, uint8_t minor_id, uint8_t *d
 							}
 						}
 						else //Broadcast mode
-#endif
+#endif //TWS_MODE_ENABLE
 						{
 #ifndef MASTER_MODE_ONLY
 							if(Get_Cur_Master_Slave_Mode() == Switch_Master_Mode)
@@ -5979,6 +5989,9 @@ Bool MB3021_BT_Module_CMD_Execute(uint8_t major_id, uint8_t minor_id, uint8_t *d
 							bPolling_Get_Data |= BCRF_SET_DISCOVERABLE_MODE; //Set flag to send same data again
 						else
 						{
+#ifdef USEN_BAP //2023-06-19_2 : To enable SET_CONNECTABLE_MODE under BKeep_Connectable because we apply  "2023-06-19_1" solution to send DISCOVERABLE_MODE(Disable)
+							if(!BDoNotSend_Connectable_Mode)
+#endif
 							bPolling_Get_Data |= BCRF_SET_CONNECTABLE_MODE; //For init sequence (Init Sequnece : Broadcaster -2)
 						}
 					}
@@ -7526,6 +7539,9 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 		{
 			MB3021_BT_Module_Set_Discoverable_Mode_by_Param(SET_DISABLE_DISCOVERABLE_MODE);
 		}
+#else //2023-06-19_2 : To disable SET_CONNECTABLE_MODE under BAP-01 because we apply  "2023-06-19_1" solution to send DISCOVERABLE_MODE(Disable)
+		BDoNotSend_Connectable_Mode = TRUE;
+		MB3021_BT_Module_Set_Discoverable_Mode_by_Param(SET_DISABLE_DISCOVERABLE_MODE);
 #endif
 #ifdef PRODUCT_LINE_TEST_MASTER_ID2_FIXED
 		B_Auto_FactoryRST_On = TRUE; //2023-04-03_1
@@ -8114,6 +8130,12 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 				
 				MB3021_BT_Module_Send_cmd_param(CMD_INFORM_HOST_MODE_32, uBuf);
 #else
+#ifdef USEN_BAP //2023-06-13_1
+				if(uBuf[0] == 0x07) //Bluetooth Mode
+					TAS5806MD_Dac_Volume_Set(Get_Cur_BAP_EQ_Mode(), FALSE);
+				else //Aux Mode
+					TAS5806MD_Dac_Volume_Set(Get_Cur_BAP_EQ_Mode(), TRUE);
+#endif
 				MB3021_BT_Module_Send_cmd_param(CMD_INFORM_HOST_MODE_32, uBuf);
 #endif
 			}
