@@ -513,4 +513,5 @@
   - To disable SET_CONNECTABLE_MODE under BAP-01 because we apply  "2023-06-19_1" solution to send DISCOVERABLE_MODE(Disable). //2023-06-19_2 - Need to check apply this solution to BSP-01T Broadcast mode
   - Under BAP-01, we need to set B_AUX_DET value in every interrupt condition. //2023-06-19_3
   
-  
+## 2023-06-19 (BAP-01)
+  - When user send EQ on USEN Tablet, Master response wrong volume data(-1) to Tablet. //2023-06-20_1

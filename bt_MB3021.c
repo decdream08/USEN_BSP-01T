@@ -382,7 +382,7 @@ typedef enum {
 
 //Variable
 #ifdef VERSION_INFORMATION_SUPPORT
-char MCU_Version[6] = "230619"; //MCU Version Info
+char MCU_Version[6] = "230620"; //MCU Version Info
 #ifdef SPP_EXTENSION_V50_ENABLE
 char BT_Version[7]; //MCU Version Info
 #endif
@@ -816,6 +816,7 @@ uint8_t Convert_50Step_to_16Step(uint8_t uVol) //2023-02-28_1 : Changed volume t
 	uint8_t uMatching_Vol = 0;
 	
 #ifdef BT_DEBUG_MSG
+	_DBG("\n\rConvert_50Step_to_16Step()");
 	_DBG("\n\rConvert_In_Vol = ");_DBD(uVol);
 #endif
 
@@ -847,8 +848,10 @@ uint8_t Convert_50Step_to_16Step(uint8_t uVol) //2023-02-28_1 : Changed volume t
 		uMatching_Vol = 3;
 	else if(uVol >= 6)
 		uMatching_Vol = 2;
-	else 
+	else if(uVol >= 2) //2023-06-20_1 : Add volume table for 0 level
 		uMatching_Vol = 1;
+	else 
+		uMatching_Vol = 0;
 
 #ifdef BT_DEBUG_MSG
 	_DBG("\n\ruMatching_Vol = ");_DBD(uMatching_Vol);
@@ -861,34 +864,42 @@ uint8_t Convert_16Step_to_50Step(uint8_t uVol) //2023-02-28_1 : Changed volume t
 {
 	uint8_t uMatching_Vol = 0;
 	
+#ifdef BT_DEBUG_MSG
+	_DBG("\n\rConvert_16Step_to_50Step()");
+	_DBG("\n\rConvert_In_Vol = ");_DBD(uVol);
+#endif
+
+	//2023-06-20_1 : +1 for each value
 	if(uVol >= 15)
-		uMatching_Vol = 49;
+		uMatching_Vol = 50; //49+i;
 	else if(uVol >= 14)
-		uMatching_Vol = 48;
+		uMatching_Vol = 49; //48+i;
 	else if(uVol >= 13)
-		uMatching_Vol = 47;
+		uMatching_Vol = 48; //47+i;
 	else if(uVol >= 12)
-		uMatching_Vol = 44;
+		uMatching_Vol = 45; //44+i;
 	else if(uVol >= 11)
-		uMatching_Vol = 41;
+		uMatching_Vol = 42; //41+i;
 	else if(uVol >= 10)
-		uMatching_Vol = 38;
+		uMatching_Vol = 39; //38+i;
 	else if(uVol >= 9)
-		uMatching_Vol = 35;
+		uMatching_Vol = 36; //35+i;
 	else if(uVol >= 8)
-		uMatching_Vol = 31;
+		uMatching_Vol = 32; //31+i;
 	else if(uVol >= 7)
-		uMatching_Vol = 27;
+		uMatching_Vol = 28; //27+i;
 	else if(uVol >= 6)
-		uMatching_Vol = 23;
+		uMatching_Vol = 24; //23+i;
 	else if(uVol >= 5)
-		uMatching_Vol = 20;
+		uMatching_Vol = 21; //20+i;
 	else if(uVol >= 4)
-		uMatching_Vol = 17;
+		uMatching_Vol = 18; //17+i;
 	else if(uVol >= 3)
-		uMatching_Vol = 14;
+		uMatching_Vol = 15; //14+i;
 	else if(uVol >= 2)
-		uMatching_Vol = 6;
+		uMatching_Vol = 7; //6+i;
+	else if(uVol >= 1) //2023-06-20_1 : Add volume table for 0 level
+		uMatching_Vol = 3; //2+i;
 	else
 		uMatching_Vol = 1;
 

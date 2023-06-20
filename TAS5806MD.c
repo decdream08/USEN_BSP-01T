@@ -1295,7 +1295,11 @@ uint8_t TAS5806MD_Amp_Volume_Set_with_Index(uint8_t Vol_Level, Bool Inverse, Boo
 	_DBG("\n\rTAS5806MD_Amp_Volume_Set_with_Index() !!!");
 #endif
 
+#if defined(ADC_VOLUME_STEP_ENABLE) && defined(USEN_BAP) //2023-06-20_1 : When user send EQ on USEN Tablet, Master response wrong volume data(-1) to Tablet.
+	if(((Vol_Level > VOLUME_LEVEL_NUMER) && Inverse) || ((Vol_Level > (VOLUME_LEVEL_NUMER-1)) && !Inverse))
+#else
 	if(Vol_Level > (VOLUME_LEVEL_NUMER-1))
+#endif
 	{
 #ifdef TAS5806MD_DEBUG_MSG
 		_DBG("\n\rInput Volume Level NG !!! : ");
