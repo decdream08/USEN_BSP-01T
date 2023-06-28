@@ -1320,7 +1320,7 @@ uint8_t TAS5806MD_Amp_Volume_Set_with_Index(uint8_t Vol_Level, Bool Inverse, Boo
 	if(Inverse)
 	{
 #if defined(ADC_VOLUME_STEP_ENABLE) && defined(USEN_BAP) //2023-01-09_3 : To Fit BLE volume data from Master under BAP
-		uCurVolLevel = VOLUME_LEVEL_NUMER - Vol_Level;
+		uCurVolLevel = VOLUME_LEVEL_NUMER - Vol_Level; //Input : 50~1 / Output : 0 ~ 49(Actual Volume Table)
 #else
 		uCurVolLevel = (VOLUME_LEVEL_NUMER-1) - Vol_Level;
 #endif
@@ -2255,22 +2255,25 @@ uint8_t TAS5806MD_Amp_Detect_Fault(Bool Return_Val_Only) //2022-10-25 : FAULT PI
 #ifdef USEN_BAP
 			//2023-04-07_3 : Need to execute Hi-Temp Error (1 : Related High-Temp / 2 : Clock)
 			TAS5806MD_Fault_Clear_Reg(); //Added Fault Clear here to output audio w/o stopping
+#ifdef COMMON_DEBUG_MSG
+			_DBG("\n\r+++ Forced volume Down");
+#endif
 			Volume_Level = TAS5806MD_Amp_Get_Cur_Volume_Level();
 			Volume_Level += 10;
 #ifdef TI_AMP_DSP_VOLUME_CONTROL_ENABLE
 			TAS5806MD_Amp_Volume_Register_Writing(Volume_Level);
-			TIMER20_Amp_error_flag_Start();
+			TIMER20_Amp_error_flag_Start(); //For LED Display - Only Clear this variable on Amp init
 #endif
 			//TAS5806MD_AGL_Value_Change(); //2023-04-07_3 : Disable
-#else
+#else //USEN_BAP
 #ifdef SWITCH_BUTTON_KEY_ENABLE
 			Send_Remote_Key_Event(VOL_DOWN_KEY);
 #endif
-#endif
+#endif //USEN_BAP
 			TAS5806MD_Fault_Clear_Reg(); //Added Fault Clear here to output audio w/o stopping
 			TIMER20_Amp_error_flag_Start();
 		}
-#endif
+#endif //#if defined(AMP_ERROR_ALARM) || (defined(SOC_ERROR_ALARM) && defined(TAS5806MD_ENABLE))
 	}
 	else
 	{
@@ -2579,6 +2582,15 @@ void TAS5806MD_Amp_Volume_Register_Writing(uint8_t uVolumeLevel)
 #endif
 		return;
 	}
+#ifdef USEN_TI_AMP_EQ_ENABLE //2023-06-26_1 : To avoid wrong input of volume level in TAS5806MD_Amp_Volume_Register_Writing()
+#ifdef USEN_BAP
+	if(uVolumeLevel > 49)
+		uVolumeLevel = 49;
+#else //USEN_BSP
+	if(uVolumeLevel > 15)
+		uVolumeLevel = 15;
+#endif //USEN_BAP
+#endif //USEN_TI_AMP_EQ_ENABLE
 
 	uArrayLevel = Find_Volume_Level[uVolumeLevel];
 
