@@ -519,4 +519,5 @@
 ## 2023-06-26 (BSP-01T / BAP-01)
   - To avoid wrong input of volume level in TAS5806MD_Amp_Volume_Register_Writing(). //2023-06-26_1
   
-    
+## 2023-06-30 (BAP-01)
+  - Excepting the errors with LED error display, we need to recovery(For especially Clock_Error case) from error mode to normal mode. //2023-06-30_1

@@ -73,6 +73,9 @@ int32_t master_slave_Grouping_cmd_recovery_flag = 0;
 #if defined(AMP_ERROR_ALARM) || (defined(SOC_ERROR_ALARM) && defined(TAS5806MD_ENABLE)) //2022-11-01
 int32_t amp_error_flag = 0;
 int32_t amp_access_error_flag = 0; //2023-04-07_2 : To recovery TAS5806MD_Amp_Detect_Fault() function
+#ifdef USEN_BAP
+int32_t amp_error_no_display_flag = 0; //2023-06-30_1 : Excepting the errors with LED error display, we need to recovery from error mode to normal mode.
+#endif //USEN_BAP
 #endif
 
 factory_reset_recovery_cmd recovery_cmd;
@@ -589,6 +592,24 @@ void TIMER20_Amp_access_error_flag_Stop(void) //2023-04-07_1
 #endif
 	amp_access_error_flag = 0;
 }
+
+#ifdef USEN_BAP //2023-06-30_1 : Excepting the errors with LED error display, we need to recovery from error mode to normal mode.
+void TIMER20_Amp_error_no_diplay_flag_Start(void) //2023-06-30_1
+{
+#ifdef TIMER20_DEBUG_MSG
+	_DBG("\n\rTIMER20_Amp_error_no_diplay_flag_Start() !!! ");
+#endif
+	amp_error_no_display_flag = 1;
+}
+
+void TIMER20_Amp_error_no_diplay_flag_Stop(void) //2023-06-30_1
+{
+#ifdef TIMER20_DEBUG_MSG
+	_DBG("\n\rTIMER20_Amp_error_no_diplay_flag_Start() !!! ");
+#endif
+	amp_error_no_display_flag = 0;
+}
+#endif //USEN_BAP
 
 Bool Get_Amp_error_flag(void)
 {
@@ -1242,6 +1263,30 @@ void TIMER20_IRQHandler_IT(void)
 			else
 				amp_access_error_flag++;
 		}
+
+#ifdef USEN_BAP //2023-06-30_1 : Excepting the errors with LED error display, we need to recovery from error mode to normal mode.
+		if(amp_error_no_display_flag)
+		{
+			//When Amp access error is ocurred, retry it again.
+			if(amp_error_no_display_flag == 11) //After 1sec, check
+			{
+				if(TAS5806MD_Amp_Detect_FS(FALSE) == 1)
+				{
+#ifdef TIMER20_DEBUG_MSG
+					_DBG("\n\rClock Error Recovery OK !!! ");
+#endif					
+					TAS5806MD_Fault_Clear_Reg(); //Need to check fault status with TAS5806MD_Amp_Detect_Fault(TRUE) after call this function to update fault status
+					amp_error_no_display_flag = 0;
+				}
+				else
+				{
+					amp_error_no_display_flag = 1; //retry
+				}
+			}
+			else
+				amp_error_no_display_flag++;
+		}
+#endif //USEN_BAP
 
 #ifndef USEN_BAP //2023-04-07_3 : Do not use this under USEN_BAP
 		if(amp_error_flag 

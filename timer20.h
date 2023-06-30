@@ -106,6 +106,11 @@ void TIMER20_Amp_error_flag_Stop(void);
 
 void TIMER20_Amp_access_error_flag_Start(void); //2023-04-07_1
 void TIMER20_Amp_access_error_flag_Stop(void); //2023-04-07_1
+
+#ifdef USEN_BAP //2023-06-30_1 : Excepting the errors with LED error display, we need to recovery from error mode to normal mode.
+void TIMER20_Amp_error_no_diplay_flag_Start(void); //2023-06-30_1
+void TIMER20_Amp_error_no_diplay_flag_Stop(void); //2023-06-30_1
+#endif
 #endif
 
 void TIMER20_mute_flag_Start(void);
