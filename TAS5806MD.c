@@ -2287,7 +2287,7 @@ uint8_t TAS5806MD_Amp_Detect_Fault(Bool Return_Val_Only) //2022-10-25 : FAULT PI
 #endif
 			B_Error_Flag = 0;
 
-#ifdef USEN_BAP //2023-06-30_1
+#ifdef TAS5806MD_ENABLE //2023-07-06_1 : Applied this solution(2023-06-30_1) under BSP-01T //2023-06-30_1
 		TIMER20_Amp_error_no_diplay_flag_Start();
 #endif
 	}

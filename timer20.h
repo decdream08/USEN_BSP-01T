@@ -107,7 +107,7 @@ void TIMER20_Amp_error_flag_Stop(void);
 void TIMER20_Amp_access_error_flag_Start(void); //2023-04-07_1
 void TIMER20_Amp_access_error_flag_Stop(void); //2023-04-07_1
 
-#ifdef USEN_BAP //2023-06-30_1 : Excepting the errors with LED error display, we need to recovery from error mode to normal mode.
+#ifdef TAS5806MD_ENABLE //2023-07-06_1 : Applied this solution(2023-06-30_1) under BSP-01T //2023-06-30_1 : Excepting the errors with LED error display, we need to recovery from error mode to normal mode.
 void TIMER20_Amp_error_no_diplay_flag_Start(void); //2023-06-30_1
 void TIMER20_Amp_error_no_diplay_flag_Stop(void); //2023-06-30_1
 #endif

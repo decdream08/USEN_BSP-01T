@@ -396,7 +396,7 @@ Bool B_SSP_REBOOT_KEY_In = FALSE; //To send Reboot BLE DATA and execute Reboot
 Bool B_SSP_FACTORY_RESET_KEY_In = FALSE; //To send FACTORY RESET KEY and execute it.
 Bool BBT_Is_Routed = FALSE; //To check whether BT(excepting Aux) has music steam or not but TWS Mode has some different/wrong value.
 
-#ifdef USEN_BAP //2023-06-19_2 : To disable SET_CONNECTABLE_MODE under BAP-01 because we apply  "2023-06-19_1" solution to send DISCOVERABLE_MODE(Disable)
+#ifdef MB3021_ENABLE //2023-07-06_2 //2023-06-19_2 : To disable SET_CONNECTABLE_MODE under BAP-01 because we apply  "2023-06-19_1" solution to send DISCOVERABLE_MODE(Disable)
 Bool BDoNotSend_Connectable_Mode = FALSE;
 #endif
 #ifdef AVRCP_ENABLE
@@ -1403,7 +1403,7 @@ void MB3021_BT_Module_Value_Init(void)
 	Peer_Device_Status = PEER_DEVICE_NONE;
 	TWS_Slave_Status = TWS_SLAVE_NONE_CONNECTION;
 #endif
-#ifdef USEN_BAP //2023-06-19_2 : To disable SET_CONNECTABLE_MODE under BAP-01 because we apply  "2023-06-19_1" solution to send DISCOVERABLE_MODE(Disable)
+#ifdef MB3021_ENABLE //2023-07-06_2 //2023-06-19_2 : To disable SET_CONNECTABLE_MODE under BAP-01 because we apply  "2023-06-19_1" solution to send DISCOVERABLE_MODE(Disable)
 	BDoNotSend_Connectable_Mode = FALSE;
 #endif
 }
@@ -6002,7 +6002,9 @@ Bool MB3021_BT_Module_CMD_Execute(uint8_t major_id, uint8_t minor_id, uint8_t *d
 						{
 #ifdef USEN_BAP //2023-06-19_2 : To enable SET_CONNECTABLE_MODE under BKeep_Connectable because we apply  "2023-06-19_1" solution to send DISCOVERABLE_MODE(Disable)
 							if(!BDoNotSend_Connectable_Mode)
-#endif
+#else //USEN_BAP //2023-07-06_2
+							if(!BDoNotSend_Connectable_Mode && Get_Cur_LR_Stereo_Mode() == Switch_Stereo_Mode )
+#endif //USEN_BAP
 							bPolling_Get_Data |= BCRF_SET_CONNECTABLE_MODE; //For init sequence (Init Sequnece : Broadcaster -2)
 						}
 					}
@@ -7548,6 +7550,7 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 #ifndef MASTER_MODE_ONLY //2023-05-30_2 : Under Broadcast mode, when A2DP is conected, we need to disable DICOVERABLE_MODE to avoid other device searching. Need to check this under BAP-01
 		if(Get_Cur_Master_Slave_Mode() == Switch_Master_Mode && Get_Cur_LR_Stereo_Mode() == Switch_Stereo_Mode)
 		{
+			BDoNotSend_Connectable_Mode = TRUE; //2023-07-06_2 : When BSP-01T is first connection with source device, it sends CONNECTABLE_MODE two times(disable and then enable). So, we need to apply "2023-06-19_2 " solution under BSP-01T too.
 			MB3021_BT_Module_Set_Discoverable_Mode_by_Param(SET_DISABLE_DISCOVERABLE_MODE);
 		}
 #else //2023-06-19_2 : To disable SET_CONNECTABLE_MODE under BAP-01 because we apply  "2023-06-19_1" solution to send DISCOVERABLE_MODE(Disable)

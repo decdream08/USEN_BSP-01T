@@ -521,3 +521,7 @@
   
 ## 2023-06-30 (BAP-01)
   - Excepting the errors with LED error display, we need to recovery(For especially Clock_Error case) from error mode to normal mode. //2023-06-30_1
+
+## 2023-07-06 (BSP-01T)
+  - Applied "2023-06-30_1" solution under BSP-01T. //2023-07-06_1
+  - When BSP-01T is first connection with source device, it sends CONNECTABLE_MODE two times(disable and then enable). So, we need to apply "2023-06-19_2 " solution under BSP-01T too. //2023-07-06_2
