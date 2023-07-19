@@ -43,6 +43,9 @@ void TIMER20_aux_detection_flag_start(void);
 void TIMER20_eq_mode_check_flag_start(void);
 #endif
 #ifdef USEN_BAP
+void TIMER20_power_on_volume_sync_flag_start(void); //2023-07-19_1 
+void TIMER20_power_on_volume_sync_flag_stop(void); //2023-07-19_1 
+
 #ifdef AUX_INPUT_DET_ENABLE
 void TIMER20_aux_detect_check_flag_start(void);
 void TIMER20_aux_detect_check_flag_stop(void);

@@ -736,6 +736,10 @@ void Remocon_Power_Key_Action_Toggle(uint8_t Input_Key) //For only Power Key inp
 		if(Get_Slave_auto_power_off_flag()) //Re-start count when power on 2022-09-14
 			TIMER20_Slave_auto_power_off_flag_Start();
 #endif
+
+#ifdef USEN_BAP //2023-07-19_1
+		TIMER20_power_on_volume_sync_flag_start();
+#endif
 	}
 	else //Execute Power Off
 	{		
@@ -817,6 +821,9 @@ void Remocon_Power_Key_Action_Toggle(uint8_t Input_Key) //For only Power Key inp
 			//_DBG("\n\rWaitting Start : USEN Device Auto Power On ~~~");
 			USEN_Tablet_auto_power_on = TRUE;
 		}
+#endif
+#ifdef USEN_BAP //2023-07-19_1
+		TIMER20_power_on_volume_sync_flag_stop();
 #endif
 	}
 #ifdef INPUT_KEY_SYNC_WITH_SLAVE_ENABLE

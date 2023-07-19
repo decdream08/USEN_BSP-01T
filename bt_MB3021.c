@@ -1618,6 +1618,19 @@ void MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_Key_Sync_With_Slave Input_
 		return;
 #endif
 
+#ifdef USEN_BAP //2023-07-19_2 : When DC Power Off-->On, many times BAP-01 sends wrong volume information(but it's not valid data and no effect under slave). So, we need to update volume information using uInput_Key_Sync_buf8[] even though BT is not finished init action.
+#if defined(ADC_VOLUME_STEP_ENABLE) && defined(USEN_BAP) //To set 64 Step volume level under BAP //2023-01-05_6
+		if(Input_Key == input_key_Sync_Volume)
+#ifdef ADC_VOLUME_64_STEP_ENABLE //2023-02-27_3
+		uInput_Key_Sync_buf8[Input_Key+1] = Convert_64Step_to_16Step(uValue);
+#else //ADC_VOLUME_50_STEP_ENABLE
+		uInput_Key_Sync_buf8[Input_Key+1] = Convert_50Step_to_16Step(uValue);
+#endif //ADC_VOLUME_64_STEP_ENABLE
+		else
+#endif
+		uInput_Key_Sync_buf8[Input_Key+1] = uValue; //+1 for Start Code(0xAA)
+#endif
+
 #if defined(MB3021_ENABLE) && defined(USEN_BAP) //2023-02-28_3(BAP-01 Issue #14) : Under BAP-01 Master Mode, if user changed rotary volume position very fast many times before BT init during Power on, Last connection is almost failed.
 	if(!IS_BBT_Init_OK())
 		return;
@@ -1634,16 +1647,9 @@ void MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_Key_Sync_With_Slave Input_
 	_DBG("\n\rMB3021_BT_Module_Input_Key_Sync_With_Slave() - End");
 #endif
 
-#if defined(ADC_VOLUME_STEP_ENABLE) && defined(USEN_BAP) //To set 64 Step volume level under BAP //2023-01-05_6
-	if(Input_Key == input_key_Sync_Volume)
-#ifdef ADC_VOLUME_64_STEP_ENABLE //2023-02-27_3
-	uInput_Key_Sync_buf8[Input_Key+1] = Convert_64Step_to_16Step(uValue);
-#else //ADC_VOLUME_50_STEP_ENABLE
-	uInput_Key_Sync_buf8[Input_Key+1] = Convert_50Step_to_16Step(uValue);
-#endif //ADC_VOLUME_64_STEP_ENABLE
-	else
-#endif		
+#ifndef USEN_BAP
 	uInput_Key_Sync_buf8[Input_Key+1] = uValue; //+1 for Start Code(0xAA)
+#endif		
 	
 	//When Mute Off, we need to set Input_key_Sync_Slave_Mute_Off value into 0x01 or 0x00.
 	//For example, unless this if statement, When user press BT Key(for grouping) on just master Slave always mute state even though use press mute off.

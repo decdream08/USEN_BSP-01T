@@ -29,7 +29,7 @@
 #if defined(SOC_ERROR_ALARM) || defined(FACTORY_RESET_LED_DISPLAY) || defined(USEN_BAP)
 #include "led_display.h"
 #endif
-#if defined(AUTO_ONOFF_ENABLE) || defined(SLAVE_AUTO_OFF_ENABLE)
+#if defined(AUTO_ONOFF_ENABLE) || defined(SLAVE_AUTO_OFF_ENABLE) || defined(USEN_BAP) //2023-07-19_1
 #include "remocon_action.h"
 #endif
 #if defined(FACTORY_RESET_LED_DISPLAY) || defined(MASTER_SLAVE_GROUPING)
@@ -113,6 +113,10 @@ int32_t aux_detecttion_flag = 0;
 
 #ifdef USEN_TI_AMP_EQ_ENABLE //2023-05-09_2
 int32_t drc_eq_set_recovery_flag = 0;
+#endif
+
+#ifdef USEN_BAP //2023-07-19_1 : To match volume sync with Slave on power-on under BAP-01 Master
+int32_t power_on_volume_sync_flag = 0;
 #endif
 
 #ifdef USEN_TI_AMP_EQ_ENABLE //2023-05-09_2
@@ -226,6 +230,23 @@ void TIMER20_Display_Flag(void)
 		_DBG("\n\r^^^^^ aux_setting_flag : ");_DBH32(aux_setting_flag);
 		aux_setting_flag_bk = aux_setting_flag;
 	}
+}
+#endif
+
+#ifdef USEN_BAP
+void TIMER20_power_on_volume_sync_flag_start(void) //2023-07-19_1 : To match volume sync with Slave on power-on under BAP-01 Master
+{
+#ifdef TIMER20_DEBUG_MSG
+	_DBG("\n\rTIMER20_power_on_volume_sync_flag_start() !!! ");
+#endif
+	power_on_volume_sync_flag = 1;
+}
+void TIMER20_power_on_volume_sync_flag_stop(void) //2023-07-19_1 : To match volume sync with Slave on power-on under BAP-01 Master
+{
+#ifdef TIMER20_DEBUG_MSG
+	_DBG("\n\rTIMER20_power_on_volume_sync_flag_stop() !!! ");
+#endif
+	power_on_volume_sync_flag = 0;
 }
 #endif
 
@@ -1524,6 +1545,38 @@ void TIMER20_IRQHandler_IT(void)
 				user_eq_mute_flag++;
 		}
 #endif //FIVE_USER_EQ_ENABLE
+
+#ifdef USEN_BAP //2023-07-19_1
+	if(power_on_volume_sync_flag)
+	{
+		if(!Power_State())
+			power_on_volume_sync_flag = 0;
+		
+		if((power_on_volume_sync_flag == 5) || (power_on_volume_sync_flag == 15) || (power_on_volume_sync_flag == 20)) //After 1.5sec
+		{	
+#ifdef TIMER20_DEBUG_MSG
+			_DBG("\n\r##### power_on_volume_sync_flag meets condition to resend volume data!!! ");
+			_DBD(power_on_volume_sync_flag);
+#endif
+							
+			if((power_on_volume_sync_flag == 5) || (power_on_volume_sync_flag == 20)) //After 3sec
+			{
+				MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x03);
+				if(power_on_volume_sync_flag == 20)
+					power_on_volume_sync_flag = 0;
+				else
+					power_on_volume_sync_flag++;
+			}
+			else
+			{
+				MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x04);
+				power_on_volume_sync_flag++;
+			}
+		}
+		else
+			power_on_volume_sync_flag++;
+	}
+#endif
 
 #if defined(USEN_BAP) && defined(AUX_INPUT_DET_ENABLE) && defined(TIMER20_COUNTER_ENABLE) //2023-04-12_1
 		if(aux_detecttion_flag)
