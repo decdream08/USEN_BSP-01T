@@ -208,6 +208,113 @@ uint8_t Convert_ADC_To_Attenuator(uint32_t ADC_Value);
 void EXTI_PortC_Configure(void);
 #endif
 
+#if defined(USEN_BAP) && defined(ADC_INPUT_ENABLE) && defined(ADC_VOLUME_STEP_ENABLE) //2023-07-20_1 : Sometimes, BAP-01 can't set current ADC Value when user executes power on from power off using volume dial.
+uint8_t ADC_Value_Update_to_send_Slave(void)
+{
+	uint32_t ADC3_Value;
+	uint8_t uCurVolLevel = 0, ADC_Level_Min, ADC_Level_Max, i;
+	
+#ifndef ADC_INTERRUPT_INPUT_ENABLE
+	ADC3_Value = ADC_PollingRun(3);
+
+#ifdef ADC_INPUT_DEBUG_MSG
+	_DBG("\n\r === Master Volume ADC = 0x");
+	_DBH32(ADC3_Value);
+#endif
+#ifdef ADC_VOLUME_64_STEP_ENABLE
+	for(i=1;i<65;i++)
+#else //ADC_VOLUME_50_STEP_ENABLE
+	for(i=1;i<51;i++)
+#endif //ADC_VOLUME_64_STEP_ENABLE
+	{
+#ifdef ADC_VOLUME_64_STEP_ENABLE
+		ADC_Level_Min = (i-1)*4; //0 4 8
+		ADC_Level_Max = (i*4)-1; //3 7 11 //2023-02-06_3 : To make ADC Gap
+#else //ADC_VOLUME_50_STEP_ENABLE //2023-02-27_3 : Changed ADC volume step from 64 step to 50 step.
+		if(i==1)
+			ADC_Level_Min = 0;
+		else
+			ADC_Level_Min = (i-1)*5+1; //0 6 11 16 ... 241 246
+
+		if(i==50)
+			ADC_Level_Max = 255;
+		else
+			ADC_Level_Max = (i*5); //5 10 15 20 ... 245 250~253
+#endif //ADC_VOLUME_64_STEP_ENABLE
+
+		if((ADC3_Value >= ADC_Level_Min) && (ADC_Level_Max >= ADC3_Value))
+		{
+#ifdef ADC_VOLUME_64_STEP_ENABLE
+			ADC_Level_Min = (i-1)*4; //0 4 8
+			ADC_Level_Max = (i*4)-2; //2 6 10
+#else //ADC_VOLUME_50_STEP_ENABLE //2023-02-27_3 : Changed ADC volume step from 64 step to 50 step.
+			if(i==1)
+				ADC_Level_Min = 0;
+			else
+				ADC_Level_Min = (i-1)*5+1; //0 6 11 16 ... 241 246
+
+			if(i==50)
+				ADC_Level_Max = 255;
+			else
+				ADC_Level_Max = (i*5)-1; //4 9 14 19 ... 244 249~253
+#endif //ADC_VOLUME_64_STEP_ENABLE
+
+
+			if((ADC3_Value >= ADC_Level_Min) && (ADC_Level_Max >= ADC3_Value)) //2023-02-08_3 : Added additional code for Volume GAP
+			{
+#ifdef ADC_INPUT_DEBUG_MSG
+				_DBG("\n\r Volume ADC Valid Value !!!! = ");
+				_DBG("\n\r === Volume ADC Level Step = ");
+				_DBD(i);
+#endif
+#ifdef ADC_VOLUME_64_STEP_ENABLE //2023-02-06_3 : If cur volume level is not different with previous one, we need to update it
+				uCurVolLevel = 64 - i;
+#else //2023-02-27_3 : Changed ADC volume step from 64 step to 50 step.
+				uCurVolLevel = 50 - i;
+#endif
+			}
+			else //2023-02-06_3 : Do not update cur volume level and current ADC value is not valid
+			{
+#ifdef ADC_VOLUME_64_STEP_ENABLE //2023-02-06_3 : If cur volume level is not different with previous one, we need to update it
+				uCurVolLevel = 63; //Vol Level 1
+#else //2023-02-27_3 : Changed ADC volume step from 64 step to 50 step.
+				uCurVolLevel = 49; //Vol Level 1
+#endif
+#ifdef ADC_INPUT_DEBUG_MSG
+				_DBG("\n\r Volume ADC Invalid Value !!!! = ");
+				_DBG("\n\r === Volume ADC Level Step = ");
+				_DBD(i);
+#endif
+			}
+
+			break;
+		}
+	}
+
+#ifdef ADC_VOLUME_64_STEP_ENABLE //2023-02-06_3 : If cur volume level is not different with previous one, we need to update it
+	uCurVolLevel = 64 - i; //0 ~ 63(64 Step / 0 - MAX)
+#else //2023-02-27_3 : Changed ADC volume step from 64 step to 50 step.
+	uCurVolLevel = 50 - i;
+#endif
+#ifdef TAS5806MD_ENABLE
+#ifdef ADC_INPUT_DEBUG_MSG
+		_DBG("\n\r === Volume Level Setting = ");
+		_DBD(uCurVolLevel);
+#endif
+		//uCurVolLevel_bk = uCurVolLevel;
+		TAS5806MD_Amp_Volume_Set_with_Index(uCurVolLevel, FALSE, TRUE);
+		//uCurVolLevel = 15 - ADC3_Value; //15 Step, Inverse Value, The integer value need to match with (VOLUME_LEVEL_NUMER)
+#ifdef FLASH_SELF_WRITE_ERASE //2023-03-02_3 : BAP-01 do not use flash data to set volume level when power on.
+		//FlashSaveData(FLASH_SAVE_DATA_VOLUME, uCurVolLevel);
+#endif
+#endif
+
+#endif //ADC_INTERRUPT_INPUT_ENABLE
+
+	return uCurVolLevel;
+}
+#endif
+
 #if defined(USEN_BAP) && defined(AUX_INPUT_DET_ENABLE) && defined(TIMER20_COUNTER_ENABLE) //2023-01-10_3
 void Aux_Mode_Setting_After_Timer_Checking(Bool Aux_In)
 {

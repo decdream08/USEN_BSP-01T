@@ -524,6 +524,10 @@ extern Bool B_Master_Is_BAP; //2023-01-09_2
 /* Private define ------------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
 
+#ifdef USEN_BAP //2023-07-20_1
+uint8_t ADC_Value_Update_to_send_Slave(void);
+#endif
+
 #ifdef WATCHDOG_TIMER_RESET
 void WDT_ReloadTimeRun(void);
 void WDT_Configure(void);

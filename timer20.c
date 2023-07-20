@@ -1558,6 +1558,7 @@ void TIMER20_IRQHandler_IT(void)
 			_DBG("\n\r##### power_on_volume_sync_flag meets condition to resend volume data!!! ");
 			_DBD(power_on_volume_sync_flag);
 #endif
+			ADC_Value_Update_to_send_Slave(); //2023-07-20_1
 							
 			if((power_on_volume_sync_flag == 5) || (power_on_volume_sync_flag == 20)) //After 3sec
 			{

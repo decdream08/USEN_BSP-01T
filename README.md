@@ -527,5 +527,8 @@
   - When BSP-01T is first connection with source device, it sends CONNECTABLE_MODE two times(disable and then enable). So, we need to apply "2023-06-19_2 " solution under BSP-01T too. //2023-07-06_2
 
 ## 2023-07-19 (BAP-01)
-  - To match volume sync with Slave on power-on under BAP-01 Master. //2023-07-19_1
+  - To match volume sync with Slave on power-on(from Power-off) with Volume Dial under BAP-01 Master. //2023-07-19_1 (BAP-01 Issue #26)
   - When DC Power Off-->On, many times BAP-01 sends wrong volume information(but it's not valid data and no effect under slave). So, we need to update volume information using uInput_Key_Sync_buf8[] even though BT is not finished init action. //2023-07-19_2
+
+## 2023-07-20 (BAP-01)
+  - Sometimes, BAP-01 can't set current ADC Value when user executes power on from power off using volume dial. //2023-07-20_1
