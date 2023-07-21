@@ -1767,6 +1767,10 @@ void TAS5806MD_Amp_EQ_DRC_Control(EQ_Mode_Setting EQ_mode)
 	uCurVolLevel = TAS5806MD_Amp_Get_Cur_Volume_Level();
 	TAS5806MD_Amp_Volume_Register_Writing(uCurVolLevel);
 #ifdef INPUT_KEY_SYNC_WITH_SLAVE_ENABLE
+#ifdef USEN_BAP //2023-07-21_1 : Under EQ Normal, when user execute Power plug out-->In, BAP-01 send BAP_NORMAL_MODE(0x05) as EQ information to Slave and BAP-01 can't make sync with Slave.
+	if(EQ_mode == EQ_BAP_NORMAL_MODE)
+		EQ_mode = EQ_NORMAL_MODE;
+#endif
 	MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_EQ, EQ_mode);
 #endif
 //2023-04-28_1 //#endif
