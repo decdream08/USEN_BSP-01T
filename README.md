@@ -532,3 +532,6 @@
 
 ## 2023-07-20 (BAP-01)
   - Sometimes, BAP-01 can't set current ADC Value when user executes power on from power off using volume dial. //2023-07-20_1
+## 2023-07-21 (BAP-01)
+  - Under EQ Normal, when user execute Power plug out-->In, BAP-01 send BAP_NORMAL_MODE(0x05) as EQ information to Slave and BAP-01 can't make sync with Slave. //2023-07-21_1
+ 
