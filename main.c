@@ -559,6 +559,15 @@ void Init_Value_Setting(void)
 	if(!B_boot)
 		TIMER20_Amp_error_flag_Stop();
 #endif
+#if defined(USEN_BAP) && defined(FLASH_SELF_WRITE_ERASE_EXTENSION) //2023-07-24_1 : Need to save current power status using GPIO(PA6) before calling MB3021_BT_Module_Init(TRUE) or MB3021_BT_Module_Input_Key_Init() to avoid wrong power status.
+	if(B_boot)
+	{
+		if(HAL_GPIO_ReadPin(PA) & (1<<6)) //BAP-01 Power Off
+			FlashSaveData(FLASH_SAVE_DATA_POWER, 0); //Save Power On/Off status - 0x01(Power On) / 0x00(Power Off)
+		else //BAP-01 Power On
+			FlashSaveData(FLASH_SAVE_DATA_POWER, 1); //Save Power On/Off status - 0x01(Power On) / 0x00(Power Off)
+	}
+#endif //USEN_BAP
 #endif
 #ifdef AUX_INPUT_DET_ENABLE
 #ifndef AUX_DETECT_INTERRUPT_ENABLE //2023-01-10_3 //2022-10-17_1 : Implemented Auto Aux Switch(PA0)

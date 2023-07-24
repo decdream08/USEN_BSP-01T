@@ -382,7 +382,7 @@ typedef enum {
 
 //Variable
 #ifdef VERSION_INFORMATION_SUPPORT
-char MCU_Version[6] = "230721"; //MCU Version Info
+char MCU_Version[6] = "230724"; //MCU Version Info
 #ifdef SPP_EXTENSION_V50_ENABLE
 char BT_Version[7]; //MCU Version Info
 #endif
@@ -8311,6 +8311,13 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 				for(i=0; i<8; i++)
 #endif
 				{
+#ifdef SLAVE_ADD_MUTE_DELAY_ENABLE //2023-07-24_1 : To fix checksum error when Master sends sync data to Slave under Master didn't connect with USEN Tablet.
+					if(i == 8)
+						uInput_Key_Sync_buf8[8] = (uint8_t)SPP_BLE_COM_Calculate_Checksum(uInput_Key_Sync_buf8, 8); //Check sum
+#else
+					if(i == 7)
+						uInput_Key_Sync_buf8[7] = (uint8_t)SPP_BLE_COM_Calculate_Checksum(uInput_Key_Sync_buf8, 7); //Check sum
+#endif
 					uBuf[i+6] = uInput_Key_Sync_buf8[i];
 #ifdef BT_DEBUG_MSG
 					_DBH(uInput_Key_Sync_buf8[i]);
@@ -8324,6 +8331,9 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 #endif
 #else
 				MB3021_BT_Module_Send_cmd_param(CMD_SET_BLE_MANUFACTURE_DATA_32-0x0100, uBuf); //BLE COM : Send SPP data to Slave SPK thru BLE Data - without checksum
+#endif
+#ifdef USEN_BAP //2023-07-24_2 : When Slave can't get correct volume information under Power Plug-In, we need to send volume information 3 times to recover wrong volume information.
+				TIMER20_power_on_volume_sync_flag_start();
 #endif
 			}
 			else

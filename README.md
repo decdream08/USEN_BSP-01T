@@ -534,4 +534,7 @@
   - Sometimes, BAP-01 can't set current ADC Value when user executes power on from power off using volume dial. //2023-07-20_1
 ## 2023-07-21 (BAP-01)
   - Under EQ Normal, when user execute Power plug out-->In, BAP-01 send BAP_NORMAL_MODE(0x05) as EQ information to Slave and BAP-01 can't make sync with Slave. //2023-07-21_1
+ ## 2023-07-24 (BAP-01)
+  - Need to save current power status using GPIO(PA6) before calling MB3021_BT_Module_Init(TRUE) or MB3021_BT_Module_Input_Key_Init() to avoid wrong power status and To fix checksum error when Master sends sync data to Slave under Master didn't connect with USEN Tablet. //2023-07-24_1
+  - When Slave can't get correct volume information under Power Plug-In, we need to send volume information 3 times to recover wrong volume information. //2023-07-24_2
  
