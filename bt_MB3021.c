@@ -382,7 +382,7 @@ typedef enum {
 
 //Variable
 #ifdef VERSION_INFORMATION_SUPPORT
-char MCU_Version[6] = "230724"; //MCU Version Info
+char MCU_Version[6] = "230725"; //MCU Version Info
 #ifdef SPP_EXTENSION_V50_ENABLE
 char BT_Version[7]; //MCU Version Info
 #endif
@@ -3902,7 +3902,9 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 							if(!(Get_Cur_LR_Stereo_Mode() == Switch_LR_Mode && BBT_Is_Connected && strncmp(uBT_Cur_A2DP_Device_Address, (char *)data, 6))) //2023-04-03_2: When TWS slave is conected, we don't need to display BT STATUS LED on TWS Master.
 #endif
 							{
+#ifndef USEN_BAP //2023-07-25_1 : When user disconnect BT source and then power off-->on, BAP-01 BT LED is ON. This is NG.
 								if(strncmp(uBT_Cur_A2DP_Device_Address, (char *)data, 6) == 0) //2023-05-30_3 : Under Broadcast mode, when Other A2DP source try to connect SPK even though current A2DP source is connected with SPK, we don't need to display BT STAUS LED(Blinking for disconnection).
+#endif
 								{
 									BBT_Is_Connected = FALSE; //2023-03-29_1 : When user disconnects BSP-01 in BT Menu on Peerdevice, If user executes power off->on over power button, Master has BT LED On(It should be blinking).
 									bPolling_Get_BT_Profile_State |= BT_PROFILE_STATE_READY;
