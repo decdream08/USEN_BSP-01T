@@ -539,6 +539,9 @@
  ## 2023-07-24 (BAP-01)
   - Need to save current power status using GPIO(PA6) before calling MB3021_BT_Module_Init(TRUE) or MB3021_BT_Module_Input_Key_Init() to avoid wrong power status and To fix checksum error when Master sends sync data to Slave under Master didn't connect with USEN Tablet. //2023-07-24_1
   - When Slave can't get correct volume information under Power Plug-In, we need to send volume information 3 times to recover wrong volume information. //2023-07-24_2
+
  ## 2023-07-25 (BAP-01)
   - When user disconnect BT source and then power off-->on, BAP-01 BT LED is ON. This is NG. //2023-07-25_1 (USEN BAP-01 #36)
 
+## 2023-07-26 (BAP-01)
+  - When SW RESET(AMP Power down), this if(amp_error_no_display_flag) statement tries to read TAS5806MD_Amp_Detect_FS and it makes amp error condition. So, SW RESET time takes 40sec. //2023-07-26_1

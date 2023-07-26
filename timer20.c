@@ -1288,6 +1288,13 @@ void TIMER20_IRQHandler_IT(void)
 #ifdef TAS5806MD_ENABLE //2023-07-06_1 : Applied this solution(2023-06-30_1) under BSP-01T //2023-06-30_1 : Excepting the errors with LED error display, we need to recovery from error mode to normal mode.
 		if(amp_error_no_display_flag)
 		{
+#ifdef WATCHDOG_TIMER_RESET //2023-07-26_1 : When SW RESET(AMP Power down), this if(amp_error_no_display_flag) statement tries to read TAS5806MD_Amp_Detect_FS and it makes amp error condition. So, SW RESET time takes 40sec.
+			if(Is_SSP_REBOOT_KEY_In())
+			{
+				amp_error_no_display_flag = 0;
+			}
+			else
+#endif
 			//When Amp access error is ocurred, retry it again.
 			if(amp_error_no_display_flag == 11) //After 1sec, check
 			{
