@@ -7427,7 +7427,12 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 			Set_Status_LED_Mode(STATUS_BT_GIA_PAIRING_MODE);
 			else
 #endif //#if (defined(BT_ALWAYS_GENERAL_MODE) || defined(BT_GENERAL_MODE_KEEP_ENABLE)) && defined(SWITCH_BUTTON_KEY_ENABLE) && defined(GIA_MODE_LED_DISPLAY_ENABLE) //2022-12-27 : To Keep GIA Mode LED Display
-			Set_Status_LED_Mode(STATUS_BT_FAIL_OR_DISCONNECTION_MODE);
+			{
+#ifdef USEN_BAP //2023-07-26_2 : To add more solution for 2023-07-25_1 under BAP-01 because when USEN Tablet is turned off, BT Stuats LED is ON.
+				BBT_Is_Connected = FALSE;
+#endif
+				Set_Status_LED_Mode(STATUS_BT_FAIL_OR_DISCONNECTION_MODE);
+			}
 		}
 #endif //TIMER21_LED_ENABLE
 		bPolling_Get_BT_Profile_State &= (~BT_PROFILE_STATE_INITIALISING); //Clear flag
@@ -7460,7 +7465,12 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 		Set_Status_LED_Mode(STATUS_BT_GIA_PAIRING_MODE);
 		else
 #endif //#if (defined(BT_ALWAYS_GENERAL_MODE) || defined(BT_GENERAL_MODE_KEEP_ENABLE)) && defined(SWITCH_BUTTON_KEY_ENABLE) && defined(GIA_MODE_LED_DISPLAY_ENABLE) //2022-12-27 : To Keep GIA Mode LED Display
-		Set_Status_LED_Mode(STATUS_BT_FAIL_OR_DISCONNECTION_MODE);
+		{
+#ifdef USEN_BAP //2023-07-26_2 : To add more solution for 2023-07-25_1 under BAP-01 because when USEN Tablet is disconnected and BAP-01 power Off/On, BT Stuats LED is ON.
+			BBT_Is_Connected = FALSE;
+#endif
+			Set_Status_LED_Mode(STATUS_BT_FAIL_OR_DISCONNECTION_MODE);
+		}
 #endif
 #ifdef BT_DISCONNECT_CONNECTABLE_ENABLE
 #ifndef MASTER_MODE_ONLY
@@ -7616,7 +7626,12 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 			Set_Status_LED_Mode(STATUS_BT_GIA_PAIRING_MODE);
 			else
 #endif //#if (defined(BT_ALWAYS_GENERAL_MODE) || defined(BT_GENERAL_MODE_KEEP_ENABLE)) && defined(SWITCH_BUTTON_KEY_ENABLE) && defined(GIA_MODE_LED_DISPLAY_ENABLE) //2022-12-27 : To Keep GIA Mode LED Display
-			Set_Status_LED_Mode(STATUS_BT_FAIL_OR_DISCONNECTION_MODE);
+			{
+#ifdef USEN_BAP //2023-07-26_2 : To add more solution for 2023-07-25_1 under BAP-01
+				BBT_Is_Connected = FALSE;
+#endif
+				Set_Status_LED_Mode(STATUS_BT_FAIL_OR_DISCONNECTION_MODE);
+			}
 		}
 #endif //TIMER21_LED_ENABLE
 

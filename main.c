@@ -440,7 +440,9 @@ void SW_Reset(void) //2023-02-21_7 : After reboot, Slave SPK has Audio NG issue.
 	HAL_GPIO_ClearPin(PF, _BIT(3)); //+14V_DAMP_SW_1
 	delay_ms(20);
 	HAL_GPIO_ClearPin(PF, _BIT(2)); //+3.3V_DAMP_SW_1
+#ifndef WATCHDOG_TIMER_RESET //2023-07-26_1
 	delay_ms(1000);
+#endif
 #else //TAS5806MD_ENABLE
 	HAL_GPIO_ClearPin(PF, _BIT(3)); //+14V_DAMP_SW_1
 	delay_ms(30);
