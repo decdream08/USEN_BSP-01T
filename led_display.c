@@ -305,21 +305,20 @@ void LED_Status_Display_WR_Color(Status_LED_Mode mode) //L1/L3 LED
 		{
 			TIMER21_Periodic_Mode_Run(FALSE); //Blinkiing Timer Off
 			
+#ifdef USEN_BAP //2023-07-27_1 : When user select mute on USEN Tablet App and then Power off-->on, BAP-01 doesn't have power LED ON. //2022-01-09_4
+			STATUS_LED_W_ON;
+#else //2022-10-07_2
 			//Front Status LED
 			if(!Mute_On)
 			{
-#ifdef USEN_BAP //2022-01-09_4
-				STATUS_LED_W_ON;
-#else //2022-10-07_2
 				STATUS_LED_WHITE_ON;
 				STATUS_LED_RED_OFF;
 
 				//Top L1 LED
 				MUTE_LED_WHITE_ON;
 				MUTE_LED_RED_OFF;
-#endif
 			}
-
+#endif
 			//Top L3 LED
 #ifdef LED_DISPLAY_CHANGE
 			if(Get_master_slave_grouping_flag())
@@ -351,21 +350,20 @@ void LED_Status_Display_WR_Color(Status_LED_Mode mode) //L1/L3 LED
 		{
 			TIMER21_Periodic_Mode_Run(FALSE); //Blinkiing Timer Off
 
+#ifdef USEN_BAP //2023-07-27_1 //2022-10-07_2
+			STATUS_LED_W_ON;
+#else //2022-01-09_4
 			//Front Status LED			
 			if(!Mute_On)
 			{
-#ifdef USEN_BAP //2022-10-07_2
-				STATUS_LED_W_ON;
-#else //2022-01-09_4
 				STATUS_LED_WHITE_ON;
 				STATUS_LED_RED_OFF;
 
 				//Top L1 LED
 				MUTE_LED_WHITE_ON;
 				MUTE_LED_RED_OFF;
-#endif
 			}
-
+#endif
 			//Top L3 LED
 			BT_PAIRING_LED_BLUE_OFF;
 			BT_PAIRING_LED_WHITE_OFF;
@@ -376,21 +374,20 @@ void LED_Status_Display_WR_Color(Status_LED_Mode mode) //L1/L3 LED
 		{
 			TIMER21_Periodic_Mode_Run(TRUE); //Blinkiing Timer On
 			
+#ifdef USEN_BAP //2023-07-27_1 //2022-01-09_4
+			STATUS_LED_W_ON;
+#else //2022-10-07_2 
 			//Front Status LED //White Fast Blinking
 			if(!Mute_On)
 			{
-#ifdef USEN_BAP //2022-01-09_4
-				STATUS_LED_W_ON;
-#else //2022-10-07_2 
 				STATUS_LED_WHITE_ON;
 				STATUS_LED_RED_OFF;
 
 				//Top L1 LED
 				MUTE_LED_WHITE_ON;
 				MUTE_LED_RED_OFF;
-#endif
 			}
-
+#endif
 #ifdef LED_DISPLAY_CHANGE
 			if(Get_master_slave_grouping_flag())
 				break;
@@ -458,20 +455,20 @@ void LED_Status_Display_WR_Color(Status_LED_Mode mode) //L1/L3 LED
 				break;
 #endif
 
+#ifdef USEN_BAP //2023-07-27_1 //2022-01-09_4
+			STATUS_LED_W_ON;
+#else //2022-10-07_2 
 			//Front Status LED //White Fast Blinking
 			if(!Mute_On)
 			{
-#ifdef USEN_BAP //2022-01-09_4
-				STATUS_LED_W_ON;
-#else //2022-10-07_2 
 				STATUS_LED_WHITE_ON;
 				STATUS_LED_RED_OFF;
 
 				//Top L1 LED
 				MUTE_LED_WHITE_ON;
 				MUTE_LED_RED_OFF;
-#endif
 			}
+#endif
 
 #ifndef MASTER_MODE_ONLY
 			//Top L3 LED
@@ -503,20 +500,20 @@ void LED_Status_Display_WR_Color(Status_LED_Mode mode) //L1/L3 LED
 		{
 			TIMER21_Periodic_Mode_Run(TRUE); //Blinkiing Timer On
 			
+#ifdef USEN_BAP //2023-07-27_1 //2022-01-09_4
+			STATUS_LED_W_ON;
+#else //2022-10-07_2
 			//Front Status LED //White Fast Blinking
 			if(!Mute_On)
 			{
-#ifdef USEN_BAP //2022-01-09_4
-				STATUS_LED_W_ON;
-#else //2022-10-07_2
 				STATUS_LED_WHITE_ON;
 				STATUS_LED_RED_OFF;
 
 				//Top L1 LED
 				MUTE_LED_WHITE_ON;
 				MUTE_LED_RED_OFF;
-#endif
 			}
+#endif
 
 #ifndef MASTER_MODE_ONLY
 			//Top L3 LED
@@ -550,20 +547,20 @@ void LED_Status_Display_WR_Color(Status_LED_Mode mode) //L1/L3 LED
 		{
 			TIMER21_Periodic_Mode_Run(TRUE); //Blinkiing Timer On
 
+#ifdef USEN_BAP //2023-07-27_1 //2022-01-09_4
+			STATUS_LED_W_ON;
+#else //2022-10-07_2
 			//Front Status LED //White Slow Blinking
 			if(!Mute_On)
 			{
-#ifdef USEN_BAP //2022-01-09_4
-				STATUS_LED_W_ON;
-#else //2022-10-07_2
 				STATUS_LED_WHITE_ON;
 				STATUS_LED_RED_OFF;
 
 				//Top L1 LED
 				MUTE_LED_WHITE_ON;
 				MUTE_LED_RED_OFF;
-#endif
 			}
+#endif
 
 #ifdef LED_DISPLAY_CHANGE
 			if(Get_master_slave_grouping_flag())

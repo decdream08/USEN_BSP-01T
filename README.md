@@ -546,3 +546,6 @@
 ## 2023-07-26 (BAP-01)
   - When SW RESET(AMP Power down), this if(amp_error_no_display_flag) statement tries to read TAS5806MD_Amp_Detect_FS and it makes amp error condition. So, SW RESET time takes 40sec. //2023-07-26_1
   - To add more solution for 2023-07-25_1 under BAP-01 because when USEN Tablet is turned off, BT Stuats LED is ON. or because when USEN Tablet is disconnected and BAP-01 power Off/On, BT Stuats LED is ON. //2023-07-26_2
+
+## 2023-07-27 (BAP-01)
+  - When user select mute on USEN Tablet App and then Power off-->on, BAP-01 doesn't have power LED ON. And BAP-01 doesn't have mute on in display side so changed some codes to fix wrong codes. //2023-7-27_1
