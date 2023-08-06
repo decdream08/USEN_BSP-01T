@@ -224,17 +224,21 @@ Status_LED_Mode Get_Cur_Status_LED_Mode(void)
  **********************************************************************/
 void LED_Status_Display_WR_Color(Status_LED_Mode mode) //L1/L3 LED
 {
+#ifndef USEN_BAP //2023-07-27_1
 	Bool Mute_On; //Upon Mute On, this flag check whether need to set bliking mode or not. When mute is on, we don't need to run blinking mode except red led.
+#endif
 #ifndef MASTER_MODE_ONLY
 	Switch_Master_Slave_Mode Master_Slave;
 
 	Master_Slave = Get_Cur_Master_Slave_Mode();
 #endif
 #if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#ifndef USEN_BAP //2023-07-27_1
 #ifdef AD82584F_USE_POWER_DOWN_MUTE
 	Mute_On = IS_Display_Mute();
 #else
 	Mute_On = Is_Mute(); //AD82584F_Amp_Get_Cur_Mute_Status();
+#endif
 #endif
 #endif //#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
 
