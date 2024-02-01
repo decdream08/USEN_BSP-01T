@@ -36,7 +36,12 @@ extern "C"
 //#define LGD_SOUND_BAR			(1)
 //#define USEN_BT_SPK_TI				(1) //BSP-02
 //#define USEN_BT_SPK_ESMT		(1) //BSP-01
-#define USEN_BAP					(1) //BAP-01
+//#define USEN_BAP					(1) //BAP-01
+#define USEN_BAP2					(1) //BAP-02 //2024-01-31
+
+#ifdef USEN_BAP2 //2024-01-31
+#define USEN_BAP					(1)
+#endif
 
 // Custom Mode ****************************************************/
 //#define PRIVATE_CUSTOM_MODE					(1) //2023-01-17

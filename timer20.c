@@ -1459,7 +1459,11 @@ void TIMER20_IRQHandler_IT(void)
 				}
 				else if(master_slave_grouping_flag == 151 && Get_Cur_LR_Stereo_Mode() == Switch_Stereo_Mode)
 #else //#if defined(TWS_MASTER_SLAVE_GROUPING) && defined(SW1_KEY_TWS_MODE)
+#ifdef USEN_BAP2 //2024-01-31_2 : BAP-02 changed the spec from 15 sec to 30 sec for Master/Slave connection wait time
+				if(master_slave_grouping_flag == 301) //After 30 sec, Return to Original product ID under Master mode
+#else
 				if(master_slave_grouping_flag == 151) //After 15 sec, Return to Original product ID under Master mode
+#endif
 #endif //#if defined(TWS_MASTER_SLAVE_GROUPING) && defined(SW1_KEY_TWS_MODE)
 				{
 #ifdef MASTER_SLAVE_GROUPING_DEBUG_MSG

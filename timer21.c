@@ -178,8 +178,10 @@ void TIMER21_IRQHandler_IT(void)
 			case STATUS_AMP_ERROR_MODE: // White Very Fast Blinking(250ms)
 				//White Fast Blinking
 				LED_Status_Display_Blinking(STATUS_LED_WHITE, Very_Fast_Flag);
+#ifndef USEN_BAP2 //2024-01-31_1 : BAP-02 display Power status LED blinking under AMP error(BAP-01 used BT status led White/Blue)
 				LED_Status_Display_Blinking(L3_LED_WHITE, Very_Fast_Flag);
 				LED_Status_Display_Blinking(L3_LED_BLUE, Very_Fast_Flag);
+#endif
 				break;
 #endif
 

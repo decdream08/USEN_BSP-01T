@@ -548,4 +548,8 @@
   - To add more solution for 2023-07-25_1 under BAP-01 because when USEN Tablet is turned off, BT Stuats LED is ON. or because when USEN Tablet is disconnected and BAP-01 power Off/On, BT Stuats LED is ON. //2023-07-26_2
 
 ## 2023-07-27 (BAP-01)
-  - When user select mute on USEN Tablet App and then Power off-->on, BAP-01 doesn't have power LED ON. And BAP-01 doesn't have mute on in display side so changed some codes to fix wrong codes. //2023-7-27_1
+  - When user select mute on USEN Tablet App and then Power off-->on, BAP-01 doesn't have power LED ON. And BAP-01 doesn't have mute on in display side so changed some codes to fix wrong codes. //2023-7-27_1  
+## 2024-01-31 (BAP-02)
+  - Added BAP-02 temporary for BAP-02 model. //2024-01-31
+  - BAP-02 display Power status LED blinking under AMP error(BAP-01 used BT status led White/Blue). //2024-01-31_1
+  - BAP-02 changed the spec from 15 sec to 30 sec for Master/Slave connection wait time. //2024-02-01_2

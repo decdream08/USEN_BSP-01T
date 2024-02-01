@@ -425,9 +425,11 @@ void LED_Status_Display_WR_Color(Status_LED_Mode mode) //L1/L3 LED
 				{
 					TIMER21_Periodic_Mode_Run(TRUE); //Blinkiing Timer On
 					
+#ifndef USEN_BAP2 //2024-01-31_1 : BAP-02 display Power status LED blinking under AMP error(BAP-01 used BT status led White/Blue)
 #ifdef LED_DISPLAY_CHANGE
 					if(Get_master_slave_grouping_flag())
 						break;
+#endif
 #endif
 		
 					//Front Status LED //White Fast Blinking
@@ -439,12 +441,14 @@ void LED_Status_Display_WR_Color(Status_LED_Mode mode) //L1/L3 LED
 						STATUS_LED_WHITE_ON;
 					}
 #endif
+#ifndef USEN_BAP2 //2024-01-31_1 : BAP-02 display Power status LED blinking under AMP error(BAP-01 used BT status led White/Blue)
 					//Top L3 LED
 					{
 		
 							BT_PAIRING_LED_BLUE_ON;
 							BT_PAIRING_LED_WHITE_ON;
 					}
+#endif
 				}
 					break;
 #endif
@@ -662,6 +666,21 @@ void LED_Status_Display_Blinking(Status_LED_Color Color, Bool On)
 
 	switch(Color)
 	{
+#ifdef USEN_BAP2 //2024-01-31_1 : BAP-02 display Power status LED blinking under AMP error(BAP-01 used BT status led White/Blue)
+		case STATUS_LED_WHITE:
+			if(Get_Amp_error_flag())
+			{
+				if(On)
+				{
+					STATUS_LED_W_ON;
+				}
+				else
+				{
+					STATUS_LED_W_OFF;
+				}
+			}
+			break;
+#endif
 #ifndef USEN_BAP //2022-10-07_2
 		case STATUS_LED_RED:
 			if(On)
@@ -716,7 +735,7 @@ void LED_Status_Display_Blinking(Status_LED_Color Color, Bool On)
 #endif
 			if(On)
 			{
-				BT_PAIRING_LED_WHITE_ON;;
+				BT_PAIRING_LED_WHITE_ON;
 			}
 			else
 			{
