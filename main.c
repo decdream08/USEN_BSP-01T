@@ -1139,7 +1139,11 @@ void mainloop(void)
 #ifdef ADC_VOLUME_64_STEP_ENABLE
 							for(i=1;i<65;i++)
 #else //ADC_VOLUME_50_STEP_ENABLE
+#ifdef USEN_BAP2 //2024-02-02_1
+							for(i=1;i<52;i++)
+#else //USEN_BAP2
 							for(i=1;i<51;i++)
+#endif //USEN_BAP2
 #endif //ADC_VOLUME_64_STEP_ENABLE
 							{
 								B_Update = FALSE; //2023-02-06_3 	
@@ -1150,12 +1154,16 @@ void mainloop(void)
 								if(i==1)
 									ADC_Level_Min = 0;
 								else
-									ADC_Level_Min = (i-1)*5+1; //0 6 11 16 ... 241 246
+									ADC_Level_Min = (i-1)*5+1; //0 6 11 16 ... 241 246 // On case of 51 step, 251
 
+#ifdef USEN_BAP2 //2024-02-02_1
+								if(i==51)
+#else //USEN_BAP2
 								if(i==50)
-									ADC_Level_Max = 255;
+#endif //USEN_BAP2
+									ADC_Level_Max = 255; //On case of 51 step, 255
 								else
-									ADC_Level_Max = (i*5); //5 10 15 20 ... 245 250~253
+									ADC_Level_Max = (i*5); //5 10 15 20 ... 245 250~253 // On case of 51 step, 250
 #endif //ADC_VOLUME_64_STEP_ENABLE
 
 								if((ADC3_Value >= ADC_Level_Min) && (ADC_Level_Max >= ADC3_Value))
@@ -1169,7 +1177,11 @@ void mainloop(void)
 									else
 										ADC_Level_Min = (i-1)*5+1; //0 6 11 16 ... 241 246
 
+#ifdef USEN_BAP2 //2024-02-02_1
+									if(i==51)
+#else //USEN_BAP2
 									if(i==50)
+#endif
 										ADC_Level_Max = 255;
 									else
 										ADC_Level_Max = (i*5)-1; //4 9 14 19 ... 244 249~253
@@ -1186,7 +1198,11 @@ void mainloop(void)
 #ifdef ADC_VOLUME_64_STEP_ENABLE //2023-02-06_3 : If cur volume level is not different with previous one, we need to update it
 										uCurVolLevel = 64 - i;
 #else //2023-02-27_3 : Changed ADC volume step from 64 step to 50 step.
+#ifdef USEN_BAP2 //2024-02-02_1
+										uCurVolLevel = 51 - i;
+#else //USEN_BAP2
 										uCurVolLevel = 50 - i;
+#endif //USEN_BAP2
 #endif
 #ifdef ADC_INPUT_DEBUG_MSG
 										_DBG("\n\rVolume Level cur - cur_bk = ");
@@ -1231,7 +1247,11 @@ void mainloop(void)
 #ifdef ADC_VOLUME_64_STEP_ENABLE //2023-02-06_3 : If cur volume level is not different with previous one, we need to update it
 								uCurVolLevel = 64 - i; //0 ~ 63(64 Step / 0 - MAX)
 #else //2023-02-27_3 : Changed ADC volume step from 64 step to 50 step.
+#ifdef USEN_BAP2 //2024-02-02_1
+								uCurVolLevel = 51 - i;
+#else //USEN_BAP2
 								uCurVolLevel = 50 - i;
+#endif //USEN_BAP2
 #endif
 #ifdef TAS5806MD_ENABLE
 								if(uCurVolLevel_bk != uCurVolLevel)

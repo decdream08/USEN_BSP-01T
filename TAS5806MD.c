@@ -173,6 +173,63 @@ const uint8_t Find_Volume_Level[64] = { //2023-01-12_1 //dB 0dB  ~ -28.5dB(Actua
 	
 #else //ADC_VOLUME_50_STEP_ENABLE
 
+#ifdef USEN_BAP2 //2024-02-02_1 : BAP-02 has 51 volume step from 0 to 50
+const uint8_t Find_Volume_Level[51] = { //2023-02-27_3 : Changed ADC volume step from 64 step to 50 step.
+	0 + ADJUST_VOLUME_GAIN,
+	1 + ADJUST_VOLUME_GAIN,
+	2 + ADJUST_VOLUME_GAIN,
+	3 + ADJUST_VOLUME_GAIN,
+	4 + ADJUST_VOLUME_GAIN,
+	5 + ADJUST_VOLUME_GAIN,
+	6 + ADJUST_VOLUME_GAIN,
+	7 + ADJUST_VOLUME_GAIN,
+	8 + ADJUST_VOLUME_GAIN,
+	9 + ADJUST_VOLUME_GAIN,
+	10 + ADJUST_VOLUME_GAIN,
+	11 + ADJUST_VOLUME_GAIN,
+	12 + ADJUST_VOLUME_GAIN,
+	13 + ADJUST_VOLUME_GAIN,
+	14 + ADJUST_VOLUME_GAIN,
+	15 + ADJUST_VOLUME_GAIN,
+	16 + ADJUST_VOLUME_GAIN,
+	17 + ADJUST_VOLUME_GAIN,
+	18 + ADJUST_VOLUME_GAIN,
+	19 + ADJUST_VOLUME_GAIN,
+	20 + ADJUST_VOLUME_GAIN,
+	21 + ADJUST_VOLUME_GAIN,
+	22 + ADJUST_VOLUME_GAIN,
+	23 + ADJUST_VOLUME_GAIN,
+	24 + ADJUST_VOLUME_GAIN,
+	25 + ADJUST_VOLUME_GAIN,
+	26 + ADJUST_VOLUME_GAIN,
+	27 + ADJUST_VOLUME_GAIN,
+	28 + ADJUST_VOLUME_GAIN,
+	29 + ADJUST_VOLUME_GAIN,
+	30 + ADJUST_VOLUME_GAIN,
+	31 + ADJUST_VOLUME_GAIN,
+	32 + ADJUST_VOLUME_GAIN,
+	33 + ADJUST_VOLUME_GAIN,
+	34 + ADJUST_VOLUME_GAIN,
+	35 + ADJUST_VOLUME_GAIN,
+	36 + ADJUST_VOLUME_GAIN,
+	37 + ADJUST_VOLUME_GAIN,
+	38 + ADJUST_VOLUME_GAIN,
+	39 + ADJUST_VOLUME_GAIN,
+	40 + ADJUST_VOLUME_GAIN,
+	41 + ADJUST_VOLUME_GAIN,
+	42 + ADJUST_VOLUME_GAIN,
+	43 + ADJUST_VOLUME_GAIN,
+	44 + ADJUST_VOLUME_GAIN,
+	45 + ADJUST_VOLUME_GAIN,
+	46 + ADJUST_VOLUME_GAIN,
+	47 + ADJUST_VOLUME_GAIN,
+	48 + ADJUST_VOLUME_GAIN,
+	49 + ADJUST_VOLUME_GAIN,
+	110 //MUTE
+};
+
+#else //USEN_BAP2
+
 const uint8_t Find_Volume_Level[50] = { //2023-02-27_3 : Changed ADC volume step from 64 step to 50 step.
 	0 + ADJUST_VOLUME_GAIN,
 	1 + ADJUST_VOLUME_GAIN,
@@ -225,6 +282,7 @@ const uint8_t Find_Volume_Level[50] = { //2023-02-27_3 : Changed ADC volume step
 	48 + ADJUST_VOLUME_GAIN,
 	49 + ADJUST_VOLUME_GAIN
 };
+#endif //USEN_BAP2
 #endif //ADC_VOLUME_50_STEP_ENABLE
 
 #else //ADC_VOLUME_STEP_ENABLE
@@ -2591,6 +2649,10 @@ void TAS5806MD_Amp_Volume_Register_Writing(uint8_t uVolumeLevel)
 		return;
 	}
 #ifdef USEN_TI_AMP_EQ_ENABLE //2023-06-26_1 : To avoid wrong input of volume level in TAS5806MD_Amp_Volume_Register_Writing()
+#ifdef USEN_BAP2 //2024-02-02_1
+	if(uVolumeLevel > 50)
+		uVolumeLevel = 50;
+#else //USEN_BAP2
 #ifdef USEN_BAP
 	if(uVolumeLevel > 49)
 		uVolumeLevel = 49;
@@ -2598,16 +2660,21 @@ void TAS5806MD_Amp_Volume_Register_Writing(uint8_t uVolumeLevel)
 	if(uVolumeLevel > 15)
 		uVolumeLevel = 15;
 #endif //USEN_BAP
+#endif //USEN_BAP2
 #endif //USEN_TI_AMP_EQ_ENABLE
 
 	uArrayLevel = Find_Volume_Level[uVolumeLevel];
 
 #ifdef USEN_TI_AMP_EQ_ENABLE //2023-04-28_1 : To apply BSP-01T EQ Setting to BAP-01 under EQ BSP Mode //#if !defined(USEN_BAP) && defined(USEN_TI_AMP_EQ_ENABLE) //2023-03-08_3 : Control volume level for each EQ Mode
+#ifdef USEN_BAP2 //2024-02-02_1
+	if(uVolumeLevel != 50)
+#else //USEN_BAP2
 #ifdef USEN_BAP //2023-04-28_1
 	if(uVolumeLevel != 49)
 #else
 	if(uVolumeLevel != 15)
 #endif
+#endif //USEN_BAP2
 	{
 		switch(Cur_EQ_Mode)
 		{

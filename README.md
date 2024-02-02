@@ -549,7 +549,13 @@
 
 ## 2023-07-27 (BAP-01)
   - When user select mute on USEN Tablet App and then Power off-->on, BAP-01 doesn't have power LED ON. And BAP-01 doesn't have mute on in display side so changed some codes to fix wrong codes. //2023-7-27_1  
+  
 ## 2024-01-31 (BAP-02)
+  BAP-02 고객 사양 변경 적용
   - Added BAP-02 temporary for BAP-02 model. //2024-01-31
-  - BAP-02 display Power status LED blinking under AMP error(BAP-01 used BT status led White/Blue). //2024-01-31_1
-  - BAP-02 changed the spec from 15 sec to 30 sec for Master/Slave connection wait time. //2024-02-01_2
+  - Amp Error 표시를 기존 BT Status LED 청색/흰색에서 전원 LED 빠른 점멸로 변경. //2024-01-31_1
+  - BT Short key 동작 조건을 기존 15촏에서 30초로 변경. //2024-02-01_2
+  
+## 2024-01-31 (BAP-02)
+  BAP-02 고객 사양 변경 적용
+  -  Volume Level을 기존 1~50에서 0~50으로 변경. //2024-02-02_1
