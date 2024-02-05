@@ -238,9 +238,9 @@ void AD85050_Amp_Init(Bool Power_On_Init)
  	BAmp_Init = TRUE;
 
   delay_ms(20); //t7(20ms)
-  AD85050_Amp_Reset(FALSE);
+  AD85050_Amp_Reset(TRUE);
   delay_ms(20); //t8(20ms)
-  AD85050_Amp_Reset(TRUE);  
+  AD85050_Amp_Reset(FALSE);  
 
 	BAmp_Init = FALSE;
 
