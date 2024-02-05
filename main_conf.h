@@ -39,9 +39,9 @@ extern "C"
 //#define USEN_BAP					(1) //BAP-01
 #define USEN_BAP2					(1) //BAP-02 //2024-01-31
 
-#ifdef USEN_BAP2 //2024-01-31
-#define USEN_BAP					(1)
-#endif
+//#ifdef USEN_BAP2 //2024-01-31
+//#define USEN_BAP					(1)
+//#endif
 
 // Custom Mode ****************************************************/
 //#define PRIVATE_CUSTOM_MODE					(1) //2023-01-17
@@ -56,7 +56,7 @@ extern "C"
 #define LR_360_FACTORY_ENABLE	(1) //2023-04-06_1 : Changed SPEC which LR/360 swich should work with Factory Reset
 #endif
 
-#ifdef USEN_BAP
+#if defined(USEN_BAP) || defined(USEN_BAP2)
 #define MASTER_MODE_ONLY		(1) //2023-03-27_1 : USEN BAP-01 is only supporting Master mode
 #define USEN_BT_SPK				(1)
 #define AMP_ERROR_ALARM			(1)
@@ -79,7 +79,7 @@ extern "C"
 #endif
 
 // Model Specific Features ****************************************************/
-#ifndef USEN_BAP
+#if !defined(USEN_BAP) && !defined(USEN_BAP2)
 #define TWS_MODE_ENABLE							(1) //Support TWS MODE //2022-11-02
 #endif
 //#define NO_BROADCAST_MODE						(1)
@@ -100,7 +100,7 @@ extern "C"
 //#define SUPPORT_LG_REMOCON	(1)
 
 //ADC Fearue **************/
-#ifdef USEN_BAP
+#if defined(USEN_BAP) || defined(USEN_BAP2)
 #define ADC_INPUT_ENABLE				(1) //Implemented Master Volume & Attenuator Volume thru ADC feature. Please refer to ADC_INPUT_ENABLE //2022-10-12
 //#define ADC_INTERRUPT_INPUT_ENABLE		(1) //Implemented Master Volume thru ADC Interrupt feature. Please refer to ADC_INTERRUPT_INPUT_ENABLE //2023-02-07
 #endif
@@ -144,7 +144,7 @@ extern "C"
 #else
 #define SWITCH_BUTTON_KEY_ENABLE		(1) //Use External INT for Switchs and Button Keys - PA0 / PA1 / PA2 / PA3 / PA4 / PA5 / PA6
 #ifdef SWITCH_BUTTON_KEY_ENABLE
-#ifndef USEN_BAP
+#if !defined(USEN_BAP) // && !defined(USEN_BAP_2)
 #define POWER_KEY_TOGGLE_ENABLE				(1) //Use Power Key Toggle as USEN Spec
 #endif
 #define FACTORY_RESET_KEY_CAPACITOR_APPLY 	(1) //2023-05-04_4 : For factory reset key chattering uner BAP-01//For recovery, When we use capacitor on FACTORY RESET Line, the Rising Edge value is always 0x03(0x02 is correct) but Falling Edge is always 0x01
@@ -170,7 +170,7 @@ extern "C"
 #define NEW_BT_FW_BUG_FIX					(1) //2023-02-20_1 : To fix BT FW(2302170) bug under TWS Mode(Slave Name is "MB3021BNU0")
 #define BT_DISCONNECT_CONNECTABLE_ENABLE	(1) //When the BT module is disconnected, we need to set connectable mode to connect BT module from Peer Device
 #define BT_GENERAL_MODE_KEEP_ENABLE			(1) //When user executes power plug out/in under general mode, BT SPK must keep general mode. If Last connection is failed, BT SPK should connect with other general device. //2022-12-23
-#if defined(USEN_BT_SPK_TI) || defined(USEN_BAP) //BSP-02 //2023-02-10_2 : Fixed the problem BAP-01 can't connect with USEN Tablet
+#if defined(USEN_BT_SPK_TI) || defined(USEN_BAP) || defined(USEN_BAP2)//BSP-02 //2023-02-10_2 : Fixed the problem BAP-01 can't connect with USEN Tablet
 #define BT_ALWAYS_GENERAL_MODE				(1) //Alway General mode and do not use USEN mode //2023-01-31_1
 #endif //USEN_BT_SPK_TI
 #endif //MB3021_ENABLE
@@ -194,11 +194,19 @@ extern "C"
 #ifdef USEN_BT_SPK_ESMT
 #define AD82584F_ENABLE						(1) //Use AD82584F
 #endif
+
+//#define TAS5806MD_ENABLE					(1) //Use TAS5806DM
+#define AD85050_ENABLE					(1) //Use TAS5806DM
+
 #ifdef AD82584F_ENABLE
 #define USEN_EQ_ENABLE							(1) //Use USEN EQ Setting
 #define AD82584F_USE_POWER_DOWN_MUTE 		(1) //To use PD pin instead of MUTE
+#elif defined(AD85050_ENABLE)
+#define USEN_EQ_ENABLE							(1) //Use USEN EQ Setting
+#define AD82584F_USE_POWER_DOWN_MUTE 		(1) //To use PD pin instead of MUTE
+//#define NOT_USE_POWER_DOWN_MUTE				(1) //To use Deep Sleep mode instead of PD pin low under power off.  2022-10-04
 #else
-#define TAS5806MD_ENABLE					(1) //Use TAS5806DM
+//#define TAS5806MD_ENABLE					(1) //Use TAS5806DM
 #define USEN_EQ_ENABLE							(1) //Use USEN EQ Setting
 //#ifdef USEN_BT_SPK_TI //2023-03-23_1
 #define USEN_TI_AMP_EQ_ENABLE							(1) //Use New USEN EQ Setting using TI AMP //2023-02-27_1
@@ -214,7 +222,7 @@ extern "C"
 #endif //I2C_0_ENABLE
 
 // WatchDog **************/
-#ifdef USEN_BAP
+#if defined(USEN_BAP) || defined(USEN_BAP2)
 #define WATCHDOG_TIMER_RESET					(1) //2023-05-16_1
 #endif
 
@@ -277,7 +285,7 @@ extern "C"
 
 // LED Feature **************/
 #ifdef USEN_BT_SPK
-#ifndef USEN_BAP
+#if !defined(USEN_BAP) && !defined(USEN_BAP2)
 #define TIMER30_LED_PWM_ENABLE			(1) //Use TIMER30 for PWM control for LED - PE1 / PE3 / PE 5
 #define TIMER1n_LED_PWM_ENABLE			(1) //Use TIMER10/TIMER11 for PWM control for LED - PE6 / PE7
 #endif
@@ -288,7 +296,7 @@ extern "C"
 #define MASTER_SLAVE_GROUPING_LED_DISPLAY			(1)
 #define LED_DISPLAY_CHANGE							(1) //To fix mute on/power off LED display under Master/Slave grouping
 #endif //MASTER_SLAVE_GROUPING
-#if defined(USEN_BAP) || (defined(TIMER30_LED_PWM_ENABLE) && defined(TIMER1n_LED_PWM_ENABLE)) //To turning on all LED, when user press FACTORY RESET BUTTON //2023-01-05_4
+#if (defined(USEN_BAP) || defined(USEN_BAP2)) || (defined(TIMER30_LED_PWM_ENABLE) && defined(TIMER1n_LED_PWM_ENABLE)) //To turning on all LED, when user press FACTORY RESET BUTTON //2023-01-05_4
 #define FACTORY_RESET_LED_DISPLAY				(1) //When Factory Reset, display all LED ON
 #endif
 #ifdef ES_2_BOARD
@@ -316,8 +324,8 @@ extern "C"
 #endif
 #define FIVE_USER_EQ_ENABLE						(1)
 #ifdef TIMER20_COUNTER_ENABLE
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) //To Do !!! - Need to check with TAS5806MD
-#if defined(AUX_INPUT_DET_ENABLE) && !defined(USEN_BAP) //2023-05-22_2 : Delete AUTO_ONOFF_ENABLE for changing BAP-01 spec.
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE) //To Do !!! - Need to check with TAS5806MD
+#if defined(AUX_INPUT_DET_ENABLE) && (!defined(USEN_BAP) && !defined(USEN_BAP2)) //2023-05-22_2 : Delete AUTO_ONOFF_ENABLE for changing BAP-01 spec.
 #define AUTO_ONOFF_ENABLE						(1) //To implemet Auto OnOff(5min) feature //Only valid this feature under master mode
 #endif
 #endif
@@ -329,7 +337,7 @@ extern "C"
 #define USEN_TABLET_AUTO_ON						(1) //When user selects power off button under USEN Tablet, we need to enable auto power on. Auto power on works when Tablet plays streaming
 #endif
 #endif
-#ifndef USEN_BAP
+#if !defined(USEN_BAP) && !defined(USEN_BAP2)
 #if defined(I2C_0_ENABLE) && defined(UART_10_ENABLE)
 #define SOC_ERROR_ALARM							(1) //SoC Error Alarm(I2C Error or UART Error)
 #endif //#if defined(I2C_0_ENABLE) && defined(UART_10_ENABLE)
@@ -385,6 +393,10 @@ extern "C"
 //#define _I2C_DEBUG_MSG		(1) //Debug message for I2C especially TAS3251
 #ifdef TAS5806MD_ENABLE
 //#define TAS5806MD_DEBUG_MSG		(1) //Debug message for TAS5806MD AMP
+//#define I2C_ACCESS_ERROR_DEBUG 		(1) //I2C AMP Init error check
+#endif
+#ifdef AD85050_ENABLE
+//#define AD85050_DEBUG_MSG		(1) //Debug message for AD85050 AMP
 //#define I2C_ACCESS_ERROR_DEBUG 		(1) //I2C AMP Init error check
 #endif
 #endif
@@ -522,14 +534,14 @@ extern Bool BBT_Pairing_Key_In;
 extern Bool bFactory_Reset_Mode;
 #endif
 
-#if defined(ADC_VOLUME_STEP_ENABLE) && defined(USEN_BAP)
+#if defined(ADC_VOLUME_STEP_ENABLE) && (defined(USEN_BAP) || defined(USEN_BAP2))
 extern Bool B_Master_Is_BAP; //2023-01-09_2
 #endif
 
 /* Private define ------------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
 
-#ifdef USEN_BAP //2023-07-20_1
+#if defined(USEN_BAP) || defined(USEN_BAP2) //2023-07-20_1
 uint8_t ADC_Value_Update_to_send_Slave(void);
 #endif
 
@@ -590,7 +602,7 @@ void AMP_RESET(Bool Reset);
 void GPIOE_IRQHandler_IT(void);
 #endif
 #else //BT_SPK_GPIO_ENABLE
-#if defined(USEN_BAP) && defined(SWITCH_BUTTON_KEY_ENABLE)
+#if (defined(USEN_BAP) || defined(USEN_BAP2)) && defined(SWITCH_BUTTON_KEY_ENABLE)
 void GPIOE_IRQHandler_IT(void);
 #endif
 #endif //BT_SPK_GPIO_ENABLE
@@ -608,12 +620,12 @@ void GPIOAB_IRQHandler_IT(void);
 #ifdef USEN_GPIO_OTHERS_ENABLE //Use External INT for Switchs and Button Keys - PF0 / PF5(AMP_ERROR input)
 void GPIOF_IRQHandler_IT(void);
 #endif
-#if defined(USEN_BAP) && !(BT_SPK_TACT_SWITCH) //Implemented Interrupt Port E for BT Key(PE7) //2022-10-11_2 //2023-01-03
+#if (defined(USEN_BAP) || defined(USEN_BAP2)) && !(BT_SPK_TACT_SWITCH) //Implemented Interrupt Port E for BT Key(PE7) //2022-10-11_2 //2023-01-03
 void EXIT_PortE_Disable(void); //2023-01-03_2 : Disable Interrupt Port E for BT Key(PE7)
 void EXIT_PortE_Configure(void); //2023-01-03_2
 #endif
 
-#if defined(USEN_BAP) && defined(AUX_INPUT_DET_ENABLE) && defined(TIMER20_COUNTER_ENABLE) //2023-01-10_3
+#if (defined(USEN_BAP) || defined(USEN_BAP2)) && defined(AUX_INPUT_DET_ENABLE) && defined(TIMER20_COUNTER_ENABLE) //2023-01-10_3
 void Aux_Mode_Setting_After_Timer_Checking(Bool Aux_In);
 void Set_Aux_Detection_flag(void); //2023-04-12_1
 #endif
@@ -638,7 +650,7 @@ Switch_LR_Stereo_Mode Get_Cur_LR_Stereo_Mode(void);
 
 void Factory_Reset_Value_Setting(void);
 #ifdef USEN_BT_SPK
-#ifdef USEN_BAP //2023-04-06_4 : To recognize the place which call this function is whther SW start or Power On
+#if defined(USEN_BAP) || defined(USEN_BAP2) //2023-04-06_4 : To recognize the place which call this function is whther SW start or Power On
 void Init_Value_Setting(Bool B_bool);
 #else
 void Init_Value_Setting(void);
@@ -649,7 +661,7 @@ void SW_Reset(void);
 #ifdef ADC_INPUT_ENABLE //2022-11-22_1
 int8_t uAttenuator_Vol_Value(void);
 #endif
-#if defined(ADC_INPUT_ENABLE) && defined(USEN_BAP) && defined(TAS5806MD_ENABLE) //2023-03-02_3
+#if defined(ADC_INPUT_ENABLE) && (defined(USEN_BAP) || defined(USEN_BAP2)) && (defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)) //2023-03-02_3
 uint8_t ADC_Volume_Attenuator_Value_Init(void);
 #endif
 

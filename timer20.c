@@ -19,17 +19,19 @@
 #include "A31G21x_hal_wdt.h"
 #endif
 
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 #ifdef AD82584F_ENABLE
 #include "ad82584f.h"
+#elif defined(AD85050_ENABLE)
+#include "AD85050.h"
 #else //TAS5806MD_ENABLE
 #include "tas5806md.h"
 #endif
 #endif
-#if defined(SOC_ERROR_ALARM) || defined(FACTORY_RESET_LED_DISPLAY) || defined(USEN_BAP)
+#if defined(SOC_ERROR_ALARM) || defined(FACTORY_RESET_LED_DISPLAY) || defined(USEN_BAP) || defined(USEN_BAP2)
 #include "led_display.h"
 #endif
-#if defined(AUTO_ONOFF_ENABLE) || defined(SLAVE_AUTO_OFF_ENABLE) || defined(USEN_BAP) //2023-07-19_1
+#if defined(AUTO_ONOFF_ENABLE) || defined(SLAVE_AUTO_OFF_ENABLE) || defined(USEN_BAP) || defined(USEN_BAP2) //2023-07-19_1
 #include "remocon_action.h"
 #endif
 #if defined(FACTORY_RESET_LED_DISPLAY) || defined(MASTER_SLAVE_GROUPING)
@@ -73,7 +75,7 @@ int32_t master_slave_Grouping_cmd_recovery_flag = 0;
 #if defined(AMP_ERROR_ALARM) || (defined(SOC_ERROR_ALARM) && defined(TAS5806MD_ENABLE)) //2022-11-01
 int32_t amp_error_flag = 0;
 int32_t amp_access_error_flag = 0; //2023-04-07_2 : To recovery TAS5806MD_Amp_Detect_Fault() function
-#ifdef TAS5806MD_ENABLE //2023-07-06_1 : Applied this solution(2023-06-30_1) under BSP-01T
+#if defined(TAS5806MD_ENABLE) ||  defined(AD85050_ENABLE) //2023-07-06_1 : Applied this solution(2023-06-30_1) under BSP-01T
 int32_t amp_error_no_display_flag = 0; //2023-06-30_1 : Excepting the errors with LED error display, we need to recovery from error mode to normal mode.
 #endif //TAS5806MD_ENABLE
 #endif
@@ -92,12 +94,12 @@ int32_t tws_slave_recovery_flag = 0;
 #endif
 #endif
 #ifndef MASTER_MODE_ONLY  //2023-03-28_1 : Deleted sending extra data of BAP-01 due to changed spec which BAP-01 don't have BAP-01 Slave mode
-#if defined(ADC_VOLUME_STEP_ENABLE) && defined(USEN_BAP)
+#if defined(ADC_VOLUME_STEP_ENABLE) && (defined(USEN_BAP) || defined(USEN_BAP2))
 int32_t bt_send_extra_data_flag = 0;
 #endif
 #endif
 #ifdef AUX_DETECT_INTERRUPT_ENABLE //2023-01-10_3
-#if defined(USEN_BAP) && defined(AUX_INPUT_DET_ENABLE) //2023-01-10_3
+#if (defined(USEN_BAP) || defined(USEN_BAP2)) && defined(AUX_INPUT_DET_ENABLE) //2023-01-10_3
 int32_t aux_detect_check_flag = 0;
 #endif
 #endif
@@ -107,19 +109,19 @@ int32_t eq_mode_check_flag = 0;
 #ifdef TWS_MASTER_SLAVE_GROUPING
 int32_t tws_grouping_send_flag = 0; //2023-02-20_2
 #endif
-#if defined(USEN_BAP) && defined(AUX_INPUT_DET_ENABLE) && defined(TIMER20_COUNTER_ENABLE) //2023-04-12_1
+#if (defined(USEN_BAP) || defined(USEN_BAP2)) && defined(AUX_INPUT_DET_ENABLE) && defined(TIMER20_COUNTER_ENABLE) //2023-04-12_1
 int32_t aux_detecttion_flag = 0;
 #endif
 
-#ifdef USEN_TI_AMP_EQ_ENABLE //2023-05-09_2
+#if defined(USEN_TI_AMP_EQ_ENABLE) || defined(AD85050_ENABLE) //2023-05-09_2
 int32_t drc_eq_set_recovery_flag = 0;
 #endif
 
-#ifdef USEN_BAP //2023-07-19_1 : To match volume sync with Slave on power-on under BAP-01 Master
+#if defined(USEN_BAP) || defined(USEN_BAP2) //2023-07-19_1 : To match volume sync with Slave on power-on under BAP-01 Master
 int32_t power_on_volume_sync_flag = 0;
 #endif
 
-#ifdef USEN_TI_AMP_EQ_ENABLE //2023-05-09_2
+#if defined(USEN_TI_AMP_EQ_ENABLE) || defined(AD85050_ENABLE) //2023-05-09_2
 void TIMER20_drc_eq_set_flag_start(void)
 {
 #ifdef TIMER20_DEBUG_MSG
@@ -233,7 +235,7 @@ void TIMER20_Display_Flag(void)
 }
 #endif
 
-#ifdef USEN_BAP
+#if defined(USEN_BAP) || defined(USEN_BAP2)
 void TIMER20_power_on_volume_sync_flag_start(void) //2023-07-19_1 : To match volume sync with Slave on power-on under BAP-01 Master
 {
 #ifdef TIMER20_DEBUG_MSG
@@ -250,7 +252,7 @@ void TIMER20_power_on_volume_sync_flag_stop(void) //2023-07-19_1 : To match volu
 }
 #endif
 
-#if defined(USEN_BAP) && defined(AUX_INPUT_DET_ENABLE) && defined(TIMER20_COUNTER_ENABLE) //2023-04-12_1
+#if (defined(USEN_BAP) || defined(USEN_BAP2)) && defined(AUX_INPUT_DET_ENABLE) && defined(TIMER20_COUNTER_ENABLE) //2023-04-12_1
 void TIMER20_aux_detection_flag_start(void) //To keep BT mode when Power On
 {
 #ifdef TIMER20_DEBUG_MSG
@@ -290,7 +292,7 @@ void TIMER20_eq_mode_check_flag_stop(void)
 }
 #endif //EQ_TOGGLE_ENABLE
 
-#ifdef USEN_BAP
+#if defined(USEN_BAP) || defined(USEN_BAP2)
 #ifdef AUX_INPUT_DET_ENABLE //2023-01-10_3
 #ifdef AUX_DETECT_INTERRUPT_ENABLE
 void TIMER20_aux_detect_check_flag_start(void)
@@ -614,7 +616,7 @@ void TIMER20_Amp_access_error_flag_Stop(void) //2023-04-07_1
 	amp_access_error_flag = 0;
 }
 
-#ifdef TAS5806MD_ENABLE //2023-07-06_1 : Applied this solution(2023-06-30_1) under BSP-01T //2023-06-30_1 : Excepting the errors with LED error display, we need to recovery from error mode to normal mode.
+#if defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE) //2023-07-06_1 : Applied this solution(2023-06-30_1) under BSP-01T //2023-06-30_1 : Excepting the errors with LED error display, we need to recovery from error mode to normal mode.
 void TIMER20_Amp_error_no_diplay_flag_Start(void) //2023-06-30_1
 {
 #ifdef TIMER20_DEBUG_MSG
@@ -658,8 +660,8 @@ void TIMER20_Amp_error_flag_Stop(void)
 	_DBG("\n\rTIMER20_Amp_error_flag_Stop() !!! ");
 #endif
 	amp_error_flag = 0;
-#ifdef TAS5806MD_ENABLE
-#ifndef USEN_BAP //2023-04-07_3
+#if defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
+#if !defined(USEN_BAP) && !defined(USEN_BAP2) //2023-04-07_3
 	TAS5806MD_Fault_Clear_Reg();
 #endif
 #endif
@@ -958,7 +960,7 @@ void TIMER20_IRQHandler_IT(void)
 		}
 
 #ifdef AUX_DETECT_INTERRUPT_ENABLE //2023-01-10_3
- #if defined(USEN_BAP) && defined(AUX_INPUT_DET_ENABLE) //2023-01-10_3 : Implemented Aux detect. Since Aux out is detected by interrupt, Timer has been checking if Aux detect is True during 20 Sec.
+ #if (defined(USEN_BAP) || defined(USEN_BAP2)) && defined(AUX_INPUT_DET_ENABLE) //2023-01-10_3 : Implemented Aux detect. Since Aux out is detected by interrupt, Timer has been checking if Aux detect is True during 20 Sec.
  		if(aux_detect_check_flag)
 		{
 			aux_detect_check_flag--;
@@ -996,12 +998,15 @@ void TIMER20_IRQHandler_IT(void)
 			if(factory_reset_led_display_flag == 16)//After 1.5sec, Factory Reset LED Off and then update current LED display
 			{
 				factory_reset_led_display_flag = 0;
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 				LED_Diplay_All_Off(); //Clear LED Display
 
 #ifdef AD82584F_ENABLE
 				uVolume_Level = AD82584F_Amp_Get_Cur_Volume_Level();
 				AD82584F_Amp_Volume_Set_with_Index(uVolume_Level, FALSE, FALSE);
+#elif defined(AD85050_ENABLE)
+				uVolume_Level = AD85050_Amp_Get_Cur_Volume_Level();
+				AD85050_Amp_Volume_Set_with_Index(uVolume_Level, FALSE, FALSE);
 #else //TAS5806MD_ENABLE
 				uVolume_Level = TAS5806MD_Amp_Get_Cur_Volume_Level();
 				TAS5806MD_Amp_Volume_Set_with_Index(uVolume_Level, FALSE, FALSE);
@@ -1111,14 +1116,14 @@ void TIMER20_IRQHandler_IT(void)
 
 		if(mute_flag)
 		{
-#ifdef USEN_BAP //2023-01-11_1 : Changed mute time from 2.5sec to 500msec
+#if defined(USEN_BAP) || defined(USEN_BAP2) //2023-01-11_1 : Changed mute time from 2.5sec to 500msec
 			if(mute_flag == 16)//After 1sec, Mute Off //2023-02-10_3 : Changed mute time from 1 sec to 1.5 sec due to ADC checking time reducing
 #else
 			if(mute_flag == 26)//After 2.5sec, Mute Off
 #endif
 			{
 				mute_flag = 0;
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 #ifdef AD82584F_USE_POWER_DOWN_MUTE
 				if(!IS_Display_Mute())//This is mute off delay and that's means this action should be worked in mute off. //if(Is_Mute())
 #else
@@ -1142,6 +1147,11 @@ void TIMER20_IRQHandler_IT(void)
 					{
 #ifdef AD82584F_ENABLE
 						AD82584F_Amp_Mute(FALSE, FALSE); //MUTE OFF
+#elif defined(AD85050_ENABLE)
+#ifdef TIMER20_DEBUG_MSG
+            _DBG("\n\r+++ Mute off using mute_flag !!!");
+#endif					
+            AD85050_Amp_Mute(FALSE, FALSE); //MUTE OFF
 #else //TAS5806MD_ENABLE						
 #ifdef TIMER20_DEBUG_MSG
 						_DBG("\n\r+++ Mute off using mute_flag !!!");
@@ -1256,9 +1266,9 @@ void TIMER20_IRQHandler_IT(void)
 #endif
 
 
-#if (defined(AMP_ERROR_ALARM) || defined(SOC_ERROR_ALARM)) && defined(TAS5806MD_ENABLE) //2023-04-07_2 : When we can't access TI amp (TAS5806MD_Amp_Detect_Fault()) becasue before amp init is not finished, we need to access TI amp again with this retry //2022-11-01
+#if (defined(AMP_ERROR_ALARM) || defined(SOC_ERROR_ALARM)) && (defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)) //2023-04-07_2 : When we can't access TI amp (TAS5806MD_Amp_Detect_Fault()) becasue before amp init is not finished, we need to access TI amp again with this retry //2022-11-01
 		if(amp_access_error_flag
-#ifdef TAS5806MD_ENABLE
+#if defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 					&& !Is_BAmp_Init()
 #endif
 					)
@@ -1267,9 +1277,15 @@ void TIMER20_IRQHandler_IT(void)
 			//When Amp access error is ocurred, retry it again.
 			if(amp_access_error_flag == 11) //After 1sec, check
 			{				
+#ifdef TAS5806MD_ENABLE
 				TAS5806MD_Fault_Clear_Reg(); //Need to check fault status with TAS5806MD_Amp_Detect_Fault(TRUE) after call this function to update fault status
 
 				if(TAS5806MD_Amp_Detect_Fault(FALSE) == 1)
+#elif defined(AD85050_ENABLE)
+				AD85050_Fault_Clear_Reg(); //Need to check fault status with TAS5806MD_Amp_Detect_Fault(TRUE) after call this function to update fault status
+
+				if(AD85050_Amp_Detect_Fault(FALSE) == 1)
+#endif
 				{
 #ifdef TIMER20_DEBUG_MSG
 					_DBG("\n\rTAS5806MD_Amp_Detect_Fault Access OK !!! ");
@@ -1285,7 +1301,7 @@ void TIMER20_IRQHandler_IT(void)
 				amp_access_error_flag++;
 		}
 
-#ifdef TAS5806MD_ENABLE //2023-07-06_1 : Applied this solution(2023-06-30_1) under BSP-01T //2023-06-30_1 : Excepting the errors with LED error display, we need to recovery from error mode to normal mode.
+#if defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE) //2023-07-06_1 : Applied this solution(2023-06-30_1) under BSP-01T //2023-06-30_1 : Excepting the errors with LED error display, we need to recovery from error mode to normal mode.
 		if(amp_error_no_display_flag)
 		{
 #ifdef WATCHDOG_TIMER_RESET //2023-07-26_1 : When SW RESET(AMP Power down), this if(amp_error_no_display_flag) statement tries to read TAS5806MD_Amp_Detect_FS and it makes amp error condition. So, SW RESET time takes 40sec.
@@ -1298,12 +1314,20 @@ void TIMER20_IRQHandler_IT(void)
 			//When Amp access error is ocurred, retry it again.
 			if(amp_error_no_display_flag == 11) //After 1sec, check
 			{
+#if defined(TAS5806MD_ENABLE)
 				if(TAS5806MD_Amp_Detect_FS(FALSE) == 1)
+#elif defined(AD85050_ENABLE)
+				if(AD85050_Amp_Detect_FS(FALSE) == 1)
+#endif
 				{
 #ifdef TIMER20_DEBUG_MSG
 					_DBG("\n\rClock Error Recovery OK !!! ");
 #endif					
+#if defined(TAS5806MD_ENABLE)
 					TAS5806MD_Fault_Clear_Reg(); //Need to check fault status with TAS5806MD_Amp_Detect_Fault(TRUE) after call this function to update fault status
+#elif defined(AD85050_ENABLE)
+					AD85050_Fault_Clear_Reg(); //Need to check fault status with TAS5806MD_Amp_Detect_Fault(TRUE) after call this function to update fault status
+#endif
 					amp_error_no_display_flag = 0;
 				}
 				else
@@ -1316,7 +1340,7 @@ void TIMER20_IRQHandler_IT(void)
 		}
 #endif //TAS5806MD_ENABLE
 
-#ifndef USEN_BAP //2023-04-07_3 : Do not use this under USEN_BAP
+#if !defined(USEN_BAP) && !defined(USEN_BAP2) //2023-04-07_3 : Do not use this under USEN_BAP
 		if(amp_error_flag 
 #ifdef TAS5806MD_ENABLE
 			&& !Is_BAmp_Init()
@@ -1382,7 +1406,7 @@ void TIMER20_IRQHandler_IT(void)
 					tws_grouping_send_flag++;
 					Set_Cur_TWS_Grouping_Status(TWS_Grouping_Master_Send_Cur_Status1);
 #if defined(MB3021_ENABLE) && defined(I2C_0_ENABLE)
-#ifdef TAS5806MD_ENABLE
+#if defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 					MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Volume, TAS5806MD_Amp_Get_Cur_Volume_Level_Inverse());//TAS5806MD_Amp_Get_Cur_Volume_Level());
 #else
 					MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Volume, AD82584F_Amp_Get_Cur_Volume_Level_Inverse());//TAS5806MD_Amp_Get_Cur_Volume_Level());
@@ -1398,7 +1422,7 @@ void TIMER20_IRQHandler_IT(void)
 #endif
 					Set_Cur_TWS_Grouping_Status(TWS_Grouping_Master_Send_Cur_Status2);
 #if defined(MB3021_ENABLE) && defined(I2C_0_ENABLE)
-#ifdef TAS5806MD_ENABLE
+#if defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 					MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Volume, TAS5806MD_Amp_Get_Cur_Volume_Level_Inverse());//TAS5806MD_Amp_Get_Cur_Volume_Level());
 #else
 					MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Volume, AD82584F_Amp_Get_Cur_Volume_Level_Inverse());//TAS5806MD_Amp_Get_Cur_Volume_Level());
@@ -1472,7 +1496,7 @@ void TIMER20_IRQHandler_IT(void)
 					master_slave_grouping_flag = 0;
 					TIMER20_Master_Slave_Grouping_flag_Stop(FALSE);
 				}
-#if defined(ADC_VOLUME_STEP_ENABLE) && defined(USEN_BAP) //2023-01-06_3 : To send BAP-01 Volume Sync Data before GROUPING disconnection 
+#if defined(ADC_VOLUME_STEP_ENABLE) && (defined(USEN_BAP) || defined(USEN_BAP2)) //2023-01-06_3 : To send BAP-01 Volume Sync Data before GROUPING disconnection 
 #ifndef MASTER_MODE_ONLY //2023-03-28_1 : Deleted sending extra data of BAP-01 due to changed spec which BAP-01 don't have BAP-01 Slave mode
 				else if(master_slave_grouping_flag == 146)
 				{
@@ -1513,7 +1537,7 @@ void TIMER20_IRQHandler_IT(void)
 			if(user_eq_mute_flag == 4)//After 300ms, Mute Off
 			{
 				user_eq_mute_flag = 0;
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 #ifdef AD82584F_USE_POWER_DOWN_MUTE
 				if(!IS_Display_Mute())//This is mute off delay and that's means this action should be worked in mute off. //if(Is_Mute())
 #else
@@ -1538,6 +1562,8 @@ void TIMER20_IRQHandler_IT(void)
 					{
 #ifdef AD82584F_ENABLE
 						AD82584F_Amp_Mute(FALSE, FALSE); //MUTE OFF
+#elif defined(AD85050_ENABLE)
+						AD85050_Amp_Mute(FALSE, FALSE); //MUTE OFF
 #else //TAS5806MD_ENABLE
 #ifdef TIMER20_DEBUG_MSG
 						_DBG("\n\r+++ Mute off using user_eq_mute_flag !!!");
@@ -1557,7 +1583,7 @@ void TIMER20_IRQHandler_IT(void)
 		}
 #endif //FIVE_USER_EQ_ENABLE
 
-#ifdef USEN_BAP //2023-07-19_1
+#if defined(USEN_BAP) || defined(USEN_BAP2) //2023-07-19_1
 	if(power_on_volume_sync_flag)
 	{
 		if(!Power_State())
@@ -1590,7 +1616,7 @@ void TIMER20_IRQHandler_IT(void)
 	}
 #endif
 
-#if defined(USEN_BAP) && defined(AUX_INPUT_DET_ENABLE) && defined(TIMER20_COUNTER_ENABLE) //2023-04-12_1
+#if (defined(USEN_BAP) || defined(USEN_BAP2)) && defined(AUX_INPUT_DET_ENABLE) && defined(TIMER20_COUNTER_ENABLE) //2023-04-12_1
 		if(aux_detecttion_flag)
 		{
 			if(aux_detecttion_flag == 26) //2023-05-09_1 : Reduced the checking time from 5.3s to 2.6s //54)//14) //2023-04-12_4 //54)//After 5.3ms, Check current BT/Aux Status
@@ -1662,7 +1688,7 @@ void TIMER20_IRQHandler_IT(void)
 				if(Get_Cur_LR_Stereo_Mode() == Switch_LR_Mode && Get_Cur_Master_Slave_Mode() == Switch_Master_Mode)
 				{
 #if defined(MB3021_ENABLE) && defined(I2C_0_ENABLE)
-#ifdef TAS5806MD_ENABLE
+#if defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 					MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Volume, TAS5806MD_Amp_Get_Cur_Volume_Level_Inverse());//TAS5806MD_Amp_Get_Cur_Volume_Level());
 #else
 					MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Volume, AD82584F_Amp_Get_Cur_Volume_Level_Inverse());//TAS5806MD_Amp_Get_Cur_Volume_Level());
@@ -1692,7 +1718,7 @@ void TIMER20_IRQHandler_IT(void)
 #endif //defined(TWS_MODE_ENABLE) && defined(MB3021_ENABLE)
 
 #ifndef MASTER_MODE_ONLY  //2023-03-28_1 : Deleted sending extra data of BAP-01 due to changed spec which BAP-01 don't have BAP-01 Slave mode
-#if defined(ADC_VOLUME_STEP_ENABLE) && defined(USEN_BAP) //2023-01-06_1 : Changed SW which send 64 step volume to BAP
+#if defined(ADC_VOLUME_STEP_ENABLE) && (defined(USEN_BAP) || defined(USEN_BAP2)) //2023-01-06_1 : Changed SW which send 64 step volume to BAP
 		if(bt_send_extra_data_flag)
 		{
 			if(bt_send_extra_data_flag == 5) //After 400ms (Need to keep this timing due to missing data issue from Slave)
@@ -1721,9 +1747,11 @@ void TIMER20_IRQHandler_IT(void)
 #endif
 				eq_mode_check_flag = 0;
 #if defined(TIMER30_LED_PWM_ENABLE) && defined(TIMER1n_LED_PWM_ENABLE)
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 #ifdef TAS5806MD_ENABLE
 				uVolume_Level = TAS5806MD_Amp_Get_Cur_Volume_Level();
+#elif defined(AD85050_ENABLE)
+				uVolume_Level = AD85050_Amp_Get_Cur_Volume_Level();
 #else
 				uVolume_Level = AD82584F_Amp_Get_Cur_Volume_Level();
 #endif

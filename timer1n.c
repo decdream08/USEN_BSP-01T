@@ -130,7 +130,7 @@ Bool Is_Timer13_Long_Key(void) //To avoid, sending same key again
 void TIMER12_Configure(void)
 {
 	/*Timer1n clock source from PCLK*/
-#if !defined(TIMER1n_LED_PWM_ENABLE) && defined(USEN_BAP) //Need to Call clock setting function to use Timer1n //2022-10-11_3 
+#if !defined(TIMER1n_LED_PWM_ENABLE) && (defined(USEN_BAP) || defined(USEN_BAP2))//Need to Call clock setting function to use Timer1n //2022-10-11_3 
 	HAL_SCU_Timer1n_ClockConfig(TIMER1nCLK_PCLK); 
 #endif
 	TIMER1n_Config.CkSel = TIMER1n_MCCR1PCLK;    
@@ -321,18 +321,18 @@ void TIMER13_IRQHandler_IT(void) //50ms timer
 		timer13_50ms_count++;
 
 		bTimer13_Long = TRUE;
-#ifndef USEN_BAP //2022-10-07_3
+#if !defined(USEN_BAP) /*&& !defined(USEN_BAP_2)*/ //2022-10-07_3
 		if(Long_Key_Type == Timer13_Power_Key)
 		{
 			//POWER ON KEY(Long Key) condiiton is over than 6 sec(50ms * 120) 
-			if(timer13_50ms_count == 120)
+			if(timer13_50ms_count == /*120*/40)
 			{
 #ifdef TIMER1N_DBG_ENABLE
 				_DBG("\n\rTIMER13_IRQHandler_IT = Timer13_Power_Key");
 #endif
 #ifdef SWITCH_BUTTON_KEY_ENABLE
 #ifdef POWER_KEY_TOGGLE_ENABLE
-				Send_Remote_Key_Event(FACTORY_RESET_KEY);
+				Send_Remote_Key_Event(POWER_KEY);
 #else //POWER_KEY_TOGGLE_ENABLE
 				Send_Remote_Key_Event(POWER_ON_KEY);
 #endif //POWER_KEY_TOGGLE_ENABLE

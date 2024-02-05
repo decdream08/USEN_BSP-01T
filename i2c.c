@@ -80,6 +80,8 @@ void I2C_Configure(void)
 	 /*Initialize Slave I2C peripheral*/
 #ifdef AD82584F_ENABLE
 	if(HAL_I2C_Init(I2C0, 100000) != HAL_OK) //100Kbps - Low speed mode
+#elif defined(AD85050_ENABLE)
+	if(HAL_I2C_Init(I2C0, 400000) != HAL_OK) //400kbps - Fast mode
 #else //TAS5806MD_ENABLE
 	if(HAL_I2C_Init(I2C0, 400000) != HAL_OK) //400kbps - Fast mode
 #endif //AD82584F_ENABLE

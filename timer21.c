@@ -114,7 +114,7 @@ void TIMER21_IRQHandler_IT(void)
 	Master_Slave = Get_Cur_Master_Slave_Mode();
 #endif
 	mode = Get_Cur_Status_LED_Mode();
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 #ifdef AD82584F_USE_POWER_DOWN_MUTE
 	Mute_On = IS_Display_Mute();
 #else
@@ -258,7 +258,7 @@ void TIMER21_IRQHandler_IT(void)
 				break;
  				
 			case STATUS_SOC_ERROR_MODE: // Red Blinking
-#ifndef USEN_BAP		//Red Fast Blinking
+#if !defined(USEN_BAP) && !defined(USEN_BAP2) //Red Fast Blinking
 				LED_Status_Display_Blinking(STATUS_LED_RED, Fast_Flag);
 #endif
 				break;

@@ -80,7 +80,7 @@ void SysTick_Handler(void)
 }
 #endif
 
-#if defined(USEN_BAP) && defined(SWITCH_BUTTON_KEY_ENABLE) //2022-10-11_2
+#if (defined(USEN_BAP) || defined(USEN_BAP2)) && defined(SWITCH_BUTTON_KEY_ENABLE) //2022-10-11_2
 void GPIOE_IRQHandler(void)
 {
 	GPIOE_IRQHandler_IT();

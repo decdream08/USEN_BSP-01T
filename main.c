@@ -38,6 +38,9 @@
 #ifdef TAS5806MD_ENABLE
 #include "tas5806md.h"
 #endif
+#ifdef AD85050_ENABLE
+#include "AD85050.h"
+#endif
 #ifdef TOUCHKEY_ENABLE
 #include "touch_key.h"
 #endif
@@ -158,6 +161,7 @@ static uint8_t IsEQ_BSP;
 #else //MASTER_MODE_ONLY
 static uint8_t IsMaster;
 #endif //MASTER_MODE_ONLY
+#elif defined(USEN_BAP2)
 #else
 static uint8_t IsMaster, IsStereo; //IsMaster - 0x01(Master)/0x00(Slave), IsStereo - 0x01(360)/0x00(LR)
 #endif
@@ -199,7 +203,7 @@ static void Serial_Get_Data_Intterupt_Callback(uint8_t *Data);
 static void SPI_Get_Data_Interrupt_Callback(uint8_t *Data);
 #endif
 
-#if defined(ADC_VOLUME_STEP_ENABLE) && defined(TAS5806MD_ENABLE) && defined(ADC_INPUT_ENABLE) //Attenuator action is inversed. So fixed it. //2023-02-08_1 : make Attenuator GAP
+#if defined(ADC_VOLUME_STEP_ENABLE) && (defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)) && defined(ADC_INPUT_ENABLE) //Attenuator action is inversed. So fixed it. //2023-02-08_1 : make Attenuator GAP
 uint8_t Convert_ADC_To_Attenuator(uint32_t ADC_Value);
 #endif
 
@@ -208,7 +212,7 @@ uint8_t Convert_ADC_To_Attenuator(uint32_t ADC_Value);
 void EXTI_PortC_Configure(void);
 #endif
 
-#if defined(USEN_BAP) && defined(ADC_INPUT_ENABLE) && defined(ADC_VOLUME_STEP_ENABLE) //2023-07-20_1 : Sometimes, BAP-01 can't set current ADC Value when user executes power on from power off using volume dial.
+#if (defined(USEN_BAP) || defined(USEN_BAP2)) && defined(ADC_INPUT_ENABLE) && defined(ADC_VOLUME_STEP_ENABLE) //2023-07-20_1 : Sometimes, BAP-01 can't set current ADC Value when user executes power on from power off using volume dial.
 uint8_t ADC_Value_Update_to_send_Slave(void)
 {
 	uint32_t ADC3_Value;
@@ -307,6 +311,12 @@ uint8_t ADC_Value_Update_to_send_Slave(void)
 #ifdef FLASH_SELF_WRITE_ERASE //2023-03-02_3 : BAP-01 do not use flash data to set volume level when power on.
 		//FlashSaveData(FLASH_SAVE_DATA_VOLUME, uCurVolLevel);
 #endif
+#elif defined(AD85050_ENABLE)
+#ifdef ADC_INPUT_DEBUG_MSG
+      _DBG("\n\r === Volume Level Setting = ");
+      _DBD(uCurVolLevel);
+#endif
+      AD85050_Amp_Volume_Set_with_Index(uCurVolLevel, FALSE, TRUE);
 #endif
 
 #endif //ADC_INTERRUPT_INPUT_ENABLE
@@ -315,7 +325,7 @@ uint8_t ADC_Value_Update_to_send_Slave(void)
 }
 #endif
 
-#if defined(USEN_BAP) && defined(AUX_INPUT_DET_ENABLE) && defined(TIMER20_COUNTER_ENABLE) //2023-01-10_3
+#if (defined(USEN_BAP) || defined(USEN_BAP2)) && defined(AUX_INPUT_DET_ENABLE) && defined(TIMER20_COUNTER_ENABLE) //2023-01-10_3
 void Aux_Mode_Setting_After_Timer_Checking(Bool Aux_In)
 {
 #ifdef AUX_INPUT_DET_DEBUG
@@ -330,16 +340,18 @@ void Aux_Mode_Setting_After_Timer_Checking(Bool Aux_In)
 #if defined(TIMER20_COUNTER_ENABLE) && defined(AUTO_ONOFF_ENABLE) //Fixed Master SPK do not work Auto power off even though No siganl from BT when user remove Aux jack
 		TIMER20_auto_power_flag_Start();
 #endif
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 #ifdef SLAVE_ADD_MUTE_DELAY_ENABLE
 		MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x02);
 #endif
-#ifdef USEN_BAP //2023-05-19_1 : Under BAP-01 Aux mode, customer wants to output audio at once when user change BT to Aux.
+#if defined(USEN_BAP) || defined(USEN_BAP2) //2023-05-19_1 : Under BAP-01 Aux mode, customer wants to output audio at once when user change BT to Aux.
 		if(!Aux_In_Exist())
 #endif
 		{
 #ifdef AD82584F_ENABLE
 			AD82584F_Amp_Mute(TRUE, FALSE); //MUTE ON
+#elif defined(AD85050_ENABLE)
+			AD85050_Amp_Mute(TRUE, FALSE); //MUTE ON
 #else //TAS5806MD_ENABLE
 			TAS5806MD_Amp_Mute(TRUE, FALSE); //MUTE ON
 #endif
@@ -360,7 +372,7 @@ void Aux_Mode_Setting_After_Timer_Checking(Bool Aux_In)
 			}
 		}
 #endif
-#ifdef USEN_BAP //2023-05-19_1 : Under BAP-01 Aux mode, customer wants to output audio at once when user change BT to Aux.
+#if defined(USEN_BAP) || defined(USEN_BAP2) //2023-05-19_1 : Under BAP-01 Aux mode, customer wants to output audio at once when user change BT to Aux.
 		Set_MB3021_BT_Module_Source_Change_Direct();
 #else
 		Set_MB3021_BT_Module_Source_Change();
@@ -443,6 +455,7 @@ void SW_Reset(void) //2023-02-21_7 : After reboot, Slave SPK has Audio NG issue.
 #ifndef WATCHDOG_TIMER_RESET //2023-07-26_1
 	delay_ms(1000);
 #endif
+#elif defined(AD85050_ENABLE)
 #else //TAS5806MD_ENABLE
 	HAL_GPIO_ClearPin(PF, _BIT(3)); //+14V_DAMP_SW_1
 	delay_ms(30);
@@ -508,12 +521,19 @@ Bool Aux_In_Exist(void)
 			return TRUE;
 	}
 #else
+#ifdef USEN_BAP2
+	if(HAL_GPIO_ReadPin(PA) & (1<<0)) //High : Aux Fix - Always Aux In /Low : Auto - Need to check B_AUX_DET
+		return TRUE;
+	else
+    return FALSE;
+#else
 #ifdef USEN_BAP //2023-02-06_1 : If we use AUX_DETECT_INTERRUPT_ENABLE, we need to turn off BT LED under Aux Only Mode.
 	if(HAL_GPIO_ReadPin(PA) & (1<<0)) //High : Aux Fix - Always Aux In /Low : Auto - Need to check B_AUX_DET
 		return TRUE;
 	else
 #endif
 		return B_AUX_DET; //Input(Aux Detec Pin) : TRUE -Aux In / FALSE - Aux Out
+#endif
 #endif
 }
 #endif
@@ -528,7 +548,7 @@ void Factory_Reset_Value_Setting(void)
 #ifdef COMMON_DEBUG_MSG
 	_DBG("\n\rFactory_Reset_Value_Setting(void)");
 #endif
-#if defined(SWITCH_BUTTON_KEY_ENABLE) && (defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE))
+#if defined(SWITCH_BUTTON_KEY_ENABLE) && (defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE))
 	Remocon_EQ_Key_Action(EQ_NORMAL_MODE);
 #endif //#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
 
@@ -547,7 +567,7 @@ void Factory_Reset_Value_Setting(void)
  * @param[in]	None
  * @return 		None
  **********************************************************************/
-#ifdef USEN_BAP //2023-04-06_4 : To recognize the place which call this function is whther SW start or Power On
+#if defined(USEN_BAP) || defined(USEN_BAP2) //2023-04-06_4 : To recognize the place which call this function is whther SW start or Power On
 void Init_Value_Setting(Bool B_boot)
 #else
 void Init_Value_Setting(void)
@@ -556,7 +576,7 @@ void Init_Value_Setting(void)
 #ifdef COMMON_DEBUG_MSG
 	_DBG("\n\rInit_Value_Setting(void)");
 #endif
-#ifdef USEN_BAP //2023-04-07_3
+#if defined(USEN_BAP) || defined(USEN_BAP2) //2023-04-07_3
 #if defined(AMP_ERROR_ALARM) || (defined(SOC_ERROR_ALARM) && defined(TAS5806MD_ENABLE)) //2022-11-01
 	if(!B_boot)
 		TIMER20_Amp_error_flag_Stop();
@@ -578,9 +598,9 @@ void Init_Value_Setting(void)
 	else
 		B_Auto_AUX_Mode = TRUE; //B_Auto_AUX_Mode = FALSE;
 #else //USEN_BAP & BSP-01T
-#ifdef USEN_BAP
+#if defined(USEN_BAP) || defined(USEN_BAP2)
 	B_AUX_DET = FALSE; //FALSE - Aux Out //2023-04-12_1 : We need to make FALSE because HW make 5sec delay to keep Aux In(Low) even though there is no Aux In after DC In.
-#if defined(USEN_BAP) && defined(AUX_INPUT_DET_ENABLE) && defined(TIMER20_COUNTER_ENABLE) //2023-04-12_1
+#if (defined(USEN_BAP) || defined(USEN_BAP2)) && defined(AUX_INPUT_DET_ENABLE) && defined(TIMER20_COUNTER_ENABLE) //2023-04-12_1
 	TIMER20_aux_detection_flag_start();
 #endif
 #else //USEN_BAP
@@ -620,6 +640,7 @@ void Init_Value_Setting(void)
 			}
 		}
 	}
+#elif defined(USEN_BAP2)
 #endif //#ifdef USEN_BAP //2023-04-06_4
 #endif
 #endif //AUX_INPUT_DET_ENABLE
@@ -631,13 +652,14 @@ void Init_Value_Setting(void)
 #if defined(MASTER_MODE_ONLY) && defined(TAS5806MD_ENABLE)
 	Remocon_BSP_NORMAL_Mode_Switch_Action(); //2023-03-27_4
 #endif
+#elif defined(USEN_BAP2)
 #else //USEN_BAP
 #if defined(SWITCH_BUTTON_KEY_ENABLE) && (defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE))
 	Remocon_Mode_Key_Action(); //To set current mode(STEREO/LR Mode) when Power On
 #endif
 #endif //USEN_BAP
 #ifdef KEY_CHATTERING_EXTENSION_ENABLE //2023-04-05_1 : Move to here for initializing for static variable to fix switch action
-#ifndef USEN_BAP
+#if !defined(USEN_BAP) && !defined(USEN_BAP2)
 	if(HAL_GPIO_ReadPin(PA) & (1<<0)) //STEREO Mode
 		IsStereo = 0x01;
 	else //LR Mode
@@ -680,7 +702,7 @@ void WDT_Configure(void)
 	/* WDTDR(0.5s) < WDTWDR(1s), clear in 900ms */
 	wdtCfg.wdtResetEn = ENABLE;
 	wdtCfg.wdtClkDiv = WDT_DIV_4; 
-#ifdef USEN_BAP //2023-05-16_1
+#if defined(USEN_BAP) || defined(USEN_BAP2) //2023-05-16_1
 	wdtCfg.wdtTmrConst = (7812*60)/2; 	// 30s //wdtCfg.wdtTmrConst = (7812*20)/2; 	// 10s
 	wdtCfg.wdtWTmrConst = 7812*60; 		//60s //wdtCfg.wdtWTmrConst = 7812*20; 		//20s
 #else
@@ -799,7 +821,7 @@ void mainloop(void)
 #endif
 	EXIT_Configure();
 #endif
-#if defined(USEN_BAP) && !(BT_SPK_TACT_SWITCH) //Implemented Interrupt Port E for BT Key(PE7) //2022-10-11_2
+#if (defined(USEN_BAP) || defined(USEN_BAP2)) && !(BT_SPK_TACT_SWITCH) //Implemented Interrupt Port E for BT Key(PE7) //2022-10-11_2
 	EXIT_PortE_Configure();
 #endif
 #ifdef SOUND_BAR_GPIO_ENABLE
@@ -914,6 +936,13 @@ void mainloop(void)
 	AD82584F_Amp_Init();
 #endif
 #endif
+#ifdef AD85050_ENABLE
+#ifdef FLASH_SELF_WRITE_ERASE
+  AD85050_Amp_Init(TRUE);
+#else
+  AD85050_Amp_Init();
+#endif
+#endif
 #ifdef BT_MODULE_ENABLE
 #if defined(F1DQ3007_ENABLE) || defined(F1DQ3021_ENABLE)
 	F1M22_BT_Module_Init();
@@ -943,7 +972,7 @@ void mainloop(void)
 #endif
 	}
 #ifndef MASTER_MODE_ONLY
-#if defined(ADC_VOLUME_STEP_ENABLE) && defined(USEN_BAP) //2023-01-09_2 : To disable BLE_VOLUME_KEY using BLE DATA from Master under BAP slave when Master & Slave are BAP
+#if defined(ADC_VOLUME_STEP_ENABLE) && (defined(USEN_BAP) || defined(USEN_BAP2)) //2023-01-09_2 : To disable BLE_VOLUME_KEY using BLE DATA from Master under BAP slave when Master & Slave are BAP
 	else
 	{
 		Flash_Read(FLASH_SAVE_START_ADDR, uFlash_Read_Buf1, FLASH_SAVE_DATA_END);
@@ -961,7 +990,7 @@ void mainloop(void)
 #endif //defined(F1DQ3007_ENABLE) || defined(F1DQ3021_ENABLE)
 #endif //BT_MODULE_ENABLE
 #ifdef USEN_BT_SPK
-#ifdef USEN_BAP
+#if defined(USEN_BAP) || defined(USEN_BAP2)
 	Init_Value_Setting(TRUE); //2023-04-06_4 : To recognize the place which call this function is whther SW start or Power On
 #else
 	Init_Value_Setting();
@@ -1010,9 +1039,11 @@ void mainloop(void)
 #ifdef _DBG_FLASH_WRITE_ERASE
 			_DBG("\n\rPower On : Mute setting with flash data ===");
 #endif
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 #ifdef AD82584F_ENABLE
 			AD82584F_Amp_Mute(TRUE, TRUE); //Power Mute On
+#elif defined(AD85050_ENABLE)
+			AD85050_Amp_Mute(TRUE, TRUE); //Power Mute On
 #else //TAS5806MD_ENABLE
 			TAS5806MD_Amp_Mute(TRUE, TRUE); //Power Mute On
 #endif //AD82584F_ENABLE
@@ -1020,9 +1051,11 @@ void mainloop(void)
 		}
 		else
 		{
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 #ifdef AD82584F_ENABLE
 			AD82584F_Amp_Mute(TRUE, FALSE); //Power Mute On
+#elif defined(AD85050_ENABLE)
+      AD85050_Amp_Mute(TRUE, FALSE); //Power Mute On
 #else //TAS5806MD_ENABLE
 			TAS5806MD_Amp_Mute(TRUE, FALSE); //Power Mute On
 #endif //AD82584F_ENABLE
@@ -1033,9 +1066,11 @@ void mainloop(void)
 #ifdef TIMER21_LED_ENABLE
 		Set_Status_LED_Mode(STATUS_POWER_ON_MODE); //Should be called this funciton after I2C/Amp init interrupt complete
 #endif
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 #ifdef AD82584F_ENABLE
 		AD82584F_Amp_Mute(TRUE, FALSE); //Power Mute On
+#elif defined(AD85050_ENABLE)
+        AD85050_Amp_Mute(TRUE, FALSE); //Power Mute On
 #else //TAS5806MD_ENABLE
 		TAS5806MD_Amp_Mute(TRUE, FALSE); //Power Mute On
 #endif //AD82584F_ENABLE
@@ -1044,6 +1079,8 @@ void mainloop(void)
 
 #ifdef LED_POWER_CONTROL_ENABLE
 #ifdef USEN_BAP //2023-02-06_2 : Turn on all LED on Power Init
+	HAL_GPIO_SetPin(PD, _BIT(5)); //LED POWER CONTROL - ON //To Do !!! - Need to use this after separating LED Power from Button Power
+#elif defined(USEN_BAP2)
 	HAL_GPIO_SetPin(PD, _BIT(5)); //LED POWER CONTROL - ON //To Do !!! - Need to use this after separating LED Power from Button Power
 #else //USEN_BAP
 	HAL_GPIO_SetPin(PD, _BIT(0)); //LED POWER CONTROL - ON	- Need to use this after separating LED Power from Button Power
@@ -1118,7 +1155,7 @@ void mainloop(void)
 
 #ifdef ADC_INPUT_ENABLE
 			case TASK_ADC:
-#if defined(USEN_BAP) && !defined(MASTER_MODE_ONLY) //2022-12-13 To Slave volume sync with Master Volume, Changed SW
+#if (defined(USEN_BAP) || defined(USEN_BAP2)) && !defined(MASTER_MODE_ONLY) //2022-12-13 To Slave volume sync with Master Volume, Changed SW
 				if(Get_Cur_Master_Slave_Mode() == Switch_Slave_Mode)
 					break;
 #endif
@@ -1253,7 +1290,7 @@ void mainloop(void)
 								uCurVolLevel = 50 - i;
 #endif //USEN_BAP2
 #endif
-#ifdef TAS5806MD_ENABLE
+#if defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 								if(uCurVolLevel_bk != uCurVolLevel)
 								{
 #ifdef ADC_INPUT_DEBUG_MSG
@@ -1261,7 +1298,11 @@ void mainloop(void)
 									_DBD(uCurVolLevel);
 #endif
 									uCurVolLevel_bk = uCurVolLevel;
+#ifdef TAS5806MD_ENABLE
 									TAS5806MD_Amp_Volume_Set_with_Index(uCurVolLevel, FALSE, TRUE);
+#elif defined(AD85050_ENABLE)
+									AD85050_Amp_Volume_Set_with_Index(uCurVolLevel, FALSE, TRUE);
+#endif
 									//uCurVolLevel = 15 - ADC3_Value; //15 Step, Inverse Value, The integer value need to match with (VOLUME_LEVEL_NUMER)
 #ifdef FLASH_SELF_WRITE_ERASE //2023-03-02_3 : BAP-01 do not use flash data to set volume level when power on.
 									//FlashSaveData(FLASH_SAVE_DATA_VOLUME, uCurVolLevel);
@@ -1274,6 +1315,13 @@ void mainloop(void)
 #else //ADC_VOLUME_STEP_ENABLE
 #ifdef TAS5806MD_ENABLE
 							TAS5806MD_Amp_Volume_Set_with_Index(ADC3_Value, TRUE, TRUE);
+							
+							uCurVolLevel = 15 - ADC3_Value; //15 Step, Inverse Value, The integer value need to match with (VOLUME_LEVEL_NUMER)
+#ifdef FLASH_SELF_WRITE_ERASE //2023-03-02_3 : BAP-01 do not use flash data to set volume level when power on.
+							//FlashSaveData(FLASH_SAVE_DATA_VOLUME, uCurVolLevel);
+#endif
+#elif defined(AD85050_ENABLE)
+							AD85050_Amp_Volume_Set_with_Index(ADC3_Value, TRUE, TRUE);
 							
 							uCurVolLevel = 15 - ADC3_Value; //15 Step, Inverse Value, The integer value need to match with (VOLUME_LEVEL_NUMER)
 #ifdef FLASH_SELF_WRITE_ERASE //2023-03-02_3 : BAP-01 do not use flash data to set volume level when power on.
@@ -1777,7 +1825,7 @@ void GPIOCD_IRQHandler_IT2(void)
 			{
 				if(Aux_In_Exist())//if(B_AUX_DET) //Aux In
 				{
-#if defined(USEN_BAP) && defined(TIMER20_COUNTER_ENABLE) //2023-01-10_3
+#if (defined(USEN_BAP) || defined(USEN_BAP2)) && defined(TIMER20_COUNTER_ENABLE) //2023-01-10_3
 					TIMER20_aux_detect_check_flag_start();
 #else //USEN_BAP
 					B_AUX_DET = FALSE; //FALSE - Aux Out
@@ -1791,7 +1839,7 @@ void GPIOCD_IRQHandler_IT2(void)
 				}
 				else
 				{
-#ifdef USEN_BAP
+#if defined(USEN_BAP) || defined(USEN_BAP2)
 					B_AUX_DET = FALSE; //2023-06-19_3
 #endif
 #ifdef AUX_INPUT_DET_DEBUG
@@ -1806,7 +1854,7 @@ void GPIOCD_IRQHandler_IT2(void)
 #endif
 
 #ifdef TIMER20_COUNTER_ENABLE
-#ifdef USEN_BAP //2023-01-10_3
+#if defined(USEN_BAP) || defined(USEN_BAP2) //2023-01-10_3
 				TIMER20_aux_detect_check_flag_stop();
 #endif
 #ifdef AUTO_ONOFF_ENABLE
@@ -1848,7 +1896,7 @@ void GPIOCD_IRQHandler_IT2(void)
 					}
 					else //To recover mute off when user alternate Aux mode and BT mode repeatly
 					{
-#ifdef USEN_BAP
+#if defined(USEN_BAP) || defined(USEN_BAP2)
 						B_AUX_DET = TRUE; //2023-06-19_3 : Under BAP-01, we need to set B_AUX_DET value in every interrupt condition. //TURE -Aux In
 #endif
 #ifdef AUX_INPUT_DET_DEBUG
@@ -1875,9 +1923,11 @@ void GPIOCD_IRQHandler_IT2(void)
 #ifdef AUX_INPUT_DET_DEBUG
 					_DBG("\n\rxxxxxx No Aux In - Actually Aux In");
 #endif
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 #ifdef AD82584F_ENABLE
 					AD82584F_Amp_Mute(TRUE, FALSE); //MUTE ON
+#elif defined(AD85050_ENABLE)
+					AD85050_Amp_Mute(TRUE, FALSE); //MUTE ON
 #else //TAS5806MD_ENABLE
 					TAS5806MD_Amp_Mute(TRUE, FALSE); //MUTE ON
 #endif //AD82584F_ENABLE
@@ -1893,16 +1943,18 @@ void GPIOCD_IRQHandler_IT2(void)
 #if defined(TIMER20_COUNTER_ENABLE) && defined(AUTO_ONOFF_ENABLE) //Fixed Master SPK do not work Auto power off even though No siganl from BT when user remove Aux jack
 			TIMER20_auto_power_flag_Start();
 #endif
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 #ifdef SLAVE_ADD_MUTE_DELAY_ENABLE
 			MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x02);
 #endif
-#ifdef USEN_BAP //2023-05-19_1 : Under BAP-01 Aux mode, customer wants to output audio at once when user change BT to Aux.
+#if defined(USEN_BAP) || defined(USEN_BAP2) //2023-05-19_1 : Under BAP-01 Aux mode, customer wants to output audio at once when user change BT to Aux.
 			if(!Aux_In_Exist())
 #endif
 			{
 #ifdef AD82584F_ENABLE
 				AD82584F_Amp_Mute(TRUE, FALSE); //MUTE ON
+#elif defined(AD85050_ENABLE)
+				AD85050_Amp_Mute(TRUE, FALSE); //MUTE ON
 #else //TAS5806MD_ENABLE
 				TAS5806MD_Amp_Mute(TRUE, FALSE); //MUTE ON
 #endif
@@ -1923,7 +1975,7 @@ void GPIOCD_IRQHandler_IT2(void)
 				}
 			}
 #endif
-#ifdef USEN_BAP //2023-05-19_1 : Under BAP-01 Aux mode, customer wants to output audio at once when user change BT to Aux.
+#if defined(USEN_BAP) ||  defined(USEN_BAP2)//2023-05-19_1 : Under BAP-01 Aux mode, customer wants to output audio at once when user change BT to Aux.
 			Set_MB3021_BT_Module_Source_Change_Direct();
 #else
 			Set_MB3021_BT_Module_Source_Change();
@@ -1974,7 +2026,7 @@ Switch_Master_Slave_Mode Get_Cur_Master_Slave_Mode(void)
 	Switch_Master_Slave_Mode mode;
 
 #ifdef SWITCH_BUTTON_KEY_ENABLE
-#ifdef USEN_BAP //Modified Master/Slave Switch to work in inverse //2022-12-20_2
+#if defined(USEN_BAP) || defined(USEN_BAP2) //Modified Master/Slave Switch to work in inverse //2022-12-20_2
 	if(HAL_GPIO_ReadPin(PA) & (1<<1)) //High
 	{
 		mode = Switch_Slave_Mode;
@@ -2052,7 +2104,7 @@ void GPIOAB_IRQHandler_IT(void)
 	if(!Power_State())
 	{
 		if(!(status & 0x00003000)
-#ifdef USEN_BAP //2022-10-12_4
+#if defined(USEN_BAP) || defined(USEN_BAP2) //2022-10-12_4
 			&& !(status & 0x0000C000)
 #else
 			&& !(status & 0x00000003) && !(status & 0x0000000c) //2023-04-06_3 : LR, MS Switch is acceptable uner power off mode
@@ -2069,7 +2121,7 @@ void GPIOAB_IRQHandler_IT(void)
 	}
 #endif
 
-#ifdef USEN_BAP
+#if defined(USEN_BAP) || defined(USEN_BAP2)
 	if (status & 0x0000f30f) //Just check PA0 / PA1 / PA4 / PA6 / PA7 (1111 0011 0000 1111)
 	{
 		shift_bit = 0xffffffff;
@@ -2077,10 +2129,12 @@ void GPIOAB_IRQHandler_IT(void)
 #ifdef KEY_CHATTERING_ENABLE
 		delay_ms(KEY_CHATTERING_DELAY_MS+60); //2023-05-04_2 : Under BAP-01, key chattering delay is increased from 20ms to 80ms.
 #endif
+//#ifdef USEN_BAP
 		/* bit 0 : PA Falling Edge / bit 1 : PA Rising Edge *///Just check Rising Edge (Normal : High / Push : Low)
 		if(status & 0x00000003) //PA0 : AUTO_SW //2022-10-17_1
 		{
-			shift_bit = 0;
+#ifdef USEN_BAP
+		shift_bit = 0;
 
 			//Both Rising Edge and Falling Edge should work as switch input. so, in both case, the cur_button_status should be button_release.
 			if(status & 0x00000001)
@@ -2153,13 +2207,14 @@ void GPIOAB_IRQHandler_IT(void)
 				Set_MB3021_BT_Module_Source_Change();
 			}
 #endif
-
+#endif //USEN_BAP
 			clear_bit = status & 0x00000003;
 		}
 #ifdef MASTER_MODE_ONLY
 		else if(status & 0x0000000c) //PA1 : EQ BSP(High)/EQ NORMAL(Low)
 		{
-			shift_bit = 2;
+#ifdef USEN_BAP
+      shift_bit = 2;
 
 			//Both Rising Edge and Falling Edge should work as switch input. so, in both case, the cur_button_status should be button_release.
 #ifdef KEY_CHATTERING_EXTENSION_ENABLE
@@ -2234,7 +2289,7 @@ void GPIOAB_IRQHandler_IT(void)
 #endif
 				}
 			}
-
+#endif //USEN_BAP
 			clear_bit = status & 0x0000000c;
 		}
 #else //MASTER_MODE_ONLY
@@ -2321,8 +2376,11 @@ void GPIOAB_IRQHandler_IT(void)
 			clear_bit = status & 0x0000000c;
 		}
 #endif //MASTER_MODE_ONLY
-        else if(status & 0x00003000) //PA6 : POWER_Off(short)/POWER_ON(Long) //Implemented Power Key Feature //2022-10-07_3
+    else
+//#endif //USEN_BAP
+    if(status & 0x00003000) //PA6 : POWER_Off(short)/POWER_ON(Long) //Implemented Power Key Feature //2022-10-07_3
 		{
+#ifdef USEN_BAP
 			shift_bit = 12;
 
 			if(status & 0x00001000) //Falling
@@ -2372,6 +2430,42 @@ void GPIOAB_IRQHandler_IT(void)
 				}
 			}
 			clear_bit = status & 0x00003000;
+#elif defined(USEN_BAP2)
+			shift_bit = 12;
+#ifdef POWER_KEY_TOGGLE_ENABLE
+			key = POWER_KEY;
+#else
+			key = POWER_OFF_KEY;
+#endif
+			if(status & 0x00001000)
+			{
+#ifdef KEY_CHATTERING_ENABLE
+				if(HAL_GPIO_ReadPin(PA) & (1<<6)) //PA6 is High and this says invalid value
+				{
+					shift_bit = 0xffffffff;
+					key = NONE_KEY;
+				}
+				else
+#endif
+				{
+					TIMER13_Periodic_Mode_Run(TRUE, Timer13_Power_Key);
+					cur_button_status = button_push; //High -> Low
+				}
+			}
+			else //status == 0x00002000
+			{
+#ifdef KEY_CHATTERING_ENABLE
+				if(!(HAL_GPIO_ReadPin(PA) & (1<<6))) //PA6 is Low and this says invalid value
+				{
+					shift_bit = 0xffffffff;
+					key = NONE_KEY;
+				}
+				else
+#endif
+				cur_button_status = button_release; //Low -> High
+			}
+			clear_bit = status & 0x00003000;
+#endif
 		}
 		else if(status & 0x0000c000) //PA7 : BT_UPDATE_DET(High) / Normal(Low)  //2022-10-12_4
 		{
@@ -2451,12 +2545,14 @@ void GPIOAB_IRQHandler_IT(void)
 #if defined(TIMER20_COUNTER_ENABLE) && defined(AUTO_ONOFF_ENABLE) //Fixed Master SPK do not work Auto power off even though No siganl from BT when user remove Aux jack
 						TIMER20_auto_power_flag_Start();
 #endif
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 #ifdef SLAVE_ADD_MUTE_DELAY_ENABLE
 						MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x02);
 #endif
 #ifdef AD82584F_ENABLE
 						AD82584F_Amp_Mute(TRUE, FALSE); //MUTE ON
+#elif defined(AD85050_ENABLE)
+						AD85050_Amp_Mute(TRUE, FALSE); //MUTE ON
 #else //TAS5806MD_ENABLE
 						TAS5806MD_Amp_Mute(TRUE, FALSE); //MUTE ON
 #endif
@@ -2465,8 +2561,17 @@ void GPIOAB_IRQHandler_IT(void)
 
 						ret = -1;
 					}
+#elif defined(MB3021_ENABLE) && defined(USEN_BAP2)
+					if(key == POWER_KEY)
+					{
+						if(Is_Power_Long_Key())
+							key = NONE_KEY;
+						
+						TIMER13_Periodic_Mode_Run(FALSE, Timer13_Power_Key);
+					
+					  ret = -1;
+				  }
 #endif
-
 					if(ret != -1)
 					{
 						Send_Remote_Key_Event(key);
@@ -2478,7 +2583,6 @@ void GPIOAB_IRQHandler_IT(void)
 			}
 		}
 	}
-
 #else //USEN_BAP
 
 	if (status & 0x00003fff) //Just check PA0 / PA1 / PA2 / PA3 / PA4 / PA5 / PA6
@@ -2918,7 +3022,7 @@ void GPIOAB_IRQHandler_IT(void)
 							key = NONE_KEY;
 						
 						TIMER13_Periodic_Mode_Run(FALSE, Timer13_BT_Pairing_Key);
-#if defined(AUX_INPUT_DET_ENABLE) && !defined(USEN_BAP) //2023-04-13_1 : Under BAP-01, Aux mode shoud be accepted BT short key.
+#if defined(AUX_INPUT_DET_ENABLE) && !defined(USEN_BAP) && !defined(USEN_BAP2)//2023-04-13_1 : Under BAP-01, Aux mode shoud be accepted BT short key.
 						if(Aux_In_Exist()) //Under Aux mode, BT Key is invlaid.
 						{
 							key = NONE_KEY;
@@ -2996,6 +3100,12 @@ void EXTI_PortA_Configure(void)
 	HAL_GPIO_EXTI_Config(PA, 4, IER_EDGE, ICR_BOTH_EDGE_INT);
 	HAL_GPIO_EXTI_Config(PA, 6, IER_EDGE, ICR_BOTH_EDGE_INT);
 	HAL_GPIO_EXTI_Config(PA, 7, IER_EDGE, ICR_BOTH_EDGE_INT);
+#elif defined(USEN_BAP2)
+	HAL_GPIO_EXTI_Config(PA, 0, IER_EDGE, ICR_BOTH_EDGE_INT);
+	HAL_GPIO_EXTI_Config(PA, 1, IER_EDGE, ICR_BOTH_EDGE_INT);
+	HAL_GPIO_EXTI_Config(PA, 4, IER_EDGE, ICR_BOTH_EDGE_INT);
+	HAL_GPIO_EXTI_Config(PA, 6, IER_EDGE, ICR_BOTH_EDGE_INT);
+	HAL_GPIO_EXTI_Config(PA, 7, IER_EDGE, ICR_BOTH_EDGE_INT);
 #else
 	HAL_GPIO_EXTI_Config(PA, 0, IER_EDGE, ICR_BOTH_EDGE_INT);
 	HAL_GPIO_EXTI_Config(PA, 1, IER_EDGE, ICR_BOTH_EDGE_INT);
@@ -3009,7 +3119,7 @@ void EXTI_PortA_Configure(void)
 	NVIC_EnableIRQ(GPIOAB_IRQn);
 }
 
-#if defined(USEN_BAP) && defined(SWITCH_BUTTON_KEY_ENABLE) //Implemented Interrupt Port E for BT Key(PE7) //2022-10-11_2
+#if (defined(USEN_BAP) || defined(USEN_BAP2)) && defined(SWITCH_BUTTON_KEY_ENABLE) //Implemented Interrupt Port E for BT Key(PE7) //2022-10-11_2
 void GPIOE_IRQHandler_IT(void) // PE7 : Button Switch Input
 {
 	uint32_t status1 = 0, clear_bit = 0, shift_bit = 0;
@@ -3121,7 +3231,7 @@ void GPIOE_IRQHandler_IT(void) // PE7 : Button Switch Input
 							key = NONE_KEY;
 						
 						TIMER13_Periodic_Mode_Run(FALSE, Timer13_BT_Pairing_Key);
-#if defined(AUX_INPUT_DET_ENABLE) && !defined(USEN_BAP) //2023-04-13_1 : Under BAP-01, Aux mode shoud be accepted BT short key.
+#if defined(AUX_INPUT_DET_ENABLE) && !defined(USEN_BAP) && !defined(USEN_BAP2) //2023-04-13_1 : Under BAP-01, Aux mode shoud be accepted BT short key.
 						if(Aux_In_Exist()) //Under Aux mode, BT Key is invlaid.
 						{
 							key = NONE_KEY;
@@ -3236,7 +3346,7 @@ void GPIOF_IRQHandler_IT(void)
 			shift_bit = 0;
 #ifdef FACTORY_RESET_LONG_KEY_SUPPORT
 			if(Power_State()
-#if defined(USEN_BAP) && !defined(MASTER_MODE_ONLY) //FACTORY_RESET_KEY is invalid under BAP-01 Slave and only available it thru USEN Tablet SSP COM//2023-01-05_1
+#if (defined(USEN_BAP) || defined(USEN_BAP2)) && !defined(MASTER_MODE_ONLY) //FACTORY_RESET_KEY is invalid under BAP-01 Slave and only available it thru USEN Tablet SSP COM//2023-01-05_1
 			&& Get_Cur_Master_Slave_Mode() != Switch_Slave_Mode 
 #endif
 				) //Factory Reset Key is only available under Power On
@@ -3290,7 +3400,7 @@ void GPIOF_IRQHandler_IT(void)
 				key = NONE_KEY;
 			}
 
-#if defined(USEN_BAP) && !defined(MASTER_MODE_ONLY)
+#if (defined(USEN_BAP) || defined(USEN_BAP2)) && !defined(MASTER_MODE_ONLY)
 			if(Get_Cur_Master_Slave_Mode() == Switch_Slave_Mode && key == FACTORY_RESET_KEY) //FACTORY_RESET_KEY is invalid under BAP-01 Slave and only available it thru USEN Tablet SSP COM//2023-01-05_1
 			{
 #ifdef SWITCH_BUTTON_KEY_ENABLE_DEBUG_MSG
@@ -3353,7 +3463,7 @@ void GPIOF_IRQHandler_IT(void)
 #ifdef SOC_ERROR_ALARM_DEBUG_MSG
                 _DBG("\n\rSOC_ERROR - 6");
 #endif
-#ifdef TAS5806MD_ENABLE
+#if defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 				if(!Is_BAmp_Init()) //2023-02-21_5 : We can't access TI AMP during TI AMP initializing.
 				{
 #ifdef TAS5806MD_ENABLE //When Amp error is ocurred, we don't need to alarm SOC_ERROR_MODE. 2022-10-31
@@ -3367,6 +3477,16 @@ void GPIOF_IRQHandler_IT(void)
 						TIMER20_Amp_access_error_flag_Start();
 #endif
 					}
+#elif defined(AD85050_ENABLE)
+          if(AD85050_Amp_Detect_Fault(FALSE) == 0xFF) //2023-04-07_2 : To recovery TAS5806MD_Amp_Detect_Fault() function
+          {
+#ifdef TAS5806MD_DEBUG_MSG
+            _DBG("\n\rDAMP_ERROR - Recovery");
+#endif
+#if defined(AMP_ERROR_ALARM) || (defined(SOC_ERROR_ALARM) && defined(TAS5806MD_ENABLE)) //2022-11-01
+            TIMER20_Amp_access_error_flag_Start();
+#endif
+          }
 #else //TAS5806MD_ENABLE
 #ifdef SOC_ERROR_ALARM
 #ifdef TIMER21_LED_ENABLE
@@ -3572,6 +3692,57 @@ void GPIO_Configure(void)
 		HAL_GPIO_ConfigPullup(PF, i, ENPD);
 		HAL_GPIO_ClearPin(PF, _BIT(i));
 	}
+#elif defined(USEN_BAP2)
+    int i;
+  
+    for(i=2;i<4;i++) //PB 2 ~ 3
+    {
+      HAL_GPIO_ConfigOutput(PB, i, PUSH_PULL_OUTPUT);
+      HAL_GPIO_ConfigPullup(PB, i, ENPD);
+      HAL_GPIO_ClearPin(PB, _BIT(i));
+    }
+  
+    for(i=6;i<8;i++) //PB 6 ~ 7
+    {
+      HAL_GPIO_ConfigOutput(PB, i, PUSH_PULL_OUTPUT);
+      HAL_GPIO_ConfigPullup(PB, i, ENPD);
+      HAL_GPIO_ClearPin(PB, _BIT(i));
+    }
+  
+    //PC 2, PC5
+    {
+      i = 2;
+      HAL_GPIO_ConfigOutput(PC, i, PUSH_PULL_OUTPUT);
+      HAL_GPIO_ConfigPullup(PC, i, ENPD);
+      HAL_GPIO_ClearPin(PC, _BIT(i));
+#if 0 //2023-05-16_3 : To keep PC5(39pin) as RESET_N under BAP-01
+      i = 5;
+      HAL_GPIO_ConfigOutput(PC, i, PUSH_PULL_OUTPUT);
+      HAL_GPIO_ConfigPullup(PC, i, ENPD);
+      HAL_GPIO_ClearPin(PC, _BIT(i));
+#endif
+    }
+  
+    for(i=0;i<2;i++) //PD 0 ~ 1
+    {
+      HAL_GPIO_ConfigOutput(PD, i, PUSH_PULL_OUTPUT);
+      HAL_GPIO_ConfigPullup(PD, i, ENPD);
+      HAL_GPIO_ClearPin(PD, _BIT(i));
+    }
+  
+    for(i=0;i<7;i++) //PE 0 ~ 6
+    {
+      HAL_GPIO_ConfigOutput(PE, i, PUSH_PULL_OUTPUT);
+      HAL_GPIO_ConfigPullup(PE, i, ENPD);
+      HAL_GPIO_ClearPin(PE, _BIT(i));
+    }
+  
+    for(i=1;i<4;i++) //PF 1 ~ 3
+    {
+      HAL_GPIO_ConfigOutput(PF, i, PUSH_PULL_OUTPUT);
+      HAL_GPIO_ConfigPullup(PF, i, ENPD);
+      HAL_GPIO_ClearPin(PF, _BIT(i));
+    }
 #endif
 
 #ifdef USEN_BAP //Port Setting for USEN_BAP //2022-10-07
@@ -3769,6 +3940,203 @@ void GPIO_Configure(void)
 	HAL_GPIO_ConfigOutput(PF, 7, OPEN_DRAIN_OUTPUT);
 	HAL_GPIO_ConfigPullup(PF, 7, DISPUPD);
 	HAL_GPIO_SetPin(PF, _BIT(7));
+#endif //I2C_0_ENABLE
+
+#elif defined(USEN_BAP2)
+#ifdef SWITCH_BUTTON_KEY_ENABLE //Use External INT for Switchs and Button Keys - PA0 / PA1 / PA6
+    /* external interrupt pin PA0 : AUTO_SW */
+    HAL_GPIO_ConfigOutput(PA, 0, INPUT);
+    HAL_GPIO_ConfigPullup(PA, 0, ENPU); 
+    HAL_GPIO_ClearPin(PA, _BIT(0));
+  
+    /* external interrupt pin PA1 : M/S_SWITCH_1 */
+    HAL_GPIO_ConfigOutput(PA, 1, INPUT);
+    HAL_GPIO_ConfigPullup(PA, 1, ENPU); 
+    HAL_GPIO_ClearPin(PA, _BIT(1));
+  
+    /* external interrupt pin PA6 : POWER_Off(short)/POWER_ON(Long) */
+    HAL_GPIO_ConfigOutput(PA, 6, INPUT);
+    HAL_GPIO_ConfigPullup(PA, 6, ENPU); 
+    HAL_GPIO_ClearPin(PA, _BIT(6));
+  
+    //To Do !!! PA4 : LOW_VOL_DETECT
+    /* external interrupt pin PA7 : BT_UPDATE_DET(High) / Normal(Low) */ //2022-10-12_4
+    HAL_GPIO_ConfigOutput(PA, 7, INPUT);
+    HAL_GPIO_ConfigPullup(PA, 7, ENPU); 
+    HAL_GPIO_ClearPin(PA, _BIT(7));
+  
+    /* External interrupt pin PE7 : BT KEY */ //Implemented Interrupt Port E for BT Key(PE7) //2022-10-11_2
+    HAL_GPIO_ConfigOutput(PE, 7, INPUT);
+    HAL_GPIO_ConfigPullup(PE, 7, ENPD); //2022-12-08 : Pull-Down Setting and controlled by externall Pull-up
+    HAL_GPIO_ClearPin(PE, _BIT(7));
+#endif
+  
+#if defined(ADC_INTERRUPT_INPUT_ENABLE) || defined(ADC_INPUT_ENABLE)
+#ifdef ADC_INPUT_ENABLE //Use ADC Input for Attenuator Volume and Main Volume -PA2 / PA3
+    /* ADC pin PA2 : BSP_VOL_A/D(Attenuator Volume) */
+    HAL_GPIO_ConfigOutput(PA, 2, ALTERN_FUNC);
+    HAL_GPIO_ConfigFunction(PA, 2, FUNC3);
+    HAL_GPIO_ConfigPullup(PA, 2, DISPUPD);
+  
+    /* ADC pin PA3 : VOL_CONT(Master Volume) */
+    HAL_GPIO_ConfigOutput(PA, 3, ALTERN_FUNC);
+    HAL_GPIO_ConfigFunction(PA, 3, FUNC3);
+    HAL_GPIO_ConfigPullup(PA, 3, DISPUPD);
+#else //ADC_INTERRUPT_INPUT_ENABLE
+      //PA2 - ATTENUATOR CONTROL
+    HAL_GPIO_ConfigOutput(PA, 2, ALTERN_FUNC);
+    HAL_GPIO_ConfigFunction(PA, 2, FUNC3);
+    HAL_GPIO_ConfigPullup(PA, 2, DISPUPD);
+  
+      //PA3 - VOLUME CONTROL
+    HAL_GPIO_ConfigOutput(PA, 3, ALTERN_FUNC);
+    HAL_GPIO_ConfigFunction(PA, 3, FUNC3);
+    HAL_GPIO_ConfigPullup(PA, 3, DISPUPD);
+#endif
+#endif //#if defined(ADC_INTERRUPT_INPUT_ENABLE) || defined(ADC_INPUT_ENABLE)
+  
+#ifdef USEN_GPIO_OTHERS_ENABLE //GPIO Output Setting
+    /* GPIO Output setting PA5 - +3.3V_DAMP_SW_1 */
+    HAL_GPIO_ConfigOutput(PA, 5, PUSH_PULL_OUTPUT);
+    HAL_GPIO_ConfigPullup(PA, 5, DISPUPD);
+    HAL_GPIO_ClearPin(PA, _BIT(5));
+  
+    /* GPIO Output setting PC4 - +3.3V_SIG_SW */
+    HAL_GPIO_ConfigOutput(PC, 4, PUSH_PULL_OUTPUT);
+    HAL_GPIO_ConfigPullup(PC, 4, DISPUPD);
+    HAL_GPIO_ClearPin(PC, _BIT(4));
+  
+    /* GPIO Output setting PD4 - +24V_DAMP_SW */
+    HAL_GPIO_ConfigOutput(PD, 4, PUSH_PULL_OUTPUT);
+    HAL_GPIO_ConfigPullup(PD, 4, DISPUPD);
+    HAL_GPIO_ClearPin(PD, _BIT(4));
+  
+    /* GPIO Output setting PD5 - SW_+3.3V_SW(LED Power Control) */
+    HAL_GPIO_ConfigOutput(PD, 5, PUSH_PULL_OUTPUT);
+    HAL_GPIO_ConfigPullup(PD, 5, DISPUPD);
+    HAL_GPIO_ClearPin(PD, _BIT(5));
+  
+    /* external interrupt pin PF0 : FACTORY RESET Button */
+    HAL_GPIO_ConfigOutput(PF, 0, INPUT);
+    HAL_GPIO_ConfigPullup(PF, 0, ENPU); 
+    HAL_GPIO_ClearPin(PF, _BIT(0));
+  
+    /* setting PF4 - DAMP_PDN */
+    HAL_GPIO_ConfigOutput(PF, 4, PUSH_PULL_OUTPUT);
+    HAL_GPIO_ConfigPullup(PF, 4, DISPUPD);
+    HAL_GPIO_ClearPin(PF, _BIT(4));
+  
+    /* External interrupt pin PF5 - DAMP_ERROR */
+    HAL_GPIO_ConfigOutput(PF, 5, INPUT);
+    HAL_GPIO_ConfigPullup(PF, 5, ENPU);
+    HAL_GPIO_ClearPin(PF, _BIT(5));
+#endif	
+  
+#ifdef UART_10_ENABLE
+    /* Initialize USART10 pin connect - TX10 : PB0 / RX10 : PB1 */
+    HAL_GPIO_ConfigOutput(PB, 1, ALTERN_FUNC);
+    HAL_GPIO_ConfigFunction(PB, 1, FUNC1);
+    HAL_GPIO_ConfigPullup(PB, 1, ENPU);
+  
+    HAL_GPIO_ConfigOutput(PB, 0, ALTERN_FUNC);
+    HAL_GPIO_ConfigFunction(PB, 0, FUNC1);
+#else //UART update feature for MCS Logic BT Module
+    HAL_GPIO_ConfigOutput(PB, 1, OPEN_DRAIN_OUTPUT);
+    HAL_GPIO_ConfigPullup(PB, 1, DISPUPD);
+    HAL_GPIO_SetPin(PB, _BIT(1));
+  
+    HAL_GPIO_ConfigOutput(PB, 0, OPEN_DRAIN_OUTPUT);
+    HAL_GPIO_ConfigPullup(PB, 0, DISPUPD);
+    HAL_GPIO_SetPin(PB, _BIT(0));
+#endif //UART_10_ENABLE
+  
+#ifdef REMOCON_TIMER20_CAPTURE_ENABLE
+    /* T20C pin config set if need - PC0 */
+    HAL_GPIO_ConfigOutput(PC, 0, ALTERN_FUNC);
+    HAL_GPIO_ConfigFunction(PC, 0, FUNC2);
+#endif //REMOCON_TIMER20_CAPTURE_ENABLE
+  
+#if defined(USEN_BT_SPK) && !defined(USING_REFERENCE_FLATFORM)
+    /* PC0 Output - MODULE_RESET *///In referece flatrom, this port works as remote control port.
+    HAL_GPIO_ConfigOutput(PC, 0, PUSH_PULL_OUTPUT);
+    HAL_GPIO_ConfigPullup(PC, 0, DISPUPD);
+    HAL_GPIO_SetPin(PC, _BIT(0));
+#endif
+    
+#ifdef AUX_DETECT_INTERRUPT_ENABLE //2023-01-10_3 //2022-10-17  //To Do !!!
+#ifdef AUX_INPUT_DET_ENABLE
+    /* External interrupt pin PC3 */
+    HAL_GPIO_ConfigOutput(PC, 3, INPUT);
+    HAL_GPIO_ConfigPullup(PC, 3, ENPU);
+    HAL_GPIO_ClearPin(PC, _BIT(3));
+#endif
+#endif
+  
+#ifdef GPIO_LED_ENABLE //Use GPIOs as LED output control - PC1 / PC2 / PD2 / PD3 / PD4 / PD5 / LED Power Control - PD0
+    /* PC1 Output - STATUS_LED_W1 */
+#ifdef LED_PORT_PUSH_PULL
+    HAL_GPIO_ConfigOutput(PC, 1, PUSH_PULL_OUTPUT);
+#else
+    HAL_GPIO_ConfigOutput(PC, 1, OPEN_DRAIN_OUTPUT);
+#endif
+    HAL_GPIO_ConfigPullup(PC, 1, DISPUPD);
+    HAL_GPIO_SetPin(PC, _BIT(1));
+  
+    /* PD2 Output - BT_PAIRING_B */
+#ifdef LED_PORT_PUSH_PULL
+    HAL_GPIO_ConfigOutput(PD, 2, PUSH_PULL_OUTPUT);
+#else
+    HAL_GPIO_ConfigOutput(PD, 2, OPEN_DRAIN_OUTPUT);
+#endif
+    HAL_GPIO_ConfigPullup(PD, 2, DISPUPD);
+    HAL_GPIO_SetPin(PD, _BIT(2));
+  
+    /* PD3 Output - BT_PAIRING_W */
+#ifdef LED_PORT_PUSH_PULL
+    HAL_GPIO_ConfigOutput(PD, 3, PUSH_PULL_OUTPUT);
+#else
+    HAL_GPIO_ConfigOutput(PD, 3, OPEN_DRAIN_OUTPUT);
+#endif
+    HAL_GPIO_ConfigPullup(PD, 3, DISPUPD);
+    HAL_GPIO_SetPin(PD, _BIT(3));
+#endif
+#ifdef _DEBUG_MSG //2023-05-12_1 : #ifndef _DEBUG_MSG //If we don't use DEBUG_MSG, we need to set some GPIO like below. Becasue these GPIOs can avoid USART10 UART error. But we don't know why.
+    HAL_GPIO_ConfigOutput(PB, 7, ALTERN_FUNC); //RX1
+    HAL_GPIO_ConfigFunction(PB, 7, FUNC1);
+    HAL_GPIO_ConfigPullup(PB, 7, 1); 
+  
+    HAL_GPIO_ConfigOutput(PB, 6, ALTERN_FUNC); //TX1
+    HAL_GPIO_ConfigFunction(PB, 6, FUNC1);
+    HAL_GPIO_ConfigPullup(PB, 6, 1);
+#endif
+#ifdef USEN_GPIO_OTHERS_ENABLE	//GPIO Output init
+    delay_ms(20);
+    HAL_GPIO_SetPin(PA, _BIT(5)); //+3.3V_DAMP_SW_1
+    delay_ms(20);
+    HAL_GPIO_SetPin(PD, _BIT(4)); //+24V_DAMP_SW
+    delay_ms(20);
+    HAL_GPIO_SetPin(PF, _BIT(4)); //DAMP_PDN
+  
+    /* GPIO Output setting PC4 - +3.3V_SIG_SW */
+    HAL_GPIO_SetPin(PC, _BIT(4));
+  
+    /* GPIO Output setting PD5 - SW_+3.3V_SW(LED Power Control) */
+    HAL_GPIO_SetPin(PD, _BIT(5));
+#endif
+#ifdef I2C_0_ENABLE
+    /* I2C0 PF6:SCL0, PF7:SDA0 */
+    HAL_GPIO_ConfigOutput(PF, 6, ALTERN_FUNC);
+    HAL_GPIO_ConfigFunction(PF, 6, FUNC2);
+    HAL_GPIO_ConfigOutput(PF, 7, ALTERN_FUNC);
+    HAL_GPIO_ConfigFunction(PF, 7, FUNC2);
+#else //I2C_0_ENABLE
+    HAL_GPIO_ConfigOutput(PF, 6, OPEN_DRAIN_OUTPUT);
+    HAL_GPIO_ConfigPullup(PF, 6, DISPUPD);
+    HAL_GPIO_SetPin(PF, _BIT(6));
+  
+    HAL_GPIO_ConfigOutput(PF, 7, OPEN_DRAIN_OUTPUT);
+    HAL_GPIO_ConfigPullup(PF, 7, DISPUPD);
+    HAL_GPIO_SetPin(PF, _BIT(7));
 #endif //I2C_0_ENABLE
 
 #else //USEN_BAP
@@ -4060,6 +4428,7 @@ void GPIO_Configure(void)
 	HAL_GPIO_SetPin(PF, _BIT(2)); //+3.3V_DAMP_SW_1
 	delay_ms(20);	
 	HAL_GPIO_SetPin(PF, _BIT(4)); //DAMP_PDN
+#elif defined(AD85050_ENABLE)
 #else //TAS5806MD_ENABLE
 	delay_ms(20);
 	HAL_GPIO_SetPin(PF, _BIT(2)); //+3.3V_DAMP_SW_1
@@ -4269,7 +4638,7 @@ void delay_ms(uint32_t m_ms)
 	}
 }
 
-#if defined(ADC_VOLUME_STEP_ENABLE) && defined(TAS5806MD_ENABLE) && defined(ADC_INPUT_ENABLE) //Attenuator action is inversed. So fixed it. //2023-02-08_1 : make Attenuator GAP
+#if defined(ADC_VOLUME_STEP_ENABLE) && (defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)) && defined(ADC_INPUT_ENABLE) //Attenuator action is inversed. So fixed it. //2023-02-08_1 : make Attenuator GAP
 uint8_t Convert_ADC_To_Attenuator(uint32_t ADC_Value)
 {
 	uint8_t uConvert_Value = 0;
@@ -4354,7 +4723,7 @@ uint8_t Convert_ADC_To_Attenuator(uint32_t ADC_Value)
 #endif //ADC_VOLUME_STEP_ENABLE
 
 
-#if defined(USEN_BAP) && defined(TAS5806MD_ENABLE) && defined(ADC_INPUT_ENABLE)
+#if (defined(USEN_BAP) || defined(USEN_BAP2)) && (defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)) && defined(ADC_INPUT_ENABLE)
 uint8_t ADC_Volume_Attenuator_Value_Init(void) //2023-03-02_3 : Changed the concept of volume level update under BAP-01, we just use ADC value for Amp_Init() instead of flash data.
 {//return cur_volume_level
 	uint8_t uCurVolLevel = 0;

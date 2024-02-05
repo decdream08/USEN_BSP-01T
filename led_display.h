@@ -20,6 +20,9 @@
 #ifdef TAS5806MD_ENABLE
 #include "tas5806md.h"
 #endif
+#ifdef AD85050_ENABLE
+#include "AD85050.h"
+#endif
 
 //Macro
 #ifdef TIMER21_LED_ENABLE

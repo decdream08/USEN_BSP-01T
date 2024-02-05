@@ -30,6 +30,9 @@
 #ifdef TAS5806MD_ENABLE
 #include "tas5806md.h" 
 #endif
+#ifdef AD85050_ENABLE
+#include "AD85050.h" 
+#endif
 #if defined(FACTORY_RESET_LED_DISPLAY) || defined(FACTORY_MODE)
 #include "timer20.h"
 #endif
@@ -62,7 +65,19 @@
 //Master BT IND.
 #define BT_PAIRING_LED_WHITE_ON				(Make_LED_ON(PD,3))
 #define BT_PAIRING_LED_WHITE_OFF			(Make_LED_OFF(PD,3))
+#elif defined(USEN_BAP2)
+//STATUS LED
+//L1 LED  //Need to change name to STATUS_LED_W(MUTE_LED_WHITE) //2022-01-09_4
+#define STATUS_LED_W_ON						(Make_LED_ON(PC,1)) 
+#define STATUS_LED_W_OFF					(Make_LED_OFF(PC,1))
 
+//SLAVE BT IND.
+#define BT_PAIRING_LED_BLUE_ON				(Make_LED_ON(PD,2))
+#define BT_PAIRING_LED_BLUE_OFF				(Make_LED_OFF(PD,2))
+
+//Master BT IND.
+#define BT_PAIRING_LED_WHITE_ON				(Make_LED_ON(PD,3))
+#define BT_PAIRING_LED_WHITE_OFF			(Make_LED_OFF(PD,3))
 #else //USEN_BAP
 
 //STATUS LED
@@ -110,7 +125,7 @@ void Set_Status_LED_Mode(Status_LED_Mode mode)
 	if(Get_Cur_Status_LED_Mode() == STATUS_SOC_ERROR_MODE)
 		return;
 #endif
-#ifdef USEN_BAP //2023-02-09_1 : BAP-01 do not have MUTE LED
+#if defined(USEN_BAP) || defined(USEN_BAP2) //2023-02-09_1 : BAP-01 do not have MUTE LED
 	if(mode == STATUS_MUTE_ON_MODE)
 		return;
 #endif
@@ -224,7 +239,7 @@ Status_LED_Mode Get_Cur_Status_LED_Mode(void)
  **********************************************************************/
 void LED_Status_Display_WR_Color(Status_LED_Mode mode) //L1/L3 LED
 {
-#ifndef USEN_BAP //2023-07-27_1
+#if !defined(USEN_BAP) && !defined(USEN_BAP2) //2023-07-27_1
 	Bool Mute_On; //Upon Mute On, this flag check whether need to set bliking mode or not. When mute is on, we don't need to run blinking mode except red led.
 #endif
 #ifndef MASTER_MODE_ONLY
@@ -232,8 +247,8 @@ void LED_Status_Display_WR_Color(Status_LED_Mode mode) //L1/L3 LED
 
 	Master_Slave = Get_Cur_Master_Slave_Mode();
 #endif
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
-#ifndef USEN_BAP //2023-07-27_1
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
+#if !defined(USEN_BAP) && !defined(USEN_BAP2) //2023-07-27_1
 #ifdef AD82584F_USE_POWER_DOWN_MUTE
 	Mute_On = IS_Display_Mute();
 #else
@@ -270,6 +285,8 @@ void LED_Status_Display_WR_Color(Status_LED_Mode mode) //L1/L3 LED
 			TIMER21_Periodic_Mode_Run(FALSE); //Blinkiing Timer Off
 #ifdef USEN_BAP //2022-01-09_4
 			STATUS_LED_W_ON;
+#elif defined(USEN_BAP2)
+			STATUS_LED_W_ON;
 #else //2022-10-07_2			
 			//Top L1 LED
 			if(!Mute_On) //Fixed the MUTE LED is not turned on after power plug out/in under mute on state
@@ -285,7 +302,7 @@ void LED_Status_Display_WR_Color(Status_LED_Mode mode) //L1/L3 LED
 		{
 			TIMER21_Periodic_Mode_Run(FALSE); //Blinkiing Timer Off
 			
-#ifndef USEN_BAP //2022-10-07_2 //2022-01-09_4
+#if !defined(USEN_BAP) && !defined(USEN_BAP2) //2022-10-07_2 //2022-01-09_4
 			//Front Status LED
 			STATUS_LED_WHITE_OFF;
 			STATUS_LED_RED_OFF;
@@ -296,6 +313,8 @@ void LED_Status_Display_WR_Color(Status_LED_Mode mode) //L1/L3 LED
 			BT_PAIRING_LED_WHITE_OFF;
 
 #ifdef USEN_BAP //2022-01-09_4
+			STATUS_LED_W_OFF;
+#elif defined(USEN_BAP2)
 			STATUS_LED_W_OFF;
 #else //2022-10-07_2 
 
@@ -310,6 +329,8 @@ void LED_Status_Display_WR_Color(Status_LED_Mode mode) //L1/L3 LED
 			TIMER21_Periodic_Mode_Run(FALSE); //Blinkiing Timer Off
 			
 #ifdef USEN_BAP //2023-07-27_1 : When user select mute on USEN Tablet App and then Power off-->on, BAP-01 doesn't have power LED ON. //2022-01-09_4
+			STATUS_LED_W_ON;
+#elif defined(USEN_BAP2)
 			STATUS_LED_W_ON;
 #else //2022-10-07_2
 			//Front Status LED
@@ -356,6 +377,8 @@ void LED_Status_Display_WR_Color(Status_LED_Mode mode) //L1/L3 LED
 
 #ifdef USEN_BAP //2023-07-27_1 //2022-10-07_2
 			STATUS_LED_W_ON;
+#elif defined(USEN_BAP2)
+			STATUS_LED_W_ON;
 #else //2022-01-09_4
 			//Front Status LED			
 			if(!Mute_On)
@@ -379,6 +402,8 @@ void LED_Status_Display_WR_Color(Status_LED_Mode mode) //L1/L3 LED
 			TIMER21_Periodic_Mode_Run(TRUE); //Blinkiing Timer On
 			
 #ifdef USEN_BAP //2023-07-27_1 //2022-01-09_4
+			STATUS_LED_W_ON;
+#elif defined(USEN_BAP2)
 			STATUS_LED_W_ON;
 #else //2022-10-07_2 
 			//Front Status LED //White Fast Blinking
@@ -435,6 +460,8 @@ void LED_Status_Display_WR_Color(Status_LED_Mode mode) //L1/L3 LED
 					//Front Status LED //White Fast Blinking
 #ifdef USEN_BAP //2022-01-09_4
 			STATUS_LED_W_ON;
+#elif defined(USEN_BAP2)
+			STATUS_LED_W_ON;
 #else
 					if(!Mute_On)
 					{
@@ -464,6 +491,8 @@ void LED_Status_Display_WR_Color(Status_LED_Mode mode) //L1/L3 LED
 #endif
 
 #ifdef USEN_BAP //2023-07-27_1 //2022-01-09_4
+			STATUS_LED_W_ON;
+#elif defined(USEN_BAP2)
 			STATUS_LED_W_ON;
 #else //2022-10-07_2 
 			//Front Status LED //White Fast Blinking
@@ -509,6 +538,8 @@ void LED_Status_Display_WR_Color(Status_LED_Mode mode) //L1/L3 LED
 			TIMER21_Periodic_Mode_Run(TRUE); //Blinkiing Timer On
 			
 #ifdef USEN_BAP //2023-07-27_1 //2022-01-09_4
+			STATUS_LED_W_ON;
+#elif defined(USEN_BAP2)		
 			STATUS_LED_W_ON;
 #else //2022-10-07_2
 			//Front Status LED //White Fast Blinking
@@ -556,6 +587,8 @@ void LED_Status_Display_WR_Color(Status_LED_Mode mode) //L1/L3 LED
 			TIMER21_Periodic_Mode_Run(TRUE); //Blinkiing Timer On
 
 #ifdef USEN_BAP //2023-07-27_1 //2022-01-09_4
+			STATUS_LED_W_ON;
+#elif defined(USEN_BAP2)
 			STATUS_LED_W_ON;
 #else //2022-10-07_2
 			//Front Status LED //White Slow Blinking
@@ -605,6 +638,8 @@ void LED_Status_Display_WR_Color(Status_LED_Mode mode) //L1/L3 LED
 #endif
 #ifdef USEN_BAP //2022-01-09_4
 			STATUS_LED_W_ON;
+#elif defined(USEN_BAP2)
+			STATUS_LED_W_ON;
 #else //USEN_BAP //2022-10-07_2
 			//Front Status LED
 			STATUS_LED_WHITE_OFF;
@@ -626,6 +661,8 @@ void LED_Status_Display_WR_Color(Status_LED_Mode mode) //L1/L3 LED
 #endif
 
 #ifdef USEN_BAP //2022-01-09_4
+			STATUS_LED_W_ON;
+#elif defined(USEN_BAP2)
 			STATUS_LED_W_ON;
 #else //USEN_BAP //2022-10-07_2 
 			//Front Status LED //Red Fast Blinking
@@ -681,7 +718,7 @@ void LED_Status_Display_Blinking(Status_LED_Color Color, Bool On)
 			}
 			break;
 #endif
-#ifndef USEN_BAP //2022-10-07_2
+#if !defined(USEN_BAP) && !defined(USEN_BAP2) //2022-10-07_2
 		case STATUS_LED_RED:
 			if(On)
 			{
@@ -735,7 +772,7 @@ void LED_Status_Display_Blinking(Status_LED_Color Color, Bool On)
 #endif
 			if(On)
 			{
-				BT_PAIRING_LED_WHITE_ON;
+				BT_PAIRING_LED_WHITE_ON;;
 			}
 			else
 			{
@@ -906,9 +943,11 @@ void LED_Display_Volume(uint8_t Volume) // Value 0(Max) ~ 15(Min)
 	_DBG("\n\r+++LED_Display_Volume() : Volume = ");
 	_DBD(Volume);
 #endif
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 #ifdef AD82584F_ENABLE
 	AD82584F_Amp_Set_Cur_Volume_Level(Volume); //Save current volume level
+#elif defined(AD85050_ENABLE)
+	AD85050_Amp_Set_Cur_Volume_Level(Volume); //Save current volume level
 #else //TAS5806MD_ENABLE
 	TAS5806MD_Amp_Set_Cur_Volume_Level(Volume); //Save current volume level
 #endif //AD82584F_ENABLE
@@ -1069,6 +1108,8 @@ void LED_Diplay_All_Off(void)
 
 #ifdef USEN_BAP //2022-01-09_4
 	STATUS_LED_W_OFF;
+#elif defined(USEN_BAP2)
+	STATUS_LED_W_OFF;
 #else //USEN_BAP //2022-10-07_2
 	//STATUS LED ON
 	STATUS_LED_WHITE_OFF;
@@ -1107,6 +1148,8 @@ void LED_Display_All_On(void)
 
 #ifdef TIMER21_LED_ENABLE
 #ifdef USEN_BAP //2022-01-09_4
+	STATUS_LED_W_ON,
+#elif defined(USEN_BAP2)
 	STATUS_LED_W_ON,
 #else //USEN_BAP //2022-10-07_2
 	//STATUS LED ON

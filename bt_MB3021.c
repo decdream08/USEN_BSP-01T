@@ -51,6 +51,9 @@ Port Configuration:
 #ifdef TAS5806MD_ENABLE
 #include "tas5806md.h" 
 #endif
+#ifdef AD85050_ENABLE
+#include "AD85050.h" 
+#endif
 #if defined(FLASH_SELF_WRITE_ERASE) && (defined(GIA_MODE_LED_DISPLAY_ENABLE) || defined(MASTER_SLAVE_GROUPING)) //Save whether Paired Device exist in Flash
 #include "flash.h"
 #endif
@@ -366,7 +369,7 @@ typedef enum {
 #endif
 }BLE_Remocon_Key;
 
-#if defined(ADC_VOLUME_STEP_ENABLE) && defined(USEN_BAP) //2023-01-05_6
+#if defined(ADC_VOLUME_STEP_ENABLE) && (defined(USEN_BAP) || defined(USEN_BAP2)) //2023-01-05_6
 typedef enum {
 	BLE_EXT_VOLUME_DATA,
 	//BLE_EXT_ATTENUATOR_DATA,
@@ -416,7 +419,7 @@ Bool BTWS_Master_Slave_Grouping = FALSE; //Just check whether current status is 
 #if defined(TWS_MODE_ENABLE) && defined(TAS5806MD_ENABLE)
 Bool BSlave_Need_Recovery_Init = FALSE; //Just check whether Slave need Recovery Init(Only first one time, it has I2S Clock) or not //2022-12-20_3
 #endif
-#if defined(ADC_VOLUME_STEP_ENABLE) && defined(USEN_BAP)
+#if defined(ADC_VOLUME_STEP_ENABLE) && (defined(USEN_BAP) || defined(USEN_BAP2))
 Bool B_BLE_Extra_Data = FALSE; //2023-01-09_1 : Just check wether Slave has been recevied 64 step volume or not. If it has been received 64 step volume, it means slave is BAP-01 and save it to flash.
 Bool B_Master_Is_BAP = FALSE; //2023-01-09_2 : To disable BLE_VOLUME_KEY using BLE DATA from Master under BAP slave when Master & Slave are BAP
 #endif
@@ -456,7 +459,7 @@ uint8_t uInput_Key_Sync_buf8[8] = {0xff,};
 #endif
 uint8_t uBLE_Remocon_Data[8] = {0xff,};
 #endif //SLAVE_ADD_MUTE_DELAY_ENABLE
-#if defined(ADC_VOLUME_STEP_ENABLE) && defined(USEN_BAP) 
+#if defined(ADC_VOLUME_STEP_ENABLE) && (defined(USEN_BAP) || defined(USEN_BAP2))
 uint8_t uBLE_Extra_Data[BLE_EXT_DATA_END+1] = {0xff,}; //For Slave //To get/send 64 Step volume level under BAP //2023-01-05_6
 #endif
 
@@ -694,7 +697,7 @@ void MASTER_SLAVE_Grouping_Send_SET_DEVICE_ID(Bool B_Send_Again) //2023-02-20_2 
 }
 #endif
 
-#if defined(ADC_VOLUME_STEP_ENABLE) && defined(USEN_BAP)
+#if defined(ADC_VOLUME_STEP_ENABLE) && (defined(USEN_BAP) || defined(USEN_BAP2))
 #ifndef MASTER_MODE_ONLY //2023-03-28_1 : Deleted sending extra data of BAP-01 due to changed spec which BAP-01 don't have BAP-01 Slave mode
 void MB3021_BT_Module_Send_Extra_Data(void) //2023-01-06_1 : Changed SW which send 64 step volume to BAP
 {
@@ -723,6 +726,8 @@ void MB3021_BT_Module_Send_Extra_Data(void) //2023-01-06_1 : Changed SW which se
 	uExtraData[6] = 0xCC; //Start Code
 #ifdef TAS5806MD_ENABLE
 	uExtraData[7] = TAS5806MD_Amp_Get_Cur_Volume_Level(); //Parameter1
+#elif defined(AD85050_ENABLE)
+	uExtraData[7] = AD85050_Amp_Get_Cur_Volume_Level(); //Parameter1
 #else
 	uExtraData[7] = 0x05;;
 #endif
@@ -1088,7 +1093,7 @@ void MB3021_BT_TWS_Master_Slave_Grouping_Start(void) //2022-12-15 //TWS : TWS St
 
 void MB3021_BT_TWS_Master_Slave_Grouping_Stop(void)
 {
-#if (defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)) && defined(MASTER_SLAVE_GROUPING_LED_DISPLAY) //To execute MB3021_BT_TWS_Master_Slave_Grouping_Stop under TAS5806MD_ENABLE //2022-10-11_4
+#if (defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)) && defined(MASTER_SLAVE_GROUPING_LED_DISPLAY) //To execute MB3021_BT_TWS_Master_Slave_Grouping_Stop under TAS5806MD_ENABLE //2022-10-11_4
 	Bool Mute_On;
 #endif
 
@@ -1100,11 +1105,11 @@ void MB3021_BT_TWS_Master_Slave_Grouping_Stop(void)
 	BTWS_Master_Slave_Grouping = FALSE;
 #endif
 
-#if (defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)) && defined(MASTER_SLAVE_GROUPING_LED_DISPLAY) //To execute MB3021_BT_TWS_Master_Slave_Grouping_Stop under TAS5806MD_ENABLE //2022-10-11_4
+#if (defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)) && defined(MASTER_SLAVE_GROUPING_LED_DISPLAY) //To execute MB3021_BT_TWS_Master_Slave_Grouping_Stop under TAS5806MD_ENABLE //2022-10-11_4
 #ifdef AD82584F_USE_POWER_DOWN_MUTE
 	Mute_On = IS_Display_Mute();
 #else
-#if defined(MASTER_MODE_ONLY) && defined(TAS5806MD_ENABLE)
+#if defined(MASTER_MODE_ONLY) && (defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE))
 	Mute_On = Is_Mute(); //AD82584F_Amp_Get_Cur_Mute_Status();
 #else //#if defined(MASTER_MODE_ONLY) && defined(TAS5806MD_ENABLE)
 	Mute_On = FALSE;
@@ -1187,7 +1192,7 @@ void MB3021_BT_Master_Slave_Grouping_Start(void)
 		Flash_Read(FLASH_SAVE_START_ADDR, uFlash_Read_Buf, FLASH_SAVE_DATA_END);
 #ifdef MASTER_SLAVE_GROUPING_SLAVE_EMPTY
 		if(uFlash_Read_Buf[FLASH_SAVE_SLAVE_LAST_CONNECTION] != 0x01
-#if defined(ADC_VOLUME_STEP_ENABLE) && defined(USEN_BAP) //2023-01-09_1
+#if defined(ADC_VOLUME_STEP_ENABLE) && (defined(USEN_BAP) || defined(USEN_BAP2)) //2023-01-09_1
 			&& uFlash_Read_Buf[FLASH_SAVE_SLAVE_LAST_CONNECTION] != 0x02
 #endif
 			) //we don't need to execute this when slave doesn't have last connection information. because we already execute this with other way.
@@ -1199,7 +1204,7 @@ void MB3021_BT_Master_Slave_Grouping_Start(void)
 		}
 #else //MASTER_SLAVE_GROUPING_SLAVE_EMPTY
 		if(uFlash_Read_Buf[FLASH_SAVE_SLAVE_LAST_CONNECTION] == 0x01
-#if defined(ADC_VOLUME_STEP_ENABLE) && defined(USEN_BAP) //2023-01-09_1
+#if defined(ADC_VOLUME_STEP_ENABLE) && (defined(USEN_BAP) || defined(USEN_BAP2)) //2023-01-09_1
 			|| uFlash_Read_Buf[FLASH_SAVE_SLAVE_LAST_CONNECTION] == 0x02
 #endif
 			) //we don't to execute this when slave already have last connection information.
@@ -1227,7 +1232,7 @@ void MB3021_BT_Master_Slave_Grouping_Start(void)
 
 void MB3021_BT_Master_Slave_Grouping_Stop(void)
 {
-#if (defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)) && defined(MASTER_SLAVE_GROUPING_LED_DISPLAY) //To execute MB3021_BT_Master_Slave_Grouping_Stop under TAS5806MD_ENABLE //2022-10-11_4
+#if (defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)) && defined(MASTER_SLAVE_GROUPING_LED_DISPLAY) //To execute MB3021_BT_Master_Slave_Grouping_Stop under TAS5806MD_ENABLE //2022-10-11_4
 	Bool Mute_On;
 #endif
 #ifndef MASTER_MODE_ONLY
@@ -1248,11 +1253,11 @@ void MB3021_BT_Master_Slave_Grouping_Stop(void)
 		uNext_Grouping_State = GROUPING_SLAVE_NORMAL_MODE;
 #endif
 
-#if (defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)) && defined(MASTER_SLAVE_GROUPING_LED_DISPLAY) //To execute MB3021_BT_Master_Slave_Grouping_Stop under TAS5806MD_ENABLE //2022-10-11_4
+#if (defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)) && defined(MASTER_SLAVE_GROUPING_LED_DISPLAY) //To execute MB3021_BT_Master_Slave_Grouping_Stop under TAS5806MD_ENABLE //2022-10-11_4
 #ifdef AD82584F_USE_POWER_DOWN_MUTE
 	Mute_On = IS_Display_Mute();
 #else
-#if defined(MASTER_MODE_ONLY) && defined(TAS5806MD_ENABLE)
+#if defined(MASTER_MODE_ONLY) && (defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE))
 	Mute_On = Is_Mute(); //AD82584F_Amp_Get_Cur_Mute_Status();
 #else //#if defined(MASTER_MODE_ONLY) && defined(TAS5806MD_ENABLE)
 		Mute_On = FALSE;
@@ -1393,7 +1398,7 @@ void MB3021_BT_Module_Value_Init(void)
 #ifdef BT_ALWAYS_GENERAL_MODE //2023-02-15_1 
 	B_Delete_PDL_by_Factory_Reset = FALSE;
 #endif
-#ifdef USEN_BAP
+#if defined(USEN_BAP) || defined(USEN_BAP2)
 	B_Master_Is_BAP = FALSE; //2023-02-28_2 : Need to init to check whether BAP-01 Slave is connected with BAP-01 Master
 #endif
 #ifdef PRODUCT_LINE_TEST_MASTER_ID2_FIXED
@@ -1452,12 +1457,14 @@ void MB3021_BT_Module_Input_Key_Init(void) //To Do!!! - Need to change later usi
 	uInput_Key_Sync_buf8[1] = 0x01; //Power On
 	uInput_Key_Sync_buf8[2] = 0x00; //Mute On/Off Button
 #endif
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 #ifdef AD82584F_ENABLE
 	uInput_Key_Sync_buf8[3] = AD82584F_Amp_Get_Cur_Volume_Level_Inverse(); //Volume Level
 #else //AD82584F_ENABLE
 #ifdef USEN_BAP //Save is working in inverse when BAP-01 & Slave is changed "Power ON" //2023-01-02_1
 	uInput_Key_Sync_buf8[3] = TAS5806MD_Amp_Get_Cur_Volume_Level(); //Volume Level
+#elif defined(USEN_BAP2)
+	uInput_Key_Sync_buf8[3] = AD85050_Amp_Get_Cur_Volume_Level(); //Volume Level
 #else
 	uInput_Key_Sync_buf8[3] = TAS5806MD_Amp_Get_Cur_Volume_Level_Inverse(); //Volume Level
 #endif
@@ -1499,7 +1506,7 @@ void MB3021_BT_Module_Input_Key_Init(void) //To Do!!! - Need to change later usi
 #ifdef SPP_CMD_AND_MASTER_INFO_SEND
 void Send_Cur_Master_Info_To_Tablet(void)
 {
-#if defined(ADC_VOLUME_STEP_ENABLE) && defined(USEN_BAP) //To set 64 Step volume level under BAP //2023-01-05_6
+#if defined(ADC_VOLUME_STEP_ENABLE) && (defined(USEN_BAP) || defined(USEN_BAP2))//To set 64 Step volume level under BAP //2023-01-05_6
 	uint8_t uVol_Level = 0;
 #endif
 
@@ -1532,9 +1539,16 @@ void Send_Cur_Master_Info_To_Tablet(void)
 			uCurrent_Status_buf8[2] = 0x00; //Mute On/Off : Mute Off mode
 	}
 #endif
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 #if defined(ADC_VOLUME_STEP_ENABLE) && defined(USEN_BAP) //2023-01-06_2 : Need to send 16 step volume to Tablet under BAP
 	uVol_Level = TAS5806MD_Amp_Get_Cur_Volume_Level_Inverse(); //Volume Level
+#ifdef ADC_VOLUME_64_STEP_ENABLE //2023-02-27_3
+	uCurrent_Status_buf8[3] = Convert_64Step_to_16Step(uVol_Level);
+#else //ADC_VOLUME_50_STEP_ENABLE
+	uCurrent_Status_buf8[3] = Convert_50Step_to_16Step(uVol_Level);
+#endif //ADC_VOLUME_64_STEP_ENABLE
+#elif defined(ADC_VOLUME_STEP_ENABLE) && defined(USEN_BAP2)
+	uVol_Level = AD85050_Amp_Get_Cur_Volume_Level_Inverse(); //Volume Level
 #ifdef ADC_VOLUME_64_STEP_ENABLE //2023-02-27_3
 	uCurrent_Status_buf8[3] = Convert_64Step_to_16Step(uVol_Level);
 #else //ADC_VOLUME_50_STEP_ENABLE
@@ -1575,6 +1589,15 @@ void Send_Cur_Master_Info_To_Tablet(void)
 #else
 	uCurrent_Status_buf8[13] = 0x20;
 #endif //#ifdef MASTER_MODE_ONLY
+#elif defined(USEN_BAP2)
+    uCurrent_Status_buf8[7] = 0x42;
+    uCurrent_Status_buf8[8] = 0x41;
+    uCurrent_Status_buf8[9] = 0x50;
+    uCurrent_Status_buf8[10] = 0x2D;
+    uCurrent_Status_buf8[11] = 0x30;
+    uCurrent_Status_buf8[12] = 0x32;
+
+    uCurrent_Status_buf8[13] = 0x02; //EQ BSP
 #else //USEN_BAP
 	uCurrent_Status_buf8[7] = 0x42;
 	uCurrent_Status_buf8[8] = 0x53;
@@ -1618,8 +1641,8 @@ void MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_Key_Sync_With_Slave Input_
 		return;
 #endif
 
-#ifdef USEN_BAP //2023-07-19_2 : When DC Power Off-->On, many times BAP-01 sends wrong volume information(but it's not valid data and no effect under slave). So, we need to update volume information using uInput_Key_Sync_buf8[] even though BT is not finished init action.
-#if defined(ADC_VOLUME_STEP_ENABLE) && defined(USEN_BAP) //To set 64 Step volume level under BAP //2023-01-05_6
+#if defined(USEN_BAP) || defined(USEN_BAP2) //2023-07-19_2 : When DC Power Off-->On, many times BAP-01 sends wrong volume information(but it's not valid data and no effect under slave). So, we need to update volume information using uInput_Key_Sync_buf8[] even though BT is not finished init action.
+#if defined(ADC_VOLUME_STEP_ENABLE) && (defined(USEN_BAP) || defined(USEN_BAP2))//To set 64 Step volume level under BAP //2023-01-05_6
 		if(Input_Key == input_key_Sync_Volume)
 #ifdef ADC_VOLUME_64_STEP_ENABLE //2023-02-27_3
 		uInput_Key_Sync_buf8[Input_Key+1] = Convert_64Step_to_16Step(uValue);
@@ -1631,7 +1654,7 @@ void MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_Key_Sync_With_Slave Input_
 		uInput_Key_Sync_buf8[Input_Key+1] = uValue; //+1 for Start Code(0xAA)
 #endif
 
-#if defined(MB3021_ENABLE) && defined(USEN_BAP) //2023-02-28_3(BAP-01 Issue #14) : Under BAP-01 Master Mode, if user changed rotary volume position very fast many times before BT init during Power on, Last connection is almost failed.
+#if defined(MB3021_ENABLE) && (defined(USEN_BAP) || defined(USEN_BAP2))//2023-02-28_3(BAP-01 Issue #14) : Under BAP-01 Master Mode, if user changed rotary volume position very fast many times before BT init during Power on, Last connection is almost failed.
 	if(!IS_BBT_Init_OK())
 		return;
 #endif
@@ -1647,7 +1670,7 @@ void MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_Key_Sync_With_Slave Input_
 	_DBG("\n\rMB3021_BT_Module_Input_Key_Sync_With_Slave() - End");
 #endif
 
-#ifndef USEN_BAP
+#if !defined(USEN_BAP) && !defined(USEN_BAP2)
 	uInput_Key_Sync_buf8[Input_Key+1] = uValue; //+1 for Start Code(0xAA)
 #endif		
 	
@@ -1743,7 +1766,7 @@ void MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_Key_Sync_With_Slave Input_
 		MB3021_BT_Module_Send_cmd_param(CMD_SET_BLE_MANUFACTURE_DATA_32+0x0700, uBuf); //BLE COM : Send SPP data to Slave SPK thru BLE Data - without checksum
 #endif
 #ifndef MASTER_MODE_ONLY  //2023-03-28_1 : Deleted sending extra data of BAP-01 due to changed spec which BAP-01 don't have BAP-01 Slave mode
-#if defined(ADC_VOLUME_STEP_ENABLE) && defined(USEN_BAP) //2023-01-05_6 : To set 64 Step volume level under BAP when BAP receives SPP data from peerdevice
+#if defined(ADC_VOLUME_STEP_ENABLE) && (defined(USEN_BAP) || defined(USEN_BAP2))//2023-01-05_6 : To set 64 Step volume level under BAP when BAP receives SPP data from peerdevice
 		//bPolling_Get_Data |= BCRF_SEND_BLE_EXTRA_DATA; //defined(ADC_VOLUME_STEP_ENABLE) && defined(USEN_BAP) //2023-01-05_6 : To set 64 Step volume level under BAP when BAP receives SPP data from peerdevice
 		if(uNext_Grouping_State == GROUPING_NONE_MODE) //Excepting GROUPING //2023-01-06_1
 			TIMER20_BT_send_extra_data_flag_start(); //2023-01-05_6 : Changed SW which send 64 step volume to BAP
@@ -1944,9 +1967,11 @@ void MB3021_BT_Module_Init(Bool Factory_Reset) //No need BT module Init. Just ch
 #ifdef FLASH_SELF_WRITE_ERASE //A Factory Reset already clears the Flash Data which are FLASH_SAVE_SLAVE_LAST_CONNECTION and FLASH_SAVE_DATA_PDL_NUM in "case MINOR_ID_DELETE_PAIRED_DEVICE_LIST: //0x00 : 0x0B"
 		FlashEraseOnly();
 #endif
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 #ifdef AD82584F_ENABLE
 		AD82584F_Amp_Set_Default_Volume(); //Set Default Volume //This function should be called before "uSPP_receive_buf8[i] = uInput_Key_Sync_buf8[i]" and MB3021_BT_Module_Input_Key_Init() because Master must send correct vol_level after factory reset
+#elif defined(AD85050_ENABLE)
+    AD85050_Amp_Set_Default_Volume(); //Set Default Volume //This function should be called before "uSPP_receive_buf8[i] = uInput_Key_Sync_buf8[i]" and MB3021_BT_Module_Input_Key_Init() because Master must send correct vol_level after factory reset
 #else //AD82584F_ENABLE
 		TAS5806MD_Amp_Set_Default_Volume(); //Set Default Volume //This function should be called before "uSPP_receive_buf8[i] = uInput_Key_Sync_buf8[i]" and MB3021_BT_Module_Input_Key_Init() because Master must send correct vol_level after factory reset
 #endif //TAS5806MD_ENABLE
@@ -1965,10 +1990,17 @@ void MB3021_BT_Module_Init(Bool Factory_Reset) //No need BT module Init. Just ch
 				uSPP_receive_buf8[i] = uInput_Key_Sync_buf8[i];
 #endif
 		}
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 #ifdef AD82584F_ENABLE
 		AD82584F_Amp_Mute(FALSE, TRUE); //Mute release after init
 		AD82584F_Amp_Mute(TRUE, FALSE); //Mute release after init
+#elif defined(AD85050_ENABLE)
+#ifdef AD82584F_USE_POWER_DOWN_MUTE //2023-03-08_4
+        Set_Display_Mute(FALSE);
+#else
+        AD85050_Amp_Mute(FALSE, TRUE); //Mute release after init
+        AD85050_Amp_Mute(TRUE, FALSE); //Mute release after init
+#endif
 #else //AD82584F_ENABLE
 #ifdef AD82584F_USE_POWER_DOWN_MUTE //2023-03-08_4
 		Set_Display_Mute(FALSE);
@@ -2008,7 +2040,7 @@ void MB3021_BT_Module_Init(Bool Factory_Reset) //No need BT module Init. Just ch
 #endif
 }
 
-#if defined(USEN_BAP) && defined(MASTER_MODE_ONLY) //2023-05-09_1
+#if (defined(USEN_BAP) || defined(USEN_BAP2)) && defined(MASTER_MODE_ONLY) //2023-05-09_1
 void Set_MB3021_BT_Module_Source_Change_Direct(void)
 {
 	static uint8_t uBuf[2] = {0,};
@@ -2040,7 +2072,7 @@ void Set_MB3021_BT_Module_Source_Change_Direct(void)
 #endif
 		}
 
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) //To avoid, BT has no output sometime when user alternates Aux mode / BT mode repeately
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE) //To avoid, BT has no output sometime when user alternates Aux mode / BT mode repeately
 		if(uMode_Change == uBuf[0] 
 #ifdef AD82584F_USE_POWER_DOWN_MUTE
 			&& !IS_Display_Mute()
@@ -2051,6 +2083,8 @@ void Set_MB3021_BT_Module_Source_Change_Direct(void)
 		{
 #ifdef AD82584F_ENABLE
 			if(AD82584F_Amp_Get_Cur_CLK_Status())
+#elif defined(AD85050_ENABLE)
+      if(AD85050_Amp_Get_Cur_CLK_Status())
 #else //TAS5806MD_ENABLE
 			if(TAS5806MD_Amp_Detect_FS(FALSE)) //2022-10-17_2
 #endif //AD82584F_ENABLE
@@ -2063,7 +2097,7 @@ void Set_MB3021_BT_Module_Source_Change_Direct(void)
 #ifdef AUTO_ONOFF_ENABLE
 					TIMER20_auto_power_flag_Stop();
 #endif
-#ifndef USEN_BAP //2023-05-09_1 : Reduced the checking time from 5.3s to 3s and no need mute under BAP-01
+#if !defined(USEN_BAP) && !defined(USEN_BAP2) //2023-05-09_1 : Reduced the checking time from 5.3s to 3s and no need mute under BAP-01
 				    TIMER20_mute_flag_Start();
 #endif
 				}
@@ -2077,6 +2111,11 @@ void Set_MB3021_BT_Module_Source_Change_Direct(void)
 			TAS5806MD_Dac_Volume_Set(Get_Cur_BAP_EQ_Mode(), FALSE);
 		else //Aux Mode
 			TAS5806MD_Dac_Volume_Set(Get_Cur_BAP_EQ_Mode(), TRUE);
+#elif defined(USEN_BAP2)
+		if(uBuf[0] == 0x07) //Bluetooth Mode
+			AD85050_Dac_Volume_Set(FALSE);
+		else //Aux Mode
+			AD85050_Dac_Volume_Set(TRUE);
 #endif
 		MB3021_BT_Module_Send_cmd_param(CMD_INFORM_HOST_MODE_32, uBuf);
 #ifdef SWITCH_BUTTON_KEY_ENABLE
@@ -2457,7 +2496,7 @@ Bool MB3021_BT_Module_Check_Vailid_BLE_Remote_Data(uint8_t *data, uint16_t data_
 					return FALSE;
 			}
 			break;
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 			case BLE_MUTE_KEY: //Mute On/Off - Mute On : 0x01/Mute Off : 0x00
 			{
 				if(data[BLE_MUTE_KEY] > 0x02)
@@ -2528,7 +2567,7 @@ Bool MB3021_BT_Module_Check_Vailid_SSP_Remote_Data(uint8_t *data, uint16_t data_
 					return FALSE;
 			}
 			break;
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 			case BLE_MUTE_KEY: //Mute On/Off - Mute On : 0x01/Mute Off : 0x00
 			{
 				if(data[BLE_MUTE_KEY] > 0x02)
@@ -2566,7 +2605,7 @@ Bool MB3021_BT_Module_Check_Vailid_SSP_Remote_Data(uint8_t *data, uint16_t data_
 #ifdef SPP_EXTENSION_V44_ENABLE
 			case BLE_BT_SHORT_KEY: //BT Short Key(Master Only) - Noraml : 0x00 / BT Short Key : 0x01
 			{
-#if defined(USEN_BAP) || defined(USEN_BT_SPK_TI) //2023-03-17_1 : Added BT Long Key Action from USEN Tablet using SPP. This key is only valid under Master.
+#if defined(USEN_BAP) || defined(USEN_BAP2) || defined(USEN_BT_SPK_TI) //2023-03-17_1 : Added BT Long Key Action from USEN Tablet using SPP. This key is only valid under Master.
 				if(data[BLE_BT_SHORT_KEY] > 0x03)
 					return FALSE;
 #else
@@ -2659,7 +2698,7 @@ static void MB3021_BT_Module_Remote_Data_Receive(uint8_t source_type, uint8_t da
 	uint8_t uVolume_Level = 0;
 	uint8_t bMute = FALSE;
 #endif
-#if defined(ADC_VOLUME_STEP_ENABLE) && defined(USEN_BAP) //2023-01-10_1 : When we send volume info to Slave, we need to keep original value to avoid wrong volume level of slave
+#if defined(ADC_VOLUME_STEP_ENABLE) && (defined(USEN_BAP) || defined(USEN_BAP2))//2023-01-10_1 : When we send volume info to Slave, we need to keep original value to avoid wrong volume level of slave
 	uint8_t uVol_buf = 0;
 #endif
 #ifdef SPP_EXTENSION_V44_ENABLE
@@ -2781,7 +2820,7 @@ static void MB3021_BT_Module_Remote_Data_Receive(uint8_t source_type, uint8_t da
 									break;
 								}
 							}
-#ifdef TAS5806MD_ENABLE
+#if defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 							if(Is_BAmp_Init() == TRUE || Is_I2C_Access_OK() == FALSE) //2023-02-27_2 //2023-02-22_1 : TWS Slave BT SPK executes Amp init again. Sometimes, BT SPK get this interrupt during Amp Init and Amp Init has wrong data.
 							{
 #ifdef TAS5806MD_DEBUG_MSG
@@ -2819,7 +2858,7 @@ static void MB3021_BT_Module_Remote_Data_Receive(uint8_t source_type, uint8_t da
 										}
 									}
 									break;
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 									case BLE_MUTE_KEY: //##SPP ## Mute On/Off - Mute On : 0x01/Mute Off : 0x00
 									{
 #ifdef BT_DEBUG_MSG
@@ -2829,6 +2868,8 @@ static void MB3021_BT_Module_Remote_Data_Receive(uint8_t source_type, uint8_t da
 										{
 #ifdef AD82584F_ENABLE
 											AD82584F_Amp_Mute(TRUE, TRUE);
+#elif defined(AD85050_ENABLE)
+											AD85050_Amp_Mute(TRUE, TRUE);
 #else //AD82584F_ENABLE
 											TAS5806MD_Amp_Mute(TRUE, TRUE);
 #endif //TAS5806MD_ENABLE				
@@ -2840,6 +2881,8 @@ static void MB3021_BT_Module_Remote_Data_Receive(uint8_t source_type, uint8_t da
 										{
 #ifdef AD82584F_ENABLE
 											AD82584F_Amp_Mute(FALSE, TRUE);
+#elif defined(AD85050_ENABLE)
+                      AD85050_Amp_Mute(FALSE, TRUE);
 #else //AD82584F_ENABLE
 											TAS5806MD_Amp_Mute(FALSE, TRUE);
 #endif //TAS5806MD_ENABLE				
@@ -2856,7 +2899,7 @@ static void MB3021_BT_Module_Remote_Data_Receive(uint8_t source_type, uint8_t da
 #endif
 										if(data[3] <= 0x0f)
 										{
-#if defined(ADC_VOLUME_STEP_ENABLE) && defined(USEN_BAP) //2023-01-09_3 : To Fit SPP volume data from PeerDevice under BAP //2023-01-10_1
+#if defined(ADC_VOLUME_STEP_ENABLE) && (defined(USEN_BAP) || defined(USEN_BAP2))//2023-01-09_3 : To Fit SPP volume data from PeerDevice under BAP //2023-01-10_1
 #ifdef ADC_VOLUME_64_STEP_ENABLE
 											uVol_buf = Convert_16Step_to_64Step(data[3]); //2023-01-09_1 : To convert from 16-step to 64-step
 #else //ADC_VOLUME_50_STEP_ENABLE
@@ -2865,17 +2908,21 @@ static void MB3021_BT_Module_Remote_Data_Receive(uint8_t source_type, uint8_t da
 
 #ifdef AD82584F_ENABLE
 											AD82584F_Amp_Volume_Set_with_Index(uVol_buf, TRUE, FALSE);
+#elif defined(AD85050_ENABLE)
+											AD85050_Amp_Volume_Set_with_Index(uVol_buf, TRUE, FALSE);
 #else //AD82584F_ENABLE
 											TAS5806MD_Amp_Volume_Set_with_Index(uVol_buf, TRUE, FALSE);
 #endif //TAS5806MD_ENABLE
 
-#else //#if defined(ADC_VOLUME_STEP_ENABLE) && defined(USEN_BAP)
+#else //#if defined(ADC_VOLUME_STEP_ENABLE) && (defined(USEN_BAP) || defined(USEN_BAP2))
 #ifdef AD82584F_ENABLE
 											AD82584F_Amp_Volume_Set_with_Index(data[3], TRUE, FALSE);
+#elif defined(AD85050_ENABLE)
+											AD85050_Amp_Volume_Set_with_Index(data[3], TRUE, FALSE);
 #else //AD82584F_ENABLE
 											TAS5806MD_Amp_Volume_Set_with_Index(data[3], TRUE, FALSE);
 #endif //TAS5806MD_ENABLE
-#endif //#if defined(ADC_VOLUME_STEP_ENABLE) && defined(USEN_BAP)
+#endif //#if defined(ADC_VOLUME_STEP_ENABLE) && (defined(USEN_BAP) || defined(USEN_BAP2))
 										}
 										else
 											BRet = FALSE;
@@ -2903,6 +2950,8 @@ static void MB3021_BT_Module_Remote_Data_Receive(uint8_t source_type, uint8_t da
 #ifdef FIVE_USER_EQ_ENABLE
 #ifdef AD82584F_ENABLE
 											AD82584F_Amp_Mute(TRUE, FALSE); //MUTE ON //Adding Mute when EQ Toggle
+#elif defined(AD85050_ENABLE)
+											AD85050_Amp_Mute(TRUE, FALSE); //MUTE ON //Adding Mute when EQ Toggle
 #else //AD82584F_ENABLE
 #ifdef TAS5806MD_ENABLE
 											TAS5806MD_Amp_Mute(TRUE, FALSE); //MUTE ON //Adding Mute when EQ Toggle
@@ -2931,6 +2980,9 @@ static void MB3021_BT_Module_Remote_Data_Receive(uint8_t source_type, uint8_t da
 #ifdef AD82584F_ENABLE
 											uVolume_Level = AD82584F_Amp_Get_Cur_Volume_Level();
 											AD82584F_Amp_Volume_Set_with_Index(uVolume_Level, FALSE, FALSE);
+#elif defined(AD85050_ENABLE)
+											uVolume_Level = AD85050_Amp_Get_Cur_Volume_Level();
+											AD85050_Amp_Volume_Set_with_Index(uVolume_Level, FALSE, FALSE);
 #else //AD82584F_ENABLE
 											uVolume_Level = TAS5806MD_Amp_Get_Cur_Volume_Level();
 											TAS5806MD_Amp_Volume_Set_with_Index(uVolume_Level, FALSE, FALSE);
@@ -2971,10 +3023,13 @@ static void MB3021_BT_Module_Remote_Data_Receive(uint8_t source_type, uint8_t da
 											B_SSP_FACTORY_RESET_KEY_In = TRUE;
 #ifdef AUTO_VOLUME_LED_OFF
 											TIMER20_auto_volume_led_off_flag_Stop(); //Must display LED volume Under Mute On
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 #ifdef AD82584F_ENABLE
 											uVolume_Level = AD82584F_Amp_Get_Cur_Volume_Level();
 											AD82584F_Amp_Volume_Set_with_Index(uVolume_Level, FALSE, FALSE);
+#elif defined(AD85050_ENABLE)
+											uVolume_Level = AD85050_Amp_Get_Cur_Volume_Level();
+											AD85050_Amp_Volume_Set_with_Index(uVolume_Level, FALSE, FALSE);
 #else //AD82584F_ENABLE
 											uVolume_Level = TAS5806MD_Amp_Get_Cur_Volume_Level();
 											TAS5806MD_Amp_Volume_Set_with_Index(uVolume_Level, FALSE, FALSE);
@@ -3031,7 +3086,7 @@ static void MB3021_BT_Module_Remote_Data_Receive(uint8_t source_type, uint8_t da
 											_DBG("\n\rBT Short/Long Key Off - To Do !!!");
 #endif
 										}
-#if defined(USEN_BAP) || defined(USEN_BT_SPK_TI) //2023-03-17_1 : Added BT Long Key Action from USEN Tablet using SPP. This key is only valid under Master.
+#if defined(USEN_BAP) || defined(USEN_BAP2) || defined(USEN_BT_SPK_TI) //2023-03-17_1 : Added BT Long Key Action from USEN Tablet using SPP. This key is only valid under Master.
 										else if(data[7] == 0x02)
 										{
 #ifdef BT_DEBUG_MSG
@@ -3194,7 +3249,7 @@ static void MB3021_BT_Module_Remote_Data_Receive(uint8_t source_type, uint8_t da
 										uCurrent_Status_buf8[2] = 0x00; //Mute On/Off : Mute Off mode
 								}
 #endif
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 #if defined(ADC_VOLUME_STEP_ENABLE) && defined(USEN_BAP) //2023-01-10_2 :  When BAP-01 is turned on using Power plug-in and USEN Tablet asks BAP-01 status using 0xBB, it sends wrong volume data
 								uVol_buf = TAS5806MD_Amp_Get_Cur_Volume_Level_Inverse(); //Volume Level //2023-01-06_2
 #ifdef ADC_VOLUME_64_STEP_ENABLE //2023-02-27_3
@@ -3202,10 +3257,19 @@ static void MB3021_BT_Module_Remote_Data_Receive(uint8_t source_type, uint8_t da
 #else //ADC_VOLUME_50_STEP_ENABLE
 								uCurrent_Status_buf8[3] = Convert_50Step_to_16Step(uVol_buf);
 #endif //ADC_VOLUME_64_STEP_ENABLE
+#elif defined(ADC_VOLUME_STEP_ENABLE) && defined(USEN_BAP2)
+                uVol_buf = AD85050_Amp_Get_Cur_Volume_Level_Inverse();
+#ifdef ADC_VOLUME_64_STEP_ENABLE
+                uCurrent_Status_buf8[3] = Convert_64Step_to_16Step(uVol_buf);
+#else //ADC_VOLUME_50_STEP_ENABLE
+                uCurrent_Status_buf8[3] = Convert_50Step_to_16Step(uVol_buf);
+#endif //ADC_VOLUME_64_STEP_ENABLE
 
 #else //defined(ADC_VOLUME_STEP_ENABLE) && defined(USEN_BAP)
 #ifdef AD82584F_ENABLE
 								uCurrent_Status_buf8[3] = AD82584F_Amp_Get_Cur_Volume_Level_Inverse(); //Volume Level
+#elif defined(AD85050_ENABLE)
+								uCurrent_Status_buf8[3] = AD85050_Amp_Get_Cur_Volume_Level_Inverse(); //Volume Level
 #else //AD82584F_ENABLE
 								uCurrent_Status_buf8[3] = TAS5806MD_Amp_Get_Cur_Volume_Level_Inverse(); //Volume Level
 #endif //TAS5806MD_ENABLE
@@ -3224,7 +3288,7 @@ static void MB3021_BT_Module_Remote_Data_Receive(uint8_t source_type, uint8_t da
 								uCurrent_Status_buf8[5] = 0x00; //Reboot Off
 								uCurrent_Status_buf8[6] = 0x00; //Factory Reset Off
 #ifdef SPP_EXTENSION_V42_ENABLE
-#ifdef USEN_BAP //2023-03-02_1 : Send BAP-01 Name to USEN Tablet
+#if USEN_BAP //2023-03-02_1 : Send BAP-01 Name to USEN Tablet
 								uCurrent_Status_buf8[7] = 0x42;
 								uCurrent_Status_buf8[8] = 0x41;
 								uCurrent_Status_buf8[9] = 0x50;
@@ -3239,6 +3303,15 @@ static void MB3021_BT_Module_Remote_Data_Receive(uint8_t source_type, uint8_t da
 #else
 								uCurrent_Status_buf8[13] = 0x20;
 #endif //#ifdef MASTER_MODE_ONLY
+#elif defined(USEN_BAP2)
+								uCurrent_Status_buf8[7] = 0x42;
+								uCurrent_Status_buf8[8] = 0x41;
+								uCurrent_Status_buf8[9] = 0x50;
+								uCurrent_Status_buf8[10] = 0x2D;
+								uCurrent_Status_buf8[11] = 0x30;
+								uCurrent_Status_buf8[12] = 0x32;
+
+								uCurrent_Status_buf8[13] = 0x01; //EQ NORMAL
 #else //USEN_BAP
 								uCurrent_Status_buf8[7] = 0x42;
 								uCurrent_Status_buf8[8] = 0x53;
@@ -3687,12 +3760,14 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 					switch(data[0])
 					{
 						case 0x00: //0x00 : 0x22 : 0x00 //Routing Disconnect //Mute On
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 #ifdef SLAVE_ADD_MUTE_DELAY_ENABLE
 							MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x02);
 #endif
 #ifdef AD82584F_ENABLE
 							AD82584F_Amp_Mute(TRUE, FALSE); //MUTE ON
+#elif defined(AD85050_ENABLE)
+							AD85050_Amp_Mute(TRUE, FALSE); //MUTE ON
 #else //TAS5806MD_ENABLE
 							TAS5806MD_Amp_Mute(TRUE, FALSE); //MUTE ON
 #endif
@@ -3703,7 +3778,7 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 							break;
 							
 						case 0x01: //0x00 : 0x22 : 0x01 // Routing Connect //Mute Off
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 							switch(data[1])
 							{
 								case 0x02: //0x00 : 0x22 : 0x01 : 0x02 //Analog
@@ -3817,6 +3892,8 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 							) //2023-03-15_3 : Added condition because if Master is Aux mode under TWS mode, we don't need make mute on also .
 #ifdef AD82584F_ENABLE //2023-02-03_1 : Need to make Mute ON when BT SPK disconnect with PeerDevice
 						AD82584F_Amp_Mute(TRUE, FALSE); //MUTE ON //Adding Mute when EQ Toggle
+#elif defined(AD85050_ENABLE)
+						AD85050_Amp_Mute(TRUE, FALSE); //MUTE ON //Adding Mute when EQ Toggle
 #else //AD82584F_ENABLE
 #ifdef TAS5806MD_ENABLE
 						TAS5806MD_Amp_Mute(TRUE, FALSE); //MUTE ON //Adding Mute when EQ Toggle
@@ -3902,7 +3979,7 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 							if(!(Get_Cur_LR_Stereo_Mode() == Switch_LR_Mode && BBT_Is_Connected && strncmp(uBT_Cur_A2DP_Device_Address, (char *)data, 6))) //2023-04-03_2: When TWS slave is conected, we don't need to display BT STATUS LED on TWS Master.
 #endif
 							{
-#ifndef USEN_BAP //2023-07-25_1 : When user disconnect BT source and then power off-->on, BAP-01 BT LED is ON. This is NG.
+#if !defined(USEN_BAP) && !defined(USEN_BAP2) //2023-07-25_1 : When user disconnect BT source and then power off-->on, BAP-01 BT LED is ON. This is NG.
 								if(strncmp(uBT_Cur_A2DP_Device_Address, (char *)data, 6) == 0) //2023-05-30_3 : Under Broadcast mode, when Other A2DP source try to connect SPK even though current A2DP source is connected with SPK, we don't need to display BT STAUS LED(Blinking for disconnection).
 #endif
 								{
@@ -4156,6 +4233,8 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 									{
 #ifdef AD82584F_ENABLE
 										AD82584F_Amp_Mute(TRUE, FALSE); //MUTE ON
+#elif defined(AD85050_ENABLE)
+										AD85050_Amp_Mute(TRUE, FALSE); //MUTE ON
 #else //AD82584F_ENABLE
 #ifdef TAS5806MD_ENABLE
 										TAS5806MD_Amp_Mute(TRUE, FALSE); //MUTE ON
@@ -4235,7 +4314,7 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 						
 						case 0x4: //0x10 : 0x01 //Suspended
 						BBT_Is_Routed = FALSE;
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 						if(!Aux_In_Exist()) //2023-01-18_2 : Added condition. To avoid mute when Master has audio from Aux but BT is changed from "streaming" to "suspend".
 						{
 
@@ -4244,6 +4323,8 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 #endif
 #ifdef AD82584F_ENABLE
 							AD82584F_Amp_Mute(TRUE, FALSE); //Mute On
+#elif defined(AD85050_ENABLE)
+							AD85050_Amp_Mute(TRUE, FALSE); //Mute On
 #else //AD82584F_ENABLE
 #ifdef TAS5806MD_ENABLE
 							TAS5806MD_Amp_Mute(TRUE, FALSE); //Mute On
@@ -4298,12 +4379,14 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 							}
 							else
 							{
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 #if defined(SLAVE_ADD_MUTE_DELAY_ENABLE) && !defined(AVRCP_ENABLE)
 								MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x02);
 #endif
 #ifdef AD82584F_ENABLE
 								AD82584F_Amp_Mute(TRUE, FALSE); //Mute On
+#elif defined(AD85050_ENABLE)
+								AD85050_Amp_Mute(TRUE, FALSE); //Mute On
 #else //AD82584F_ENABLE
 								TAS5806MD_Amp_Mute(TRUE, FALSE); //Mute On
 #endif //TAS5806MD_ENABLE
@@ -4328,7 +4411,7 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 							if(!Aux_In_Exist())
 								TIMER20_auto_power_flag_Start();
 #endif
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 #ifdef MASTER_SLAVE_GROUPING 
 							if(uNext_Grouping_State > GROUPING_NONE_MODE) //To get MINOR_ID_BA_MODE_CONTROL response under master slave grouping mode //To avoid missing interrupt
 								bPolling_Set_Action |= A2DP_STREAM_ROUTING_CHANGED_IND_UNROUTE;
@@ -4338,12 +4421,14 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 #ifdef SLAVE_ADD_MUTE_DELAY_ENABLE
 								MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x02);
 #endif
-#ifdef USEN_BAP //2023-05-19_1 : Under BAP-01 Aux mode, customer wants to output audio at once when user change BT to Aux.
+#if defined(USEN_BAP) || defined(USEN_BAP2) //2023-05-19_1 : Under BAP-01 Aux mode, customer wants to output audio at once when user change BT to Aux.
 								if(!Aux_In_Exist())
 #endif
 								{
 #ifdef AD82584F_ENABLE
 									AD82584F_Amp_Mute(TRUE, FALSE); //Mute On	
+#elif defined(AD85050_ENABLE)
+									AD85050_Amp_Mute(TRUE, FALSE); //Mute On
 #else //AD82584F_ENABLE
 									TAS5806MD_Amp_Mute(TRUE, FALSE); //Mute On
 #endif //TAS5806MD_ENABLE
@@ -4379,12 +4464,14 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 						break;
 						
 						default:
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 #ifdef SLAVE_ADD_MUTE_DELAY_ENABLE
 						MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x02);
 #endif
 #ifdef AD82584F_ENABLE
 						AD82584F_Amp_Mute(TRUE, FALSE); //Mute On
+#elif defined(AD85050_ENABLE)
+						AD85050_Amp_Mute(TRUE, FALSE); //Mute On
 #else //AD82584F_ENABLE
 						TAS5806MD_Amp_Mute(TRUE, FALSE); //Mute On
 #endif //TAS5806MD_ENABLE
@@ -4506,6 +4593,7 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 #ifdef TAS5806MD_ENABLE
 								//TAS5806MD_Amp_Init(FALSE); //2023-02-22_2 : Disable AMP Init that is for AMP recovery //2022-11-14_4 : After Master/Slave connection, Sync Master status with Slave
 								//TAS5806MD_Amp_Volume_Set_with_Index(TAS5806MD_Amp_Get_Cur_Volume_Level(), FALSE, TRUE); //2022-11-14 : After Master/Slave connection, Sync Master status with Slave
+#elif defined(AD85050_ENABLE)
 #else
 #ifdef AD82584F_ENABLE
 								AD82584F_Amp_Volume_Set_with_Index(AD82584F_Amp_Get_Cur_Volume_Level(), FALSE, TRUE);
@@ -4550,10 +4638,10 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 #if defined(TWS_MODE_ENABLE) && defined(SW1_KEY_TWS_MODE)
 						if(Get_Cur_LR_Stereo_Mode() != Switch_LR_Mode)
 							break;
-#ifdef TAS5806MD_ENABLE
+#if defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 						if(Is_BAmp_Init() == TRUE || Is_I2C_Access_OK() == FALSE) //2023-02-27_2 //2023-02-22_1 : TWS Slave BT SPK executes Amp init again. Sometimes, BT SPK get this interrupt during Amp Init and Amp Init has wrong data.
 						{
-#ifdef TAS5806MD_DEBUG_MSG
+#if defined(TAS5806MD_DEBUG_MSG) || defined(AD85050_DEBUG_MSG)
 							_DBG("\n\r+++ Is_BAmp_Init is TRUE - 0");
 #endif
 							break;
@@ -4660,7 +4748,7 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 											}
 										}
 										break;
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 										case BLE_MUTE_KEY: //##AVRCP## Mute On/Off - Mute On : 0x01/Mute Off : 0x00
 										{
 #ifdef BT_DEBUG_MSG
@@ -4670,6 +4758,8 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 											{
 #ifdef AD82584F_ENABLE
 												AD82584F_Amp_Mute(TRUE, TRUE);
+#elif defined(AD85050_ENABLE)
+												AD85050_Amp_Mute(TRUE, TRUE);
 #else
 												TAS5806MD_Amp_Mute(TRUE, TRUE);
 #endif
@@ -4697,6 +4787,8 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 #endif
 #ifdef AD82584F_ENABLE
 												AD82584F_Amp_Mute(FALSE, TRUE);
+#elif defined(AD85050_ENABLE)
+												AD85050_Amp_Mute(FALSE, TRUE);
 #else
 												TAS5806MD_Amp_Mute(FALSE, TRUE);
 #endif
@@ -4719,6 +4811,8 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 												{
 #ifdef AD82584F_ENABLE
 													AD82584F_Amp_Volume_Set_with_Index(data[3+6], TRUE, FALSE);
+#elif defined(AD85050_ENABLE)
+													AD85050_Amp_Volume_Set_with_Index(data[3+6], TRUE, FALSE);
 #else //AD82584F_ENABLE
 													TAS5806MD_Amp_Volume_Set_with_Index(data[3+6], TRUE, FALSE);
 #endif //TAS5806MD_ENABLE
@@ -4741,6 +4835,8 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 #ifdef FIVE_USER_EQ_ENABLE
 #ifdef AD82584F_ENABLE
 												AD82584F_Amp_Mute(TRUE, FALSE); //MUTE ON //Adding Mute when EQ Toggle
+#elif defined(AD85050_ENABLE)
+												AD85050_Amp_Mute(TRUE, FALSE); //MUTE ON //Adding Mute when EQ Toggle
 #else //AD82584F_ENABLE
 #ifdef TAS5806MD_ENABLE
 												TAS5806MD_Amp_Mute(TRUE, FALSE); //MUTE ON //Adding Mute when EQ Toggle
@@ -4751,6 +4847,8 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 												uBuf = data[4+6];
 #ifdef USEN_TI_AMP_EQ_ENABLE //2023-02-27_1
 												TAS5806MD_Amp_EQ_DRC_Control((EQ_Mode_Setting)uBuf);
+#elif defined(AD85050_ENABLE)
+												AD85050_Amp_EQ_DRC_Control((EQ_Mode_Setting)uBuf);
 #else
 												MB3021_BT_Module_Send_cmd_param(CMD_A2DP_USER_EQ_CONTROL_32, &uBuf);
 #endif
@@ -4764,6 +4862,10 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 												uVolume_Level = AD82584F_Amp_Get_Cur_Volume_Level();
 
 												AD82584F_Amp_Volume_Set_with_Index(uVolume_Level, FALSE, FALSE);
+#elif defined(AD85050_ENABLE)
+												uVolume_Level = AD85050_Amp_Get_Cur_Volume_Level();
+											
+												AD85050_Amp_Volume_Set_with_Index(uVolume_Level, FALSE, FALSE);
 #else //AD82584F_ENABLE
 												uVolume_Level = TAS5806MD_Amp_Get_Cur_Volume_Level();
 											
@@ -4840,9 +4942,11 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 											else if(data[7+6] == 0x02)
 											{
 												TIMER20_mute_flag_Stop();
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 #ifdef AD82584F_ENABLE
 												AD82584F_Amp_Mute(TRUE, FALSE); //MUTE ON
+#elif defined(AD85050_ENABLE)
+												AD85050_Amp_Mute(TRUE, FALSE); //MUTE ON
 #else //AD82584F_ENABLE
 												TAS5806MD_Amp_Mute(TRUE, FALSE); //MUTE ON
 #endif //TAS5806MD_ENABLE
@@ -4890,9 +4994,11 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 										if(data[2+6] == 0x01) //Mute On. When Power off state under Slave mode, we need to set mute on here.
 										{
 											TIMER20_mute_flag_Stop();
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 #ifdef AD82584F_ENABLE
 											AD82584F_Amp_Mute(TRUE, TRUE);
+#elif defined(AD85050_ENABLE)
+											AD85050_Amp_Mute(TRUE, TRUE);
 #else //AD82584F_ENABLE
 											TAS5806MD_Amp_Mute(TRUE, TRUE);
 #endif //TAS5806MD_ENABLE
@@ -4909,12 +5015,14 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 
 										if(BNeed_Mute_Off1) //Mute off. When Power off state under Slave mode, we need to set mute off here.
 										{
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 #if defined(TWS_MODE_ENABLE) && defined(TAS5806MD_ENABLE) //2022-12-06 : To delete audio noise(Slave abnormal volume) under TWS Mode, we keep audio mute untill CLK is stable
 											if(TAS5806MD_CLK_Detect_Count() == 0xffffffff || Get_Cur_LR_Stereo_Mode() != Switch_LR_Mode)
 #endif
 #ifdef AD82584F_ENABLE
 											AD82584F_Amp_Mute(FALSE, TRUE);
+#elif defined(AD85050_ENABLE)
+											AD85050_Amp_Mute(FALSE, TRUE);
 #else //AD82584F_ENABLE
 											TAS5806MD_Amp_Mute(FALSE, TRUE);
 #endif //TAS5806MD_ENABLE
@@ -5222,10 +5330,10 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 #ifdef BT_DEBUG_MSG
 						_DBG("\n\r+++Ind : MINOR_ID_BA_MANUFACTURE_DATA_IND");
 #endif
-#ifdef TAS5806MD_ENABLE
+#if defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 						if(Is_BAmp_Init() == TRUE || Is_I2C_Access_OK() == FALSE) //2023-02-27_2 //2023-02-22_1 : TWS Slave BT SPK executes Amp init again. Sometimes, BT SPK get this interrupt during Amp Init and Amp Init has wrong data.
 						{
-#ifdef TAS5806MD_DEBUG_MSG
+#if defined(TAS5806MD_DEBUG_MSG) || defined(AD85050_DEBUG_MSG)
 							_DBG("\n\r+++ Is_BAmp_Init is TRUE - 11");
 #endif
 							break;
@@ -5329,7 +5437,7 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 											}
 										}
 										break;
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 										case BLE_MUTE_KEY: //##BLE## Mute On/Off - Mute On : 0x01/Mute Off : 0x00
 										{
 #ifdef BT_DEBUG_MSG
@@ -5339,6 +5447,8 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 											{
 #ifdef AD82584F_ENABLE
 												AD82584F_Amp_Mute(TRUE, TRUE);
+#elif defined(AD85050_ENABLE)
+												AD85050_Amp_Mute(TRUE, TRUE);
 #else
 												TAS5806MD_Amp_Mute(TRUE, TRUE);
 #endif
@@ -5354,6 +5464,8 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 												BNeed_Mute_Off = TRUE; //Power state is power off on booting so, Amp mute function do not work and need this flag to mute off.
 #ifdef AD82584F_ENABLE
 												AD82584F_Amp_Mute(FALSE, TRUE);
+#elif defined(AD85050_ENABLE)
+                        AD85050_Amp_Mute(FALSE, TRUE);
 #else
 												TAS5806MD_Amp_Mute(FALSE, TRUE);
 #endif
@@ -5371,7 +5483,7 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 #endif
 											if(data[3] <= 0x0f)
 											{
-#if defined(ADC_VOLUME_STEP_ENABLE) && defined(USEN_BAP) //2023-01-09_2 : To disable BLE_VOLUME_KEY using BLE DATA from Master under BAP slave when Master & Slave are BAP
+#if defined(ADC_VOLUME_STEP_ENABLE) && (defined(USEN_BAP) || defined(USEN_BAP2)) //2023-01-09_2 : To disable BLE_VOLUME_KEY using BLE DATA from Master under BAP slave when Master & Slave are BAP
 												if(B_Master_Is_BAP) //Master is BAP-01
 													BRet = TRUE;
 												else
@@ -5383,22 +5495,26 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 #endif //ADC_VOLUME_64_STEP_ENABLE
 #ifdef AD82584F_ENABLE
 													AD82584F_Amp_Volume_Set_with_Index(data[3], TRUE, FALSE);
+#elif defined(AD85050_ENABLE)
+													AD85050_Amp_Volume_Set_with_Index(data[3], TRUE, FALSE);
 #else //AD82584F_ENABLE
 													TAS5806MD_Amp_Volume_Set_with_Index(data[3], TRUE, FALSE);
 #endif //TAS5806MD_ENABLE
 													BAlready_Set_Vol = TRUE;
 												}
-#else //#if defined(ADC_VOLUME_STEP_ENABLE) && defined(USEN_BAP)
+#else //#if defined(ADC_VOLUME_STEP_ENABLE) && (defined(USEN_BAP) || defined(USEN_BAP2))
 												if(Power_State()) //2023-05-15_4 : When Power Off and Power on under Broadcast Slave mode, Slave can't display Volume Level LED. This is side effect of //2023-04-06_3
 												{
 #ifdef AD82584F_ENABLE
 													AD82584F_Amp_Volume_Set_with_Index(data[3], TRUE, FALSE);
+#elif defined(AD85050_ENABLE)
+													AD85050_Amp_Volume_Set_with_Index(data[3], TRUE, FALSE);
 #else //AD82584F_ENABLE
 													TAS5806MD_Amp_Volume_Set_with_Index(data[3], TRUE, FALSE);
 #endif //TAS5806MD_ENABLE
 													BAlready_Set_Vol = TRUE;
 												}
-#endif //#if defined(ADC_VOLUME_STEP_ENABLE) && defined(USEN_BAP)
+#endif //#if defined(ADC_VOLUME_STEP_ENABLE) && (defined(USEN_BAP) || defined(USEN_BAP2))
 											}
 											else
 												BRet = FALSE;
@@ -5416,6 +5532,8 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 #ifdef FIVE_USER_EQ_ENABLE
 #ifdef AD82584F_ENABLE
 												AD82584F_Amp_Mute(TRUE, FALSE); //MUTE ON //Adding Mute when EQ Toggle
+#elif defined(AD85050_ENABLE)
+												AD85050_Amp_Mute(TRUE, FALSE); //MUTE ON //Adding Mute when EQ Toggle
 #else //AD82584F_ENABLE
 												TAS5806MD_Amp_Mute(TRUE, FALSE); //MUTE ON //Adding Mute when EQ Toggle
 #endif //TAS5806MD_ENABLE
@@ -5424,6 +5542,8 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 												uBuf = data[4];
 #ifdef USEN_TI_AMP_EQ_ENABLE //2023-02-27_1
 												TAS5806MD_Amp_EQ_DRC_Control((EQ_Mode_Setting)uBuf);
+#elif defined(AD85050_ENABLE)
+												AD85050_Amp_EQ_DRC_Control((EQ_Mode_Setting)uBuf);
 #else
 												MB3021_BT_Module_Send_cmd_param(CMD_A2DP_USER_EQ_CONTROL_32, &uBuf);
 #endif
@@ -5437,6 +5557,10 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 												uVolume_Level = AD82584F_Amp_Get_Cur_Volume_Level();
 
 												AD82584F_Amp_Volume_Set_with_Index(uVolume_Level, FALSE, FALSE);
+#elif defined(AD85050_ENABLE)
+												uVolume_Level = AD85050_Amp_Get_Cur_Volume_Level();
+											
+												AD85050_Amp_Volume_Set_with_Index(uVolume_Level, FALSE, FALSE);
 #else //AD82584F_ENABLE
 												uVolume_Level = TAS5806MD_Amp_Get_Cur_Volume_Level();
 											
@@ -5470,7 +5594,7 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 										break;
 
 										case BLE_FACTORY_RESET_KEY: //##BLE## Factory Reset Key - Factory Reset On : 0x01/Factory Reset Off : 0x00
-#if defined(PROHIBIT_FACTORY_RESET_UNDER_SLAVE_MODE) && !defined(USEN_BAP) //BAP-01 Slave should be worked for Factory Reset Key thru BLE communication from BAP-01 Master //2023-01-05_3
+#if defined(PROHIBIT_FACTORY_RESET_UNDER_SLAVE_MODE) && (!defined(USEN_BAP) && !defined(USEN_BAP2)) //BAP-01 Slave should be worked for Factory Reset Key thru BLE communication from BAP-01 Master //2023-01-05_3
 										break; //Just ignore Factory Reset over BLE Data. Don't set BRet = FALSE because Power Action is not worked
 #else //PROHIBIT_FACTORY_RESET_UNDER_SLAVE_MODE										
 										{
@@ -5513,9 +5637,11 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 											else if(data[7] == 0x02)
 											{
 												TIMER20_mute_flag_Stop();
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 #ifdef AD82584F_ENABLE
 												AD82584F_Amp_Mute(TRUE, FALSE); //MUTE ON
+#elif defined(AD85050_ENABLE)
+                        AD85050_Amp_Mute(TRUE, FALSE); //MUTE ON
 #else //AD82584F_ENABLE
 												TAS5806MD_Amp_Mute(TRUE, FALSE); //MUTE ON
 #endif //TAS5806MD_ENABLE
@@ -5565,9 +5691,11 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 										if(data[2] == 0x01) //Mute On. When Power off state under Slave mode, we need to set mute on here.
 										{
 											TIMER20_mute_flag_Stop();
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 #ifdef AD82584F_ENABLE
 											AD82584F_Amp_Mute(TRUE, TRUE);
+#elif defined(AD85050_ENABLE)
+											AD85050_Amp_Mute(TRUE, TRUE);
 #else //AD82584F_ENABLE
 											TAS5806MD_Amp_Mute(TRUE, TRUE);
 #endif //TAS5806MD_ENABLE
@@ -5584,9 +5712,11 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 
 										if(BNeed_Mute_Off) //Mute off. When Power off state under Slave mode, we need to set mute off here.
 										{
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 #ifdef AD82584F_ENABLE
 											AD82584F_Amp_Mute(FALSE, TRUE);
+#elif defined(AD85050_ENABLE)
+											AD85050_Amp_Mute(FALSE, TRUE);
 #else //AD82584F_ENABLE
 											TAS5806MD_Amp_Mute(FALSE, TRUE);
 #endif //TAS5806MD_ENABLE
@@ -5620,7 +5750,7 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 #endif
 						}
 #ifndef MASTER_MODE_ONLY //2023-03-28_2 : Deleted receiving extra data of BAP-01 due to changed spec which BAP-01 don't have BAP-01 Slave mode
-#if defined(ADC_VOLUME_STEP_ENABLE) && defined(USEN_BAP) //##BLE Extra Data## To get 64 Step volume level under BAP //2023-01-05_6
+#if defined(ADC_VOLUME_STEP_ENABLE) && (defined(USEN_BAP) || defined(USEN_BAP2))//##BLE Extra Data## To get 64 Step volume level under BAP //2023-01-05_6
 						if(data[0] == 0xCC && data_length == 0x03) //BAP-01 Extra Data thru BLE (Total 3 Byte = Header(0xCC-1Byte) + Param1(Volume-1Byte) + Checksum(1Byte))
 						{
 							//Data[0] = Header, Data[1] = Volume Data, Data[2] = Checksum
@@ -5702,6 +5832,8 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 											{
 #ifdef AD82584F_ENABLE
 												AD82584F_Amp_Volume_Set_with_Index(data[1], FALSE, FALSE);
+#elif defined(AD85050_ENABLE)
+												AD85050_Amp_Volume_Set_with_Index(data[1], FALSE, FALSE);
 #else //AD82584F_ENABLE
 #ifdef TAS5806MD_ENABLE
 												TAS5806MD_Amp_Volume_Set_with_Index(data[1], FALSE, FALSE);
@@ -6008,11 +6140,11 @@ Bool MB3021_BT_Module_CMD_Execute(uint8_t major_id, uint8_t minor_id, uint8_t *d
 							bPolling_Get_Data |= BCRF_SET_DISCOVERABLE_MODE; //Set flag to send same data again
 						else
 						{
-#ifdef USEN_BAP //2023-06-19_2 : To enable SET_CONNECTABLE_MODE under BKeep_Connectable because we apply  "2023-06-19_1" solution to send DISCOVERABLE_MODE(Disable)
+#if defined(USEN_BAP) || defined(USEN_BAP2) //2023-06-19_2 : To enable SET_CONNECTABLE_MODE under BKeep_Connectable because we apply  "2023-06-19_1" solution to send DISCOVERABLE_MODE(Disable)
 							if(!BDoNotSend_Connectable_Mode)
-#else //USEN_BAP //2023-07-06_2
+#else //USEN_BAP || USEN_BAP2 //2023-07-06_2
 							if(!BDoNotSend_Connectable_Mode && Get_Cur_LR_Stereo_Mode() == Switch_Stereo_Mode )
-#endif //USEN_BAP
+#endif //USEN_BAP || USEN_BAP2
 							bPolling_Get_Data |= BCRF_SET_CONNECTABLE_MODE; //For init sequence (Init Sequnece : Broadcaster -2)
 						}
 					}
@@ -7094,7 +7226,7 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 			bPolling_Get_Data &= (~BCRF_SEND_SPP_RECEIVE_DATA_NG); //Clear flag
 			
 #ifndef MASTER_MODE_ONLY  //2023-03-28_1 : Deleted sending extra data of BAP-01 due to changed spec which BAP-01 don't have BAP-01 Slave mode
-#if defined(ADC_VOLUME_STEP_ENABLE) && defined(USEN_BAP)
+#if defined(ADC_VOLUME_STEP_ENABLE) && (defined(USEN_BAP) || defined(USEN_BAP2))
 		//bPolling_Get_Data |= BCRF_SEND_BLE_EXTRA_DATA; //2023-01-05_6 : To set 64 Step volume level under BAP when BAP receives SPP data from peerdevice
 		if(uNext_Grouping_State == GROUPING_NONE_MODE) //Excepting GROUPING
 			TIMER20_BT_send_extra_data_flag_start(); //2023-01-05_6 : Changed SW which send 64 step volume to BAP
@@ -7137,9 +7269,11 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 #ifdef SLAVE_ADD_MUTE_DELAY_ENABLE
 			MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x02); //For Slave Mute
 #endif
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 #ifdef AD82584F_ENABLE
 			AD82584F_Amp_Mute(TRUE, FALSE); //MUTE ON
+#elif defined(AD85050_ENABLE)
+			AD85050_Amp_Mute(TRUE, FALSE); //MUTE ON
 #else //TAS5806MD_ENABLE
 			TAS5806MD_Amp_Mute(TRUE, FALSE); //MUTE ON
 #endif //TAS5806MD_ENABLE
@@ -7266,15 +7400,17 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 #ifdef AD82584F_USE_POWER_DOWN_MUTE
 		&& !IS_Display_Mute()//This is mute off delay and that's means this action should be worked in mute off. //if(Is_Mute())
 #else
-#ifdef TAS5806MD_ENABLE
+#if defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 		&& Is_Mute()
 #endif
 #endif
 		)
 		{
-#ifdef USEN_BAP
+#if defined(USEN_BAP) || defined(USEN_BAP2)
 #ifdef AD82584F_ENABLE
 			AD82584F_Amp_Mute(FALSE, FALSE); //MUTE OFF
+#elif defined(AD85050_ENABLE)
+			AD85050_Amp_Mute(FALSE, FALSE); //MUTE OFF
 #else //TAS5806MD_ENABLE						
 #ifdef TAS5806MD_ENABLE
 			TAS5806MD_Amp_Mute(FALSE, FALSE); //MUTE OFF
@@ -7295,9 +7431,11 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 			uPrev_Grouping_State = uNext_Grouping_State;
 			uNext_Grouping_State = GROUPING_EVENT_WAIT_STATE;
 			uBuf[0] = 0x00; //Noraml Mode
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 #ifdef AD82584F_ENABLE
 			AD82584F_Amp_Mute(TRUE, FALSE); //MUTE ON
+#elif defined(AD85050_ENABLE)
+			AD85050_Amp_Mute(TRUE, FALSE); //MUTE ON
 #else //TAS5806MD_ENABLE
 			TAS5806MD_Amp_Mute(TRUE, FALSE); //MUTE ON
 #endif
@@ -7357,7 +7495,7 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 
 				//we changed product ID to another one(0x20) instead of normal one(0x00) when slave still doesn't have last connection info.
 				if(uFlash_Read_Buf[FLASH_SAVE_SLAVE_LAST_CONNECTION] != 0x01
-#if defined(ADC_VOLUME_STEP_ENABLE) && defined(USEN_BAP) //2023-01-09_1
+#if defined(ADC_VOLUME_STEP_ENABLE) && (defined(USEN_BAP) || defined(USEN_BAP2))//2023-01-09_1
 					&& uFlash_Read_Buf[FLASH_SAVE_SLAVE_LAST_CONNECTION] != 0x02
 #endif
 					)
@@ -7390,9 +7528,11 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 #ifdef MASTER_SLAVE_GROUPING_DEBUG_MSG	
 		_DBG("\n\rSet : A2DP_STREAM_ROUTING_CHANGED_IND_UNROUTE");
 #endif
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 #ifdef AD82584F_ENABLE
 		AD82584F_Amp_Mute(TRUE, FALSE); //Mute On
+#elif defined(AD85050_ENABLE)
+		AD85050_Amp_Mute(TRUE, FALSE); //Mute On
 #else //TAS5806MD_ENABLE
 		TAS5806MD_Amp_Mute(TRUE, FALSE); //Mute On
 #endif //TAS5806MD_ENABLE
@@ -7428,7 +7568,7 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 			else
 #endif //#if (defined(BT_ALWAYS_GENERAL_MODE) || defined(BT_GENERAL_MODE_KEEP_ENABLE)) && defined(SWITCH_BUTTON_KEY_ENABLE) && defined(GIA_MODE_LED_DISPLAY_ENABLE) //2022-12-27 : To Keep GIA Mode LED Display
 			{
-#ifdef USEN_BAP //2023-07-26_2 : To add more solution for 2023-07-25_1 under BAP-01 because when USEN Tablet is turned off, BT Stuats LED is ON.
+#if defined(USEN_BAP) || defined(USEN_BAP2) //2023-07-26_2 : To add more solution for 2023-07-25_1 under BAP-01 because when USEN Tablet is turned off, BT Stuats LED is ON.
 				BBT_Is_Connected = FALSE;
 #endif
 				Set_Status_LED_Mode(STATUS_BT_FAIL_OR_DISCONNECTION_MODE);
@@ -7466,7 +7606,7 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 		else
 #endif //#if (defined(BT_ALWAYS_GENERAL_MODE) || defined(BT_GENERAL_MODE_KEEP_ENABLE)) && defined(SWITCH_BUTTON_KEY_ENABLE) && defined(GIA_MODE_LED_DISPLAY_ENABLE) //2022-12-27 : To Keep GIA Mode LED Display
 		{
-#ifdef USEN_BAP //2023-07-26_2 : To add more solution for 2023-07-25_1 under BAP-01 because when USEN Tablet is disconnected and BAP-01 power Off/On, BT Stuats LED is ON.
+#if defined(USEN_BAP) || defined(USEN_BAP2) //2023-07-26_2 : To add more solution for 2023-07-25_1 under BAP-01 because when USEN Tablet is disconnected and BAP-01 power Off/On, BT Stuats LED is ON.
 			BBT_Is_Connected = FALSE;
 #endif
 			Set_Status_LED_Mode(STATUS_BT_FAIL_OR_DISCONNECTION_MODE);
@@ -7529,7 +7669,7 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 			Flash_Read(FLASH_SAVE_START_ADDR, uFlash_Read_Buf, FLASH_SAVE_DATA_END);
 
 			if(uFlash_Read_Buf[FLASH_SAVE_SLAVE_LAST_CONNECTION] != 0x01
-#if defined(ADC_VOLUME_STEP_ENABLE) && defined(USEN_BAP) //2023-01-09_1
+#if defined(ADC_VOLUME_STEP_ENABLE) && (defined(USEN_BAP) || defined(USEN_BAP2))//2023-01-09_1
 				&& uFlash_Read_Buf[FLASH_SAVE_SLAVE_LAST_CONNECTION] != 0x02
 #endif
 				)
@@ -7627,7 +7767,7 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 			else
 #endif //#if (defined(BT_ALWAYS_GENERAL_MODE) || defined(BT_GENERAL_MODE_KEEP_ENABLE)) && defined(SWITCH_BUTTON_KEY_ENABLE) && defined(GIA_MODE_LED_DISPLAY_ENABLE) //2022-12-27 : To Keep GIA Mode LED Display
 			{
-#ifdef USEN_BAP //2023-07-26_2 : To add more solution for 2023-07-25_1 under BAP-01
+#if defined(USEN_BAP) || defined(USEN_BAP2) //2023-07-26_2 : To add more solution for 2023-07-25_1 under BAP-01
 				BBT_Is_Connected = FALSE;
 #endif
 				Set_Status_LED_Mode(STATUS_BT_FAIL_OR_DISCONNECTION_MODE);
@@ -7653,7 +7793,7 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 			BKeep_Connectable = TRUE;
 		}
 #endif
-#if defined(MASTER_SLAVE_GROUPING) && defined(USEN_BAP) && !defined(MASTER_MODE_ONLY)
+#if defined(MASTER_SLAVE_GROUPING) && (defined(USEN_BAP) || defined(USEN_BAP2)) && !defined(MASTER_MODE_ONLY)
 		if(mode == Switch_Slave_Mode && uNext_Grouping_State == GROUPING_NONE_MODE) //Current Mode is not Groping mode
 			B_Master_Is_BAP = FALSE;
 #endif
@@ -8124,7 +8264,7 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 #endif
 				}
 
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) //To avoid, BT has no output sometime when user alternates Aux mode / BT mode repeately
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE) //To avoid, BT has no output sometime when user alternates Aux mode / BT mode repeately
 				if(uMode_Change == uBuf[0] 
 #ifdef AD82584F_USE_POWER_DOWN_MUTE
 					&& !IS_Display_Mute()
@@ -8135,6 +8275,8 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 				{
 #ifdef AD82584F_ENABLE
 					if(AD82584F_Amp_Get_Cur_CLK_Status())
+#elif defined(AD85050_ENABLE)
+					if(AD85050_Amp_Get_Cur_CLK_Status())
 #else //TAS5806MD_ENABLE
 					if(TAS5806MD_Amp_Detect_FS(FALSE)) //2022-10-17_2
 #endif //AD82584F_ENABLE
@@ -8147,7 +8289,7 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 #ifdef AUTO_ONOFF_ENABLE
 							TIMER20_auto_power_flag_Stop();
 #endif
-#ifndef USEN_BAP //2023-05-09_1 : Reduced the checking time from 5.3s to 3s and no need mute under BAP-01
+#if !defined(USEN_BAP) && !defined(USEN_BAP2) //2023-05-09_1 : Reduced the checking time from 5.3s to 3s and no need mute under BAP-01
 						        TIMER20_mute_flag_Start();
 #endif
 						}
@@ -8172,6 +8314,11 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 					TAS5806MD_Dac_Volume_Set(Get_Cur_BAP_EQ_Mode(), FALSE);
 				else //Aux Mode
 					TAS5806MD_Dac_Volume_Set(Get_Cur_BAP_EQ_Mode(), TRUE);
+#elif defined(USEN_BAP2)
+				if(uBuf[0] == 0x07) //Bluetooth Mode
+					AD85050_Dac_Volume_Set(FALSE);
+				else //Aux Mode
+					AD85050_Dac_Volume_Set(TRUE);
 #endif
 				MB3021_BT_Module_Send_cmd_param(CMD_INFORM_HOST_MODE_32, uBuf);
 #endif
@@ -8349,7 +8496,7 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 #else
 				MB3021_BT_Module_Send_cmd_param(CMD_SET_BLE_MANUFACTURE_DATA_32-0x0100, uBuf); //BLE COM : Send SPP data to Slave SPK thru BLE Data - without checksum
 #endif
-#ifdef USEN_BAP //2023-07-24_2 : When Slave can't get correct volume information under Power Plug-In, we need to send volume information 3 times to recover wrong volume information.
+#if defined(USEN_BAP) || defined(USEN_BAP2) //2023-07-24_2 : When Slave can't get correct volume information under Power Plug-In, we need to send volume information 3 times to recover wrong volume information.
 				TIMER20_power_on_volume_sync_flag_start();
 #endif
 			}
@@ -8389,7 +8536,7 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 			Flash_Read(FLASH_SAVE_START_ADDR, uFlash_Read_Buf, FLASH_SAVE_DATA_END);
 
 			if(uFlash_Read_Buf[FLASH_SAVE_SLAVE_LAST_CONNECTION] != 0x01
-#if defined(ADC_VOLUME_STEP_ENABLE) && defined(USEN_BAP) //2023-01-09_1
+#if defined(ADC_VOLUME_STEP_ENABLE) && (defined(USEN_BAP) || defined(USEN_BAP2)) //2023-01-09_1
 				&& uFlash_Read_Buf[FLASH_SAVE_SLAVE_LAST_CONNECTION] != 0x02
 #endif
 				) //If Slave doesn't have Last connection information, we change Product ID

@@ -22,6 +22,9 @@
 #ifdef TAS5806MD_ENABLE
 #include "tas5806md.h"
 #endif
+#ifdef AD85050_ENABLE
+#include "AD85050.h"
+#endif
 
 #ifdef MB3021_ENABLE
 #include "bt_MB3021.h"
@@ -392,9 +395,11 @@ void FlashSaveData(FLASH_SAVE_DATA data_num, uint8_t data) //Now we save FLASH_S
 #endif
 	if(databuffers[FLASH_SAVE_DATA_VOLUME] == 0xff)
 	{
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 #ifdef AD82584F_ENABLE
 		databuffers[FLASH_SAVE_DATA_VOLUME] = AD82584F_Amp_Get_Cur_Volume_Level();
+#elif defined(AD85050_ENABLE)
+		databuffers[FLASH_SAVE_DATA_VOLUME] = AD85050_Amp_Get_Cur_Volume_Level();
 #else //TAS5806MD_ENABLE
 		databuffers[FLASH_SAVE_DATA_VOLUME] = TAS5806MD_Amp_Get_Cur_Volume_Level();
 #endif //AD82584F_ENABLE

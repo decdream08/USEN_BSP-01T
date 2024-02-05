@@ -32,7 +32,7 @@ typedef enum {
 
 typedef enum {
 	Timer13_None_Key,
-#ifndef USEN_BAP //2022-10-07_3
+#if !defined(USEN_BAP) /*&& !defined(USEN_BAP_2)*/ //2022-10-07_3
 	Timer13_Power_Key,
 #endif
 	Timer13_BT_Pairing_Key,

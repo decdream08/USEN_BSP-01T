@@ -19,6 +19,9 @@
 #ifdef TAS5806MD_ENABLE
 #include "tas5806md.h" 
 #endif
+#ifdef AD85050_ENABLE
+#include "AD85050.h" 
+#endif
 #endif
 
 
@@ -200,7 +203,7 @@ Bool Is_SSP_FACTORY_RESET_KEY_In(void);
 void Do_taskUART(void);
 void MB3021_BT_Module_Init(Bool Factory_Reset);
 void Set_MB3021_BT_Module_Source_Change(void);
-#if defined(USEN_BAP) && defined(MASTER_MODE_ONLY) //2023-05-09_1
+#if (defined(USEN_BAP) || defined(USEN_BAP2)) && defined(MASTER_MODE_ONLY) //2023-05-09_1
 void Set_MB3021_BT_Module_Source_Change_Direct(void);
 #endif
 
@@ -237,7 +240,7 @@ void MB3021_BT_Module_SIG_Test(A2DP_PTS_Event Request);
 void MB3021_BT_Disconnect_All_ACL(void);
 void MB3021_BT_Disconnect_ACL(uint8_t *Addr); //2023-03-09_2
 
-#if defined(ADC_VOLUME_STEP_ENABLE) && defined(USEN_BAP)
+#if defined(ADC_VOLUME_STEP_ENABLE) && (defined(USEN_BAP) || defined(USEN_BAP2))
 #ifndef MASTER_MODE_ONLY //2023-03-28_1 : Deleted sending extra data of BAP-01 due to changed spec which BAP-01 don't have BAP-01 Slave mode
 void MB3021_BT_Module_Send_Extra_Data(void);
 #endif //#ifndef MASTER_MODE_ONLY

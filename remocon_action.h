@@ -19,6 +19,9 @@
 #ifdef TAS5806MD_ENABLE
 #include "tas5806md.h"
 #endif
+#ifdef AD85050_ENABLE
+#include "AD85050.h"
+#endif
 
 // LG KEY MAP - this key map is based on LG TV remocon //Need to change ....???
 #ifdef SUPPORT_LG_REMOCON
@@ -76,7 +79,7 @@
 #define POWER_ON_KEY					(POWER_KEY)				//0x80
 #define POWER_OFF_KEY					(SUB_VOL_DOWN_KEY)		//0x90
 #endif //POWER_KEY_TOGGLE_ENABLE
-#ifdef USEN_BAP //2022-10-12_4
+#if defined(USEN_BAP) || defined(USEN_BAP2) //2022-10-12_4
 #define BT_UPDATE_KEY					(MOVIE_KEY)				//0x70
 #endif //USEN_BAP
 #ifdef EQ_TOGGLE_ENABLE //2023-01-17
@@ -96,7 +99,7 @@ extern Bool USEN_Tablet_auto_power_on;
 //Function
 Bool Power_State(void);
 void Send_Remote_Key_Event(uint8_t IR_KEY);
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 void Remocon_EQ_Toggle_Key_Action(void);
 void Remocon_EQ_Key_Action(EQ_Mode_Setting EQ_mode);
 void Remocon_Mode_Key_Action(void);

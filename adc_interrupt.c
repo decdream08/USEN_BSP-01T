@@ -17,6 +17,8 @@
 #include "A31G21x_hal_adc.h"
 #ifdef TAS5806MD_ENABLE
 #include "tas5806md.h"
+#elif defined(AD85050_ENABLE)
+#include "AD85050.h"
 #endif
 #ifdef FLASH_SELF_WRITE_ERASE
 #include "flash.h"
@@ -239,8 +241,21 @@ void ADC_Interrupt_Volume_Setting(void)
 				FlashSaveData(FLASH_SAVE_DATA_VOLUME, uCurVolLevel);
 #endif
 			}
-		}
+#elif defined(AD85050_ENABLE)
+      if(uCurVolLevel_bk != uCurVolLevel)
+      {
+#ifdef ADC_INTERRUPT_INPUT_ENABLE_DEBUG_MSG
+        _DBG("\n\r ++++ Update Volume");
 #endif
+        uCurVolLevel_bk = uCurVolLevel;
+        AD85050_Amp_Volume_Set_with_Index(uCurVolLevel, FALSE, TRUE);
+        //uCurVolLevel = 15 - ADC3_Value; //15 Step, Inverse Value, The integer value need to match with (VOLUME_LEVEL_NUMER)
+#ifdef FLASH_SELF_WRITE_ERASE
+        FlashSaveData(FLASH_SAVE_DATA_VOLUME, uCurVolLevel);
+#endif
+      }
+#endif
+		}
 #else //ADC_VOLUME_STEP_ENABLE
 #ifdef TAS5806MD_ENABLE
 		TAS5806MD_Amp_Volume_Set_with_Index(ADC3_Value, TRUE, TRUE);
@@ -248,6 +263,13 @@ void ADC_Interrupt_Volume_Setting(void)
 		uCurVolLevel = 15 - ADC3_Value; //15 Step, Inverse Value, The integer value need to match with (VOLUME_LEVEL_NUMER)
 #ifdef FLASH_SELF_WRITE_ERASE
 		FlashSaveData(FLASH_SAVE_DATA_VOLUME, uCurVolLevel);
+#endif
+#elif defined(AD85050_ENABLE)
+    AD85050_Amp_Volume_Set_with_Index(ADC3_Value, TRUE, TRUE);
+    
+    uCurVolLevel = 15 - ADC3_Value; //15 Step, Inverse Value, The integer value need to match with (VOLUME_LEVEL_NUMER)
+#ifdef FLASH_SELF_WRITE_ERASE
+    FlashSaveData(FLASH_SAVE_DATA_VOLUME, uCurVolLevel);
 #endif
 #endif
 #endif //ADC_VOLUME_STEP_ENABLE

@@ -30,19 +30,19 @@ typedef enum {
 /* Private function prototypes -----------------------------------------------*/
 
 
-#ifdef USEN_TI_AMP_EQ_ENABLE //2023-05-09_2
+#if defined(USEN_TI_AMP_EQ_ENABLE) || defined(AD85050_ENABLE) //2023-05-09_2
 void TIMER20_drc_eq_set_flag_start(void);
 void TIMER20_drc_eq_set_flag_stop(void);
 #endif
 
-#if defined(USEN_BAP) && defined(AUX_INPUT_DET_ENABLE) && defined(TIMER20_COUNTER_ENABLE) //2023-04-12_1
+#if (defined(USEN_BAP) || defined(USEN_BAP2)) && defined(AUX_INPUT_DET_ENABLE) && defined(TIMER20_COUNTER_ENABLE) //2023-04-12_1
 void TIMER20_aux_detection_flag_start(void);
 #endif
 
 #ifdef EQ_TOGGLE_ENABLE //2023-01-17 : To display current EQ mode using Volume Indicator during 3 sec
 void TIMER20_eq_mode_check_flag_start(void);
 #endif
-#ifdef USEN_BAP
+#if defined(USEN_BAP) || defined(USEN_BAP2)
 void TIMER20_power_on_volume_sync_flag_start(void); //2023-07-19_1 
 void TIMER20_power_on_volume_sync_flag_stop(void); //2023-07-19_1 
 
@@ -110,7 +110,7 @@ void TIMER20_Amp_error_flag_Stop(void);
 void TIMER20_Amp_access_error_flag_Start(void); //2023-04-07_1
 void TIMER20_Amp_access_error_flag_Stop(void); //2023-04-07_1
 
-#ifdef TAS5806MD_ENABLE //2023-07-06_1 : Applied this solution(2023-06-30_1) under BSP-01T //2023-06-30_1 : Excepting the errors with LED error display, we need to recovery from error mode to normal mode.
+#if defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE) //2023-07-06_1 : Applied this solution(2023-06-30_1) under BSP-01T //2023-06-30_1 : Excepting the errors with LED error display, we need to recovery from error mode to normal mode.
 void TIMER20_Amp_error_no_diplay_flag_Start(void); //2023-06-30_1
 void TIMER20_Amp_error_no_diplay_flag_Stop(void); //2023-06-30_1
 #endif

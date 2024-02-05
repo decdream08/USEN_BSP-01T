@@ -28,6 +28,9 @@
 #ifdef TAS5806MD_ENABLE
 #include "tas5806md.h"
 #endif
+#ifdef AD85050_ENABLE
+#include "AD85050.h"
+#endif
 #ifdef MB3021_ENABLE
 #include "bt_MB3021.h"
 #endif
@@ -102,7 +105,7 @@ Bool auto_power_off = FALSE;
 Bool USEN_Tablet_auto_power_on = FALSE;
 #endif
 
-#if (defined(POWER_KEY_TOGGLE_ENABLE) || defined(SWITCH_BUTTON_KEY_ENABLE)) && (defined(AD82584F_ENABLE) ||defined(TAS5806MD_ENABLE))
+#if (defined(POWER_KEY_TOGGLE_ENABLE) || defined(SWITCH_BUTTON_KEY_ENABLE)) && (defined(AD82584F_ENABLE) ||defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE))
 static uint8_t bVolume_Level = 0;
 #endif
 #ifndef MASTER_MODE_ONLY
@@ -116,7 +119,7 @@ Bool bFACTORY_MODE = FALSE;
 
 void Factory_Mode_Setting(void)
 {
-#ifdef USEN_BAP //2022-10-12_4
+#if defined(USEN_BAP) || defined(USEN_BAP2) //2022-10-12_4
 	if(bFACTORY_MODE)
 		return;
 #endif	
@@ -124,7 +127,7 @@ void Factory_Mode_Setting(void)
 	_DBG("\n\r-----------------Factory_Mode_Setting !!!! ");
 #endif
 
-#ifdef USEN_BAP	//2022-10-12_4
+#if defined(USEN_BAP) || defined(USEN_BAP2) //2022-10-12_4
 	//BLUE LED ON
 	HAL_GPIO_ClearPin(PD, _BIT(2));
 #else
@@ -176,6 +179,8 @@ void Remocon_MUTE_Key_Action(void)
 		Mute_On = TRUE;
 #ifdef TAS5806MD_ENABLE
 		TAS5806MD_DRC_Off();
+#elif defined(AD85050_ENABLE)
+		AD85050_DRC_Off();
 #else
 		AD82584F_DRC_Off();
 #endif
@@ -190,6 +195,8 @@ void Remocon_MUTE_Key_Action(void)
 		Mute_On = FALSE;
 #ifdef TAS5806MD_ENABLE
 		TAS5806MD_DRC_On();
+#elif defined(AD85050_ENABLE)
+    AD85050_DRC_On();
 #else
 		AD82584F_DRC_On();
 #endif
@@ -209,6 +216,9 @@ void Remocon_MUTE_Key_Action(void)
 #endif
 #ifdef TAS5806MD_ENABLE
 	TAS5806MD_Amp_Mute_Toggle();
+#endif
+#ifdef AD85050_ENABLE
+    AD85050_Amp_Mute_Toggle();
 #endif
 #elif defined(TAS3251_ENABLE) && defined(BT_SPK_GPIO_ENABLE)
 	if(Cur_Mute_Status == Mute_Status_Unmute)
@@ -239,6 +249,8 @@ void Remocon_VOL_Key_Action(Volume_Input Volume_In)
 		Audio_Dac_Volume_Control(Volume_Up);
 #elif defined(AD82584F_ENABLE)
 		AD82584F_Amp_Volume_Control(Volume_Up);
+#elif defined(AD85050_ENABLE)
+    AD85050_Amp_Volume_Control(Volume_Up);
 #elif defined(TAS5806MD_ENABLE)
 		TAS5806MD_Amp_Volume_Control(Volume_Up);
 #endif
@@ -254,13 +266,15 @@ void Remocon_VOL_Key_Action(Volume_Input Volume_In)
 		Audio_Dac_Volume_Control(Volume_Down);
 #elif defined(AD82584F_ENABLE)
 		AD82584F_Amp_Volume_Control(Volume_Down);
+#elif defined(AD85050_ENABLE)
+    AD85050_Amp_Volume_Control(Volume_Down);
 #elif defined(TAS5806MD_ENABLE)
 		TAS5806MD_Amp_Volume_Control(Volume_Down);
 #endif
 	}
 }
 
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 void Remocon_EQ_Toggle_Key_Action(void)
 {
 	//To Do !!!Read EQ setting mode from Memory
@@ -307,6 +321,8 @@ void Remocon_EQ_Toggle_Key_Action(void)
 #else
 #ifdef AD82584F_ENABLE
 	AD82584F_Amp_EQ_DRC_Control(EQ_mode);
+#elif defined(AD85050_ENABLE)
+	AD85050_Amp_EQ_DRC_Control(EQ_mode);
 #else //TAS5806MD_ENABLE
 	TAS5806MD_Amp_EQ_DRC_Control(EQ_mode);
 #endif //AD82584F_ENABLE
@@ -348,6 +364,8 @@ void Remocon_EQ_Key_Action(EQ_Mode_Setting EQ_mode)
 
 #ifdef AD82584F_ENABLE
 	AD82584F_Amp_EQ_DRC_Control(EQ_mode);
+#elif defined(AD85050_ENABLE)
+    AD85050_Amp_EQ_DRC_Control(EQ_mode);
 #else //TAS5806MD_ENABLE
 	TAS5806MD_Amp_EQ_DRC_Control(EQ_mode);
 #endif //AD82584F_ENABLE
@@ -422,6 +440,8 @@ void Remocon_Mode_Key_Action(void)
 
 #ifdef AD82584F_ENABLE
 	AD82584F_Amp_Mode_Control(output_mode);
+#elif defined(AD85050_ENABLE)
+	AD85050_Amp_Mode_Control(output_mode);
 #else //TAS5806MD_ENABLE
 	TAS5806MD_Amp_Mode_Control(output_mode);
 #endif //AD82584F_ENABLE	
@@ -457,6 +477,8 @@ void Remocon_Mode_Key_Action(void)
 
 #ifdef AD82584F_ENABLE
 	AD82584F_Amp_Mode_Control(outmode);
+#elif defined(AD85050_ENABLE)
+    AD85050_Amp_Mode_Control(outmode);
 #else //TAS5806MD_ENABLE
 	TAS5806MD_Amp_Mode_Control(outmode);
 #endif //AD82584F_ENABLE	
@@ -464,7 +486,7 @@ void Remocon_Mode_Key_Action(void)
 #endif //MODE_KEY_TOGGLE_ENABLE
 #endif //AD82584F_ENABLE
 
-#if defined(POWER_KEY_TOGGLE_ENABLE) || defined(USEN_BAP)
+#if defined(POWER_KEY_TOGGLE_ENABLE) || defined(USEN_BAP) || defined(USEN_BAP2)
 #if defined(POWER_KEY_TOGGLE_ENABLE)
 void Remocon_Power_Key_Action_Toggle(void) //For only Power Key input
 #else
@@ -563,6 +585,36 @@ void Remocon_Power_Key_Action_Toggle(uint8_t Input_Key) //For only Power Key inp
 #else //#if defined(TIMER20_COUNTER_ENABLE) && defined(AUX_INPUT_DET_ENABLE) && defined(MB3021_ENABLE)
 		HAL_GPIO_SetPin(PF, _BIT(4)); //DAMP_PDN
 #endif //#if defined(TIMER20_COUNTER_ENABLE) && defined(AUX_INPUT_DET_ENABLE) && defined(MB3021_ENABLE)
+#elif defined(AD85050_ENABLE)
+
+    delay_ms(20);
+    HAL_GPIO_SetPin(PF, _BIT(3)); //+14V_DAMP_SW_1
+    delay_ms(20);
+    HAL_GPIO_SetPin(PF, _BIT(2)); //+3.3V_DAMP_SW_1
+    delay_ms(20); 
+#if defined(TIMER20_COUNTER_ENABLE) && defined(AUX_INPUT_DET_ENABLE) && defined(MB3021_ENABLE)
+#if defined(FLASH_SELF_WRITE_ERASE_EXTENSION) && defined(AD82584F_ENABLE)
+    Flash_Read(FLASH_SAVE_START_ADDR, uFlash_Read_Buf3, FLASH_SAVE_DATA_END);
+
+    if(uFlash_Read_Buf3[FLASH_SAVE_DATA_MUTE]) //Keep Mute
+    {
+      AD85050_Amp_Mute(TRUE, TRUE); //Power Mute On
+      BNeed_Mute_Off_Delay = TRUE; //To avoid mute off
+    }
+    else
+#endif
+    {
+      if(!BNeed_Mute_Off_Delay)
+        HAL_GPIO_SetPin(PF, _BIT(4)); //DAMP_PDN
+      else
+      {
+        TIMER20_mute_flag_Start(); //Mute off delay when Aux is connected under power bootin on.
+      }
+    }
+#else //#if defined(TIMER20_COUNTER_ENABLE) && defined(AUX_INPUT_DET_ENABLE) && defined(MB3021_ENABLE)
+    HAL_GPIO_SetPin(PF, _BIT(4)); //DAMP_PDN
+#endif //#if defined(TIMER20_COUNTER_ENABLE) && defined(AUX_INPUT_DET_ENABLE) && defined(MB3021_ENABLE)
+
 #elif defined(TAS5806MD_ENABLE)
 #ifdef TAS5806MD_ENABLE
 #ifndef NOT_USE_POWER_DOWN_MUTE
@@ -655,6 +707,12 @@ void Remocon_Power_Key_Action_Toggle(uint8_t Input_Key) //For only Power Key inp
 		delay_ms(25); //Do NOT Delete !!!
 		EXIT_PortE_Configure(); //2023-01-03_2 : To enable BT_KEY Interrupt(PE7). After we fixed 2023-01-03_1 using LED Power control, it makes BT short key interrupt because LED POWER CONTROL line is used as pull-up of BT KEY
 #endif
+#elif defined(USEN_BAP2)
+    HAL_GPIO_SetPin(PD, _BIT(5)); //LED POWER CONTROL - ON //To Do !!! - Need to use this after separating LED Power from Button Power
+#ifndef BT_SPK_TACT_SWITCH
+    delay_ms(25); //Do NOT Delete !!!
+    EXIT_PortE_Configure(); //2023-01-03_2 : To enable BT_KEY Interrupt(PE7). After we fixed 2023-01-03_1 using LED Power control, it makes BT short key interrupt because LED POWER CONTROL line is used as pull-up of BT KEY
+#endif
 #else
 		HAL_GPIO_SetPin(PD, _BIT(0)); //LED POWER CONTROL - ON //To Do !!! - Need to use this after separating LED Power from Button Power
 #endif
@@ -669,10 +727,41 @@ void Remocon_Power_Key_Action_Toggle(uint8_t Input_Key) //For only Power Key inp
 #ifndef FLASH_SELF_WRITE_ERASE
 		AD82584F_Amp_Volume_Set_with_Index(bVolume_Level, FALSE, TRUE);
 #endif
-#ifdef USEN_BAP //2023-04-06_4 : To recognize the place which call this function is whther SW start or Power On
+#if defined(USEN_BAP) || defined(USEN_BAP2) //2023-04-06_4 : To recognize the place which call this function is whther SW start or Power On
 		Init_Value_Setting(FALSE);
 #else
 		Init_Value_Setting();
+#endif
+#elif defined(AD85050_ENABLE)
+#ifdef FLASH_SELF_WRITE_ERASE
+    AD85050_Amp_Init(FALSE);
+#else
+    AD85050_Amp_Init();
+#endif
+
+#ifdef FLASH_SELF_WRITE_ERASE //2022-11-10_1 : Set volume when power on
+#ifdef USEN_BAP2 //When Master is turned off and turn on by actual power key of USEN Tablet //2023-01-02_3  
+        AD85050_Amp_Volume_Set_with_Index(bVolume_Level, FALSE, FALSE); //Actual key shoud be FALSE even though real actual key
+#else
+        AD85050_Amp_Volume_Set_with_Index(bVolume_Level, FALSE, TRUE);
+#endif
+#endif
+#if defined(NEW_TWS_MASTER_SLAVE_LINK) && defined(SW1_KEY_TWS_MODE) && defined(FLASH_SELF_WRITE_ERASE) && defined(TWS_MASTER_SLAVE_GROUPING) //2023-06-07_1 : When Power On using Power key w/o TWS connection Info, SPK should be blinking white to blue under BSP-01T
+        if(Get_Cur_LR_Stereo_Mode() == Switch_LR_Mode)
+        {
+          if(uFlash_Read_Buf3[FLASH_SAVE_SET_DEVICE_ID_0] == 0x00 || uFlash_Read_Buf3[FLASH_SAVE_SET_DEVICE_ID_0] == 0xff) //we don't to execute this when SET_DEVICE_ID is 0xffffffffffff(6Byte)
+          {
+#ifdef BT_DEBUG_MSG
+            _DBG("\n\rMaster Execute new TWS link start under Power On - MB3021_BT_Module_TWS_Start_Master_Slave_Grouping() !!!");
+#endif
+            MB3021_BT_TWS_Master_Slave_Grouping_Start();
+          }
+        }
+#endif
+#if defined(USEN_BAP) || defined(USEN_BAP2) //2023-04-06_4 : To recognize the place which call this function is whther SW start or Power On
+        Init_Value_Setting(FALSE);
+#else
+        Init_Value_Setting();
 #endif
 #elif defined(TAS5806MD_ENABLE)
 #if 0 //When we use DeepSleep mode under TAS5806MD, we don't need to amp init upon power on and just use TAS5806MD_Amp_Set_PWR_Control_Mode(TAS5806MD_PWR_Mode_PLAY) //2022-10-12_2
@@ -685,6 +774,8 @@ void Remocon_Power_Key_Action_Toggle(uint8_t Input_Key) //For only Power Key inp
 #ifdef FLASH_SELF_WRITE_ERASE //2022-11-10_1 : Set volume when power on
 #ifdef USEN_BAP //When Master is turned off and turn on by actual power key of USEN Tablet //2023-01-02_3  
 		TAS5806MD_Amp_Volume_Set_with_Index(bVolume_Level, FALSE, FALSE); //Actual key shoud be FALSE even though real actual key
+#elif defined(USEN_BAP2)
+		AD85050_Amp_Volume_Set_with_Index(bVolume_Level, FALSE, FALSE); //Actual key shoud be FALSE even though real actual key
 #else
 		TAS5806MD_Amp_Volume_Set_with_Index(bVolume_Level, FALSE, TRUE);
 #endif
@@ -701,7 +792,7 @@ void Remocon_Power_Key_Action_Toggle(uint8_t Input_Key) //For only Power Key inp
 			}
 		}
 #endif
-#ifdef USEN_BAP //2023-04-06_4 : To recognize the place which call this function is whther SW start or Power On
+#if defined(USEN_BAP) || defined(USEN_BAP2) //2023-04-06_4 : To recognize the place which call this function is whther SW start or Power On
 		Init_Value_Setting(FALSE);
 #else
 		Init_Value_Setting();
@@ -737,7 +828,7 @@ void Remocon_Power_Key_Action_Toggle(uint8_t Input_Key) //For only Power Key inp
 			TIMER20_Slave_auto_power_off_flag_Start();
 #endif
 
-#ifdef USEN_BAP //2023-07-19_1
+#if defined(USEN_BAP) || defined(USEN_BAP2) //2023-07-19_1
 		TIMER20_power_on_volume_sync_flag_start();
 #endif
 	}
@@ -749,6 +840,8 @@ void Remocon_Power_Key_Action_Toggle(uint8_t Input_Key) //For only Power Key inp
 #endif		
 #ifdef AD82584F_ENABLE
 		bVolume_Level = AD82584F_Amp_Get_Cur_Volume_Level();
+#elif defined(AD85050_ENABLE)
+		bVolume_Level = AD85050_Amp_Get_Cur_Volume_Level();
 #elif defined(TAS5806MD_ENABLE)
 		bVolume_Level = TAS5806MD_Amp_Get_Cur_Volume_Level();
 #endif
@@ -771,6 +864,14 @@ void Remocon_Power_Key_Action_Toggle(uint8_t Input_Key) //For only Power Key inp
 		HAL_GPIO_ClearPin(PF, _BIT(3)); //+14V_DAMP_SW_1
 		delay_ms(20);
 		HAL_GPIO_ClearPin(PF, _BIT(2)); //+3.3V_DAMP_SW_1
+#elif defined(AD85050_ENABLE)
+
+		HAL_GPIO_ClearPin(PF, _BIT(4)); //DAMP_PDN //Need to keep this Power Off sequence to avoid pop-up noise when power off
+		delay_ms(20);
+		HAL_GPIO_ClearPin(PF, _BIT(3)); //+14V_DAMP_SW_1
+		delay_ms(20);
+		HAL_GPIO_ClearPin(PF, _BIT(2)); //+3.3V_DAMP_SW_1
+
 #elif defined(TAS5806MD_ENABLE)
 #ifdef TAS5806MD_ENABLE
 		//MB3021_BT_A2DP_Connection_Control(FALSE); //We can't use this function here because of disconnection with tablet. So, move to Power on side.
@@ -790,7 +891,7 @@ void Remocon_Power_Key_Action_Toggle(uint8_t Input_Key) //For only Power Key inp
 		Set_Is_Mute(TRUE);
 #endif
 #ifdef LED_POWER_CONTROL_ENABLE /* PD0 Output - SW_+3.3V_SW(LED POWER CONTROL) */
-#ifdef USEN_BAP //2023-02-09_2 : Turn off all LED on BAP-01
+#if defined(USEN_BAP) || defined(USEN_BAP2) //2023-02-09_2 : Turn off all LED on BAP-01
 #ifndef BT_SPK_TACT_SWITCH
 		EXIT_PortE_Disable(); //2023-01-03_2 : To disable BT_KEY Interrupt(PE7). After we fixed 2023-01-03_1 using LED Power control, it makes BT short key interrupt because LED POWER CONTROL line is used as pull-up of BT KEY
 #endif
@@ -822,7 +923,7 @@ void Remocon_Power_Key_Action_Toggle(uint8_t Input_Key) //For only Power Key inp
 			USEN_Tablet_auto_power_on = TRUE;
 		}
 #endif
-#ifdef USEN_BAP //2023-07-19_1
+#if defined(USEN_BAP) || defined(USEN_BAP2) //2023-07-19_1
 		TIMER20_power_on_volume_sync_flag_stop();
 #endif
 	}
@@ -942,6 +1043,49 @@ void Remocon_Power_Key_Action(Bool Power_on, Bool Slave_Sync, Bool Vol_Sync) //F
 #else //#if defined(TIMER20_COUNTER_ENABLE) && defined(AUX_INPUT_DET_ENABLE) && defined(MB3021_ENABLE)
 		HAL_GPIO_SetPin(PF, _BIT(4)); //DAMP_PDN
 #endif
+#elif defined(AD85050_ENABLE)
+
+        delay_ms(20);
+        HAL_GPIO_SetPin(PF, _BIT(3)); //+14V_DAMP_SW_1
+        delay_ms(20);
+        HAL_GPIO_SetPin(PF, _BIT(2)); //+3.3V_DAMP_SW_1
+        delay_ms(20); 
+    
+#if defined(TIMER20_COUNTER_ENABLE) && defined(AUX_INPUT_DET_ENABLE) && defined(MB3021_ENABLE)
+#if defined(FLASH_SELF_WRITE_ERASE_EXTENSION) && defined(AD82584F_ENABLE)
+        Flash_Read(FLASH_SAVE_START_ADDR, uFlash_Read_Buf2, FLASH_SAVE_DATA_END);
+    
+        if(uFlash_Read_Buf2[FLASH_SAVE_DATA_MUTE]) //Keep Mute
+        {
+          AD82584F_Amp_Mute(TRUE, TRUE); //Power Mute On
+          BNeed_Mute_Off_Delay = TRUE; //To avoid mute off
+        }
+        else
+#endif
+        {
+#ifdef SLAVE_ADD_MUTE_DELAY_ENABLE //When power is turned on, Slave SPK executes mute off delay.
+#ifndef MASTER_MODE_ONLY
+          if(Master_Slave == Switch_Master_Mode) //Master
+#endif
+#endif
+          {
+            if(!BNeed_Mute_Off_Delay)
+              HAL_GPIO_SetPin(PF, _BIT(4)); //DAMP_PDN
+            else
+              TIMER20_mute_flag_Start(); //Mute off delay when Aux is connected under power bootin on.
+          }
+#ifdef SLAVE_ADD_MUTE_DELAY_ENABLE //When power is turned on, Slave SPK executes mute off delay.
+#ifndef MASTER_MODE_ONLY
+          else
+            TIMER20_mute_flag_Start(); //Mute off delay when Aux is connected under power bootin on.
+#endif
+#endif
+        }
+#else //#if defined(TIMER20_COUNTER_ENABLE) && defined(AUX_INPUT_DET_ENABLE) && defined(MB3021_ENABLE)
+        HAL_GPIO_SetPin(PF, _BIT(4)); //DAMP_PDN
+#endif
+
+
 #elif defined(TAS5806MD_ENABLE) //AD82584F_ENABLE
 #ifdef TAS5806MD_ENABLE
 #ifndef NOT_USE_POWER_DOWN_MUTE
@@ -1052,12 +1196,18 @@ void Remocon_Power_Key_Action(Bool Power_on, Bool Slave_Sync, Bool Vol_Sync) //F
 		delay_ms(25); //Do NOT Delete !!!
 		EXIT_PortE_Configure(); //2023-01-03_2 : To enable BT_KEY Interrupt(PE7). After we fixed 2023-01-03_1 using LED Power control, it makes BT short key interrupt because LED POWER CONTROL line is used as pull-up of BT KEY
 #endif
+#elif defined(USEN_BAP2)
+        HAL_GPIO_SetPin(PD, _BIT(5)); //LED POWER CONTROL - ON //To Do !!! - Need to use this after separating LED Power from Button Power
+#ifndef BT_SPK_TACT_SWITCH
+        delay_ms(25); //Do NOT Delete !!!
+        EXIT_PortE_Configure(); //2023-01-03_2 : To enable BT_KEY Interrupt(PE7). After we fixed 2023-01-03_1 using LED Power control, it makes BT short key interrupt because LED POWER CONTROL line is used as pull-up of BT KEY
+#endif
 #else //USEN_BAP
 		HAL_GPIO_SetPin(PD, _BIT(0)); //LED POWER CONTROL - ON //To Do !!! - Need to use this after separating LED Power from Button Power
 #endif //USEN_BAP
 #endif
 
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 #ifdef AD82584F_ENABLE
 #ifdef FLASH_SELF_WRITE_ERASE
 		AD82584F_Amp_Init(FALSE);
@@ -1079,11 +1229,55 @@ void Remocon_Power_Key_Action(Bool Power_on, Bool Slave_Sync, Bool Vol_Sync) //F
 #else
 		AD82584F_Amp_Volume_Set_with_Index(bVolume_Level, FALSE, FALSE);
 #endif
-#ifdef USEN_BAP //2023-04-06_4 : To recognize the place which call this function is whther SW start or Power On
+#if defined(USEN_BAP) || defined(USEN_BAP2) //2023-04-06_4 : To recognize the place which call this function is whther SW start or Power On
 		Init_Value_Setting(FALSE);
 #else
 		Init_Value_Setting();
 #endif
+#elif defined(AD85050_ENABLE)
+
+#ifdef FLASH_SELF_WRITE_ERASE
+    AD85050_Amp_Init(FALSE);
+#else
+    AD85050_Amp_Init();
+#endif
+
+#ifdef SLAVE_ADD_MUTE_DELAY_ENABLE
+#ifdef USEN_BAP2 //When Master is turned off and turn on by SSP communiication of USEN Tablet //2023-01-02_2
+#ifdef MASTER_MODE_ONLY
+    AD85050_Amp_Volume_Set_with_Index(bVolume_Level, FALSE, FALSE); //Actual Key should be FALSE on BAP-01
+#else //MASTER_MODE_ONLY
+    if(Master_Slave == Switch_Master_Mode)
+    {
+      AD85050_Amp_Volume_Set_with_Index(bVolume_Level, FALSE, FALSE); //Actual Key should be FALSE on BAP-01
+    }
+    else //Slave
+    {
+       if(Vol_Sync == TRUE) //To set volume level from Master's information when power on and do not set volume level in power on function.
+        AD85050_Amp_Volume_Set_with_Index(bVolume_Level, FALSE, FALSE);
+    }
+#endif //MASTER_MODE_ONLY
+#else //USEN_BAP2
+    if(Master_Slave == Switch_Master_Mode)
+    {
+      AD85050_Amp_Volume_Set_with_Index(bVolume_Level, FALSE, TRUE);
+    }
+    else //Slave
+    {
+       if(Vol_Sync == TRUE) //To set volume level from Master's information when power on and do not set volume level in power on function.
+        AD85050_Amp_Volume_Set_with_Index(bVolume_Level, FALSE, FALSE);
+    }
+#endif //USEN_BAP2
+#else //SLAVE_ADD_MUTE_DELAY_ENABLE
+    AD85050_Amp_Volume_Set_with_Index(bVolume_Level, FALSE, FALSE);
+#endif //SLAVE_ADD_MUTE_DELAY_ENABLE
+#ifdef USEN_BAP2 //2023-04-06_4 : To recognize the place which call this function is whther SW start or Power On
+    Init_Value_Setting(FALSE);
+#else //USEN_BAP
+    Init_Value_Setting();
+#endif //USEN_BAP
+
+
 #else //AD82584F_ENABLE //TAS5806MD_ENABLE
 #if 0 //When we use DeepSleep mode under TAS5806MD, we don't need to amp init upon power on and just use TAS5806MD_Amp_Set_PWR_Control_Mode(TAS5806MD_PWR_Mode_PLAY) //2022-10-12_2
 #ifdef FLASH_SELF_WRITE_ERASE
@@ -1167,6 +1361,8 @@ void Remocon_Power_Key_Action(Bool Power_on, Bool Slave_Sync, Bool Vol_Sync) //F
 #endif
 #ifdef AD82584F_ENABLE
 		bVolume_Level = AD82584F_Amp_Get_Cur_Volume_Level();
+#elif defined(AD85050_ENABLE)
+		bVolume_Level = AD85050_Amp_Get_Cur_Volume_Level();
 #elif defined(TAS5806MD_ENABLE)
 		bVolume_Level = TAS5806MD_Amp_Get_Cur_Volume_Level();
 #endif
@@ -1179,6 +1375,12 @@ void Remocon_Power_Key_Action(Bool Power_on, Bool Slave_Sync, Bool Vol_Sync) //F
 				
 		//delay_ms(500);
 #ifdef AD82584F_ENABLE
+		HAL_GPIO_ClearPin(PF, _BIT(4)); //DAMP_PDN //Need to keep this Power Off sequence to avoid pop-up noise when power off
+		delay_ms(20);
+		HAL_GPIO_ClearPin(PF, _BIT(3)); //+14V_DAMP_SW_1
+		delay_ms(20);
+		HAL_GPIO_ClearPin(PF, _BIT(2)); //+3.3V_DAMP_SW_1
+#elif defined(AD85050_ENABLE)
 		HAL_GPIO_ClearPin(PF, _BIT(4)); //DAMP_PDN //Need to keep this Power Off sequence to avoid pop-up noise when power off
 		delay_ms(20);
 		HAL_GPIO_ClearPin(PF, _BIT(3)); //+14V_DAMP_SW_1
@@ -1201,7 +1403,7 @@ void Remocon_Power_Key_Action(Bool Power_on, Bool Slave_Sync, Bool Vol_Sync) //F
 		Set_Is_Mute(TRUE);
 #endif
 #ifdef LED_POWER_CONTROL_ENABLE /* PD0 Output - SW_+3.3V_SW(LED POWER CONTROL) */
-#ifdef USEN_BAP //2023-01-03_1 : Turn off all LED by SSP communication on BAP-01
+#if defined(USEN_BAP) || defined(USEN_BAP2) //2023-01-03_1 : Turn off all LED by SSP communication on BAP-01
 #ifndef BT_SPK_TACT_SWITCH
 		EXIT_PortE_Disable(); //2023-01-03_2 : To disable BT_KEY Interrupt(PE7). After we fixed 2023-01-03_1 using LED Power control, it makes BT short key interrupt because LED POWER CONTROL line is used as pull-up of BT KEY
 #endif
@@ -1390,7 +1592,7 @@ void Send_Remote_Key_Event(uint8_t IR_KEY)
 #ifdef AUTO_VOLUME_LED_OFF
 	uint8_t uVolume_Level = 0;
 #endif
-#if !defined(MASTER_MODE_ONLY) && defined(TAS5806MD_ENABLE)
+#if !defined(MASTER_MODE_ONLY) && (defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE))
 #if defined(BT_GENERAL_MODE_KEEP_ENABLE) && defined(SWITCH_BUTTON_KEY_ENABLE) && defined(FLASH_SELF_WRITE_ERASE)
 	uint8_t uFlash_Read_Buf4[FLASH_SAVE_DATA_END];
 #endif
@@ -1417,7 +1619,7 @@ void Send_Remote_Key_Event(uint8_t IR_KEY)
 #ifdef REMOTE_CONTROL_ACTION_DBG
 		_DBG("\n\rNeed to wait until Power on init in BT is finshed!!!");
 #endif
-#if defined(USEN_BAP) //2023-02-14_1 : When user makes power on with rotary switch after power plug Out --> In, this statement makes power on key is invalid key before finishing BT Init
+#if defined(USEN_BAP) /*|| defined(USEN_BAP_2)*/ //2023-02-14_1 : When user makes power on with rotary switch after power plug Out --> In, this statement makes power on key is invalid key before finishing BT Init
 		if(IR_KEY != POWER_ON_KEY && IR_KEY != POWER_OFF_KEY)
 			return;
 #elif defined(LR_360_FACTORY_ENABLE) //2023-04-05_2 : Need to recognize SW1_KEY(360/LR) and SW2_KEY(Master/Slave) even though BT intial is not finished.
@@ -1439,7 +1641,7 @@ void Send_Remote_Key_Event(uint8_t IR_KEY)
 #endif //FACTORY_MODE
 #else //POWER_KEY_TOGGLE_ENABLE
 		if(IR_KEY != POWER_ON_KEY
-#if defined(FACTORY_MODE) && defined(USEN_BAP) //2022-10-12_4
+#if defined(FACTORY_MODE) && (defined(USEN_BAP) || defined(USEN_BAP2)) //2022-10-12_4
 		&& IR_KEY != BT_UPDATE_KEY
 #endif
 			)
@@ -1473,7 +1675,7 @@ void Send_Remote_Key_Event(uint8_t IR_KEY)
 
 	switch(IR_KEY) //To do !!! Need to define some Key actions here!!!
 	{
-#if defined(EQ_TOGGLE_ENABLE) && (defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)) //2023-01-17 : Execute EQ Key
+#if defined(EQ_TOGGLE_ENABLE) && (defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)) //2023-01-17 : Execute EQ Key
 		case EQ_KEY: //2023-01-17
 			Remocon_EQ_Toggle_Key_Action();
 			break;
@@ -1481,7 +1683,7 @@ void Send_Remote_Key_Event(uint8_t IR_KEY)
 
 #ifdef REMOCON_TIMER20_CAPTURE_ENABLE
 		case NUM_1_KEY: 
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 			Remocon_EQ_Toggle_Key_Action();
 #endif //#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
 			break;
@@ -1517,11 +1719,11 @@ void Send_Remote_Key_Event(uint8_t IR_KEY)
 			Remocon_Power_Key_Action_Toggle();
 		break;
 #else //POWER_KEY_TOGGLE_ENABLE
-#ifdef USEN_BAP //2022-10-07_3
+#if defined(USEN_BAP) || defined(USEN_BAP2) //2022-10-07_3
 		case POWER_ON_KEY:
 #ifndef MASTER_MODE_ONLY
 			if(Get_Cur_Master_Slave_Mode() != Switch_Slave_Mode
-#if defined(ADC_VOLUME_STEP_ENABLE) && defined(USEN_BAP)
+#if defined(ADC_VOLUME_STEP_ENABLE) && (defined(USEN_BAP) || defined(USEN_BAP2))
 				|| (Get_Cur_Master_Slave_Mode() == Switch_Slave_Mode && !B_Master_Is_BAP) //2023-02-28_2 : Under BAP-01 Slave Mode, When BAP-01 Master is connected, we need to disable Power Key.
 #endif			
 				) //BAP-01 can't support actual POWER KEY under Slave mode and it's just followed the stauts of Master //2023-01-05_5
@@ -1531,7 +1733,7 @@ void Send_Remote_Key_Event(uint8_t IR_KEY)
 		case POWER_OFF_KEY:
 #ifndef MASTER_MODE_ONLY
 			if(Get_Cur_Master_Slave_Mode() != Switch_Slave_Mode
-#if defined(ADC_VOLUME_STEP_ENABLE) && defined(USEN_BAP)
+#if defined(ADC_VOLUME_STEP_ENABLE) && (defined(USEN_BAP) || defined(USEN_BAP2))
 				|| (Get_Cur_Master_Slave_Mode() == Switch_Slave_Mode && !B_Master_Is_BAP) //2023-02-28_2 : Under BAP-01 Slave Mode, When BAP-01 Master is connected, we need to disable Power Key.
 #endif			
 				) //BAP-01 can't support actual POWER KEY under Slave mode and it's just followed the stauts of Master //2023-01-05_5
@@ -1594,7 +1796,7 @@ void Send_Remote_Key_Event(uint8_t IR_KEY)
 #endif //LR_360_FACTORY_ENABLE
 #endif
 #else //TWS_MODE_ENABLE
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 			Remocon_Mode_Key_Action();
 #endif
 #endif //TWS_MODE_ENABLE
@@ -1602,7 +1804,7 @@ void Send_Remote_Key_Event(uint8_t IR_KEY)
 			
 		case SW2_KEY: //MASTER/SLAVE KEY (BASS_BOOST_KEY)				//0xb8
 		{
-#if defined(MASTER_MODE_ONLY) && defined(TAS5806MD_ENABLE) //2023-03-27_2 : Implemented SW2_KEY action for BAP-01 EQ Setting
+#if defined(MASTER_MODE_ONLY) && (defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)) //2023-03-27_2 : Implemented SW2_KEY action for BAP-01 EQ Setting
 #if defined(SIG_TEST) && defined(USEN_BAP) //2023-05-12_2 : Implemented SIG TEST code for extra test under BAP-01
 			if(HAL_GPIO_ReadPin(PA) & (1<<1)) //EQ Port - High : EQ Normal
 			{
@@ -1615,7 +1817,9 @@ void Send_Remote_Key_Event(uint8_t IR_KEY)
 				//_DBG("\n\r@@@ EQ BSP - Low");
 			}
 #else //#if defined(SIG_TEST) && defined(USEN_BAP)
+#ifdef TAS5806MD_ENABLE
 			Remocon_BSP_NORMAL_Mode_Switch_Action();
+#endif
 #endif //#if defined(SIG_TEST) && defined(USEN_BAP)
 #else //MASTER_MODE_ONLY
 #ifdef F1DQ3021_ENABLE
@@ -1626,9 +1830,11 @@ void Send_Remote_Key_Event(uint8_t IR_KEY)
 
 			F1M22_BT_Module_Master_Set(Master_Slave);
 #elif defined(MB3021_ENABLE)
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 #ifdef AD82584F_ENABLE
 			AD82584F_Amp_Mute(TRUE, FALSE); //When user changes Master/Slave, it needs mute on
+#elif defined(AD85050_ENABLE)
+			AD85050_Amp_Mute(TRUE, FALSE); //When user changes Master/Slave, it needs mute on
 #else //TAS5806MD_ENABLE
 			TAS5806MD_Amp_Mute(TRUE, FALSE); //When user changes Master/Slave, it needs mute on
 #endif //AD82584F_ENABLE

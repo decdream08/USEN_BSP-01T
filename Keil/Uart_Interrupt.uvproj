@@ -635,6 +635,11 @@
               <FileType>1</FileType>
               <FilePath>..\adc.c</FilePath>
             </File>
+            <File>
+              <FileName>AD85050.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\AD85050.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>
