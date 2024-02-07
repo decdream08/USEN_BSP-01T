@@ -1589,15 +1589,14 @@ void Send_Cur_Master_Info_To_Tablet(void)
 #else
 	uCurrent_Status_buf8[13] = 0x20;
 #endif //#ifdef MASTER_MODE_ONLY
-#elif defined(USEN_BAP2)
+#elif defined(USEN_BAP2) //2024-02-07_1 : Added BAP-02 Model name to send to USEN Tablet
     uCurrent_Status_buf8[7] = 0x42;
     uCurrent_Status_buf8[8] = 0x41;
     uCurrent_Status_buf8[9] = 0x50;
     uCurrent_Status_buf8[10] = 0x2D;
     uCurrent_Status_buf8[11] = 0x30;
     uCurrent_Status_buf8[12] = 0x32;
-
-    uCurrent_Status_buf8[13] = 0x02; //EQ BSP
+    uCurrent_Status_buf8[13] = 0x20;
 #else //USEN_BAP
 	uCurrent_Status_buf8[7] = 0x42;
 	uCurrent_Status_buf8[8] = 0x53;
