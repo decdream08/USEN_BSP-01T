@@ -554,11 +554,17 @@
   BAP-02 고객 사양 변경 적용
   - Added BAP-02 temporary for BAP-02 model. //2024-01-31
   - Amp Error 표시를 기존 BT Status LED 청색/흰색에서 전원 LED 빠른 점멸로 변경. //2024-01-31_1
-  - BT Short key 동작 조건을 기존 15촏에서 30초로 변경. //2024-02-01_2
+  - BT Short key 동작 조건을 기존 15?에서 30초로 변경. //2024-02-01_2
   
 ## 2024-01-31 (BAP-02)
   BAP-02 고객 사양 변경 적용
   - Volume Level을 기존 1-50에서 0-50으로 변경. //2024-02-02_1
   
+## 2024-02-05 (BAP-02)
+  - BAP-02, AD85850 1차 작업본 적용, amp reset 처리 오류 수정
+  
 ## 2024-02-07 (BAP-02)
   - Protocol Spec에서 BAP-02 모델 추가로 인한 USEN Protocol Spec에 맞게 BAP-02 Model 정보 데이터 추가. //2024-02-07_1
+  
+## 2024-02-16 (BAP-02)
+  - USEN BAP-2 2차 작업본 적용 (L/R change, volume, BT/Aux Input select)
