@@ -213,10 +213,101 @@ void EXTI_PortC_Configure(void);
 #endif
 
 #if (defined(USEN_BAP) || defined(USEN_BAP2)) && defined(ADC_INPUT_ENABLE) && defined(ADC_VOLUME_STEP_ENABLE) //2023-07-20_1 : Sometimes, BAP-01 can't set current ADC Value when user executes power on from power off using volume dial.
-uint8_t ADC_Value_Update_to_send_Slave(void)
+uint32_t ADC_Value_Update_to_send_Slave(void)
 {
+#ifdef USEN_BAP2
+  uint32_t ADC_Value;
+  uint8_t uCurVolLevel = 0, ADC_Level_Min, ADC_Level_Max, i;
+  uint32_t l_volLevel = 0;
+  uint8_t adc_count = 0;
+  
+#ifndef ADC_INTERRUPT_INPUT_ENABLE
+  while(adc_count <= AREA2_VOLUME)
+  {
+    ADC_Value = ADC_PollingRun(4-adc_count);
+
+#ifdef ADC_INPUT_DEBUG_MSG
+    _DBG("\n\r === Master Volume ADC = 0x");
+    _DBH32(ADC_Value);
+#endif
+    for(i=1;i<52;i++)
+    {
+      if(i==1)
+        ADC_Level_Min = 0;
+      else
+        ADC_Level_Min = (i-1)*5+1; //0 6 11 16 ... 241 246
+
+      if(i==51)
+        ADC_Level_Max = 255;
+      else
+        ADC_Level_Max = (i*5); //5 10 15 20 ... 245 250~253
+
+      if((ADC_Value >= ADC_Level_Min) && (ADC_Level_Max >= ADC_Value))
+      {
+        if(i==1)
+          ADC_Level_Min = 0;
+        else
+          ADC_Level_Min = (i-1)*5+1; //0 6 11 16 ... 241 246
+
+        if(i==51)
+          ADC_Level_Max = 255;
+        else
+          ADC_Level_Max = (i*5)-1; //4 9 14 19 ... 244 249~253
+
+        if((ADC_Value >= ADC_Level_Min) && (ADC_Level_Max >= ADC_Value)) //2023-02-08_3 : Added additional code for Volume GAP
+        {
+#ifdef ADC_INPUT_DEBUG_MSG
+          _DBG("\n\r Volume ADC Valid Value !!!! = ");
+          _DBG("\n\r === Volume ADC Level Step = ");
+          _DBD(i);
+#endif
+          uCurVolLevel = 51 - i;
+        }
+        else //2023-02-06_3 : Do not update cur volume level and current ADC value is not valid
+        {
+          uCurVolLevel = 50; //Vol Level 1
+#ifdef ADC_INPUT_DEBUG_MSG
+          _DBG("\n\r Volume ADC Invalid Value !!!! = ");
+          _DBG("\n\r === Volume ADC Level Step = ");
+          _DBD(i);
+#endif
+        }
+
+        break;
+      }
+    }
+
+    uCurVolLevel = 51 - i;
+#ifdef ADC_INPUT_DEBUG_MSG
+      _DBG("\n\r === Volume Level Setting = ");
+      _DBD(uCurVolLevel);
+#endif
+    if(adc_count == 0) //Area 2
+    {
+      l_volLevel = uCurVolLevel;
+    }
+    else if(adc_count == 1) //Area 1
+    {
+      l_volLevel <<= 8;
+      l_volLevel |= uCurVolLevel;
+    }
+    else if(adc_count == 2) //Slave BT
+    {
+      l_volLevel <<= 8;
+      l_volLevel |= uCurVolLevel;
+    }
+
+    adc_count++;
+  }
+
+  AD85050_Amp_Volume_Set_with_Index(l_volLevel, FALSE, TRUE);
+#endif //ADC_INTERRUPT_INPUT_ENABLE
+  
+    return uCurVolLevel;
+#else //USEN_BAP2
 	uint32_t ADC3_Value;
 	uint8_t uCurVolLevel = 0, ADC_Level_Min, ADC_Level_Max, i;
+  uint32_t l_volLevel = 0;
 	
 #ifndef ADC_INTERRUPT_INPUT_ENABLE
 	ADC3_Value = ADC_PollingRun(3);
@@ -316,12 +407,20 @@ uint8_t ADC_Value_Update_to_send_Slave(void)
       _DBG("\n\r === Volume Level Setting = ");
       _DBD(uCurVolLevel);
 #endif
-      AD85050_Amp_Volume_Set_with_Index(uCurVolLevel, FALSE, TRUE);
+      l_volLevel = 0xff;
+      l_volLevel <<= 8;
+
+      l_volLevel |= uCurVolLevel;
+      l_volLevel <<= 8;
+
+      l_volLevel |= 0xff;
+      AD85050_Amp_Volume_Set_with_Index(l_volLevel, FALSE, TRUE);
 #endif
 
 #endif //ADC_INTERRUPT_INPUT_ENABLE
 
 	return uCurVolLevel;
+#endif
 }
 #endif
 
@@ -385,11 +484,19 @@ void Set_Aux_Detection_flag(void) //2023-04-12_1
 {	
 	if(HAL_GPIO_ReadPin(PC) & (1<<3)) //Input(Aux Detec Pin) : High -Aux Out / Low -Aux In
 	{
+#ifdef USEN_BAP2
+		B_AUX_DET = TRUE;
+#else
 		B_AUX_DET = FALSE; //FALSE - Aux Out
+#endif
 	}
 	else
 	{
+#ifdef USEN_BAP2
+    B_AUX_DET = FALSE;
+#else
 		B_AUX_DET = TRUE; //TURE -Aux In
+#endif
 	}
 }
 #endif
@@ -522,7 +629,8 @@ Bool Aux_In_Exist(void)
 	}
 #else
 #ifdef USEN_BAP2
-	if(HAL_GPIO_ReadPin(PA) & (1<<0)) //High : Aux Fix - Always Aux In /Low : Auto - Need to check B_AUX_DET
+	//if(HAL_GPIO_ReadPin(PC) & (1<<3)) //High : Aux /Low : BT
+  if(HAL_GPIO_ReadPin(PA) & (1<<0))
 		return TRUE;
 	else
     return FALSE;
@@ -606,11 +714,11 @@ void Init_Value_Setting(void)
 #else //USEN_BAP
 	if(HAL_GPIO_ReadPin(PC) & (1<<3)) //Input(Aux Detec Pin) : High -Aux Out / Low -Aux In
 	{
-		B_AUX_DET = FALSE; //FALSE - Aux Out
+		B_AUX_DET = TRUE;
 	}
 	else
 	{
-		B_AUX_DET = TRUE; //TURE -Aux In
+		B_AUX_DET = FALSE;
 	}
 #endif //USEN_BAP
 #if defined(USEN_BAP) && defined(MB3021_ENABLE) //2023-04-06_4 : Under Power Off, when user changed Aux Auto/Fixed Switch and then power on using rotary key, we need to reflect this setting.
@@ -773,6 +881,10 @@ void mainloop(void)
 #ifndef ADC_INTERRUPT_INPUT_ENABLE
 	uint8_t uCurVolLevel = 0;
 	static uint32_t ADC3_Value = 0xffffffff, ADC3_Value_bk = 0xffffffff;
+#ifdef USEN_BAP2
+	static uint32_t ADC4_Value = 0xffffffff, ADC4_Value_bk = 0xffffffff;
+	static uint32_t ADC2_Value = 0xffffffff, ADC2_Value_bk = 0xffffffff;
+#endif
 	static uint8_t uSelect_Ch = 0;
 	volatile Bool B_Update, B_Update1; //2023-02-06_3 
 #endif
@@ -1162,6 +1274,392 @@ void mainloop(void)
 				if(uCount1 == (0x1999/4)) //2023-04-12_3 : 50ms setting //2023-02-06_3 : Need to fast action for Volume -100ms setting//0xffff = 1s, 0xffff/2(0x7fff) = 500ms/0x3332 = 200ms / 0x1999 = 100ms
 				{
 #ifndef ADC_INTERRUPT_INPUT_ENABLE
+#ifdef USEN_BAP2
+                    if((uSelect_Ch%3) == 1) //Area1
+                    {
+                        ADC3_Value = ADC_PollingRun(3);
+
+                        if(ADC3_Value_bk != ADC3_Value)
+                        {
+#ifdef ADC_INPUT_DEBUG_MSG
+                            _DBG("\n\r === Area1 Volume ADC = 0x");
+                            _DBH32(ADC3_Value);
+#endif
+#ifdef ADC_VOLUME_STEP_ENABLE
+                            for(i=1;i<52;i++)
+                            {
+                                B_Update = FALSE; //2023-02-06_3    
+
+                                if(i==1)
+                                    ADC_Level_Min = 0;
+                                else
+                                    ADC_Level_Min = (i-1)*5+1; //0 6 11 16 ... 241 246 // On case of 51 step, 251
+
+                                if(i==51)
+                                    ADC_Level_Max = 255; //On case of 51 step, 255
+                                else
+                                    ADC_Level_Max = (i*5); //5 10 15 20 ... 245 250~253 // On case of 51 step, 250
+
+                                if((ADC3_Value >= ADC_Level_Min) && (ADC_Level_Max >= ADC3_Value))
+                                {
+                                    if(i==1)
+                                        ADC_Level_Min = 0;
+                                    else
+                                        ADC_Level_Min = (i-1)*5+1; //0 6 11 16 ... 241 246
+
+                                    if(i==51)
+                                        ADC_Level_Max = 255;
+                                    else
+                                        ADC_Level_Max = (i*5)-1; //4 9 14 19 ... 244 249~253
+
+                                    if((ADC3_Value >= ADC_Level_Min) && (ADC_Level_Max >= ADC3_Value)) //2023-02-08_3 : Added additional code for Volume GAP
+                                    {
+#ifdef ADC_INPUT_DEBUG_MSG
+                                        _DBG("\n\r ++++ Volume ADC Valid Value !!!!");
+                                        _DBG("\n\r === Volume ADC Level Step = ");
+                                        _DBD(i);
+#endif
+                                        uCurVolLevel = 51 - i;
+
+#ifdef ADC_INPUT_DEBUG_MSG
+                                        _DBG("\n\rVolume Level cur - cur_bk = ");
+                                        _DBD(uCurVolLevel);
+                                        _DBG(" - ");
+                                        _DBD(uCurVolLevel_bk);
+#endif								
+
+                                        B_Update = TRUE; //2023-02-06_3 
+                                    }
+                                    else //2023-02-06_3 : Do not update cur volume level and current ADC value is not valid
+                                    {
+                                        if(uCurVolLevel > uCurVolLevel_bk)
+                                        {
+                                            if((uCurVolLevel - uCurVolLevel_bk) > 1)
+                                                B_Update = TRUE;
+                                            else
+                                                B_Update = FALSE;
+                                        }
+                                        else
+                                        {
+                                            if((uCurVolLevel_bk - uCurVolLevel) > 1)
+                                                B_Update = TRUE;
+                                            else
+                                                B_Update = FALSE;
+                                        }
+
+#ifdef ADC_INPUT_DEBUG_MSG
+                                        if(B_Update)
+                                            _DBG("\n\r ++++ Volume ADC Gap - Valid Value even though if condition is FALSE");
+                                        else
+                                            _DBG("\n\r ++++ ADC Gap - Invalid Value");
+#endif
+                                    }
+
+                                    break;
+                                }
+                            }
+
+                            if(B_Update) //2023-02-06_3
+                            {
+                                uint32_t l_CurVolLevel = 0;
+
+                                uCurVolLevel = 51 - i;
+
+                                if(uCurVolLevel_bk != uCurVolLevel)
+                                {
+#ifdef ADC_INPUT_DEBUG_MSG
+                                    _DBG("\n\r === Volume Level Setting = ");
+                                    _DBD(uCurVolLevel);
+#endif
+                                    uCurVolLevel_bk = uCurVolLevel;
+
+                                    l_CurVolLevel = 0xff;
+                                    l_CurVolLevel <<= 8;
+
+                                    l_CurVolLevel |= uCurVolLevel;
+                                    l_CurVolLevel <<= 8;
+
+                                    l_CurVolLevel |= 0xff;
+
+                                    AD85050_Amp_Volume_Set_with_Index(l_CurVolLevel, FALSE, TRUE);
+
+                                    //uCurVolLevel = 15 - ADC3_Value; //15 Step, Inverse Value, The integer value need to match with (VOLUME_LEVEL_NUMER)
+#ifdef FLASH_SELF_WRITE_ERASE //2023-03-02_3 : BAP-01 do not use flash data to set volume level when power on.
+                                    //FlashSaveData(FLASH_SAVE_DATA_VOLUME, uCurVolLevel);
+#endif
+                                }
+                                
+                                B_Update = FALSE;
+                            }
+#else //ADC_VOLUME_STEP_ENABLE
+                            AD85050_Amp_Volume_Set_with_Index(ADC3_Value, TRUE, TRUE);
+                            
+                            uCurVolLevel = 15 - ADC3_Value; //15 Step, Inverse Value, The integer value need to match with (VOLUME_LEVEL_NUMER)
+#ifdef FLASH_SELF_WRITE_ERASE //2023-03-02_3 : BAP-01 do not use flash data to set volume level when power on.
+                            //FlashSaveData(FLASH_SAVE_DATA_VOLUME, uCurVolLevel);
+#endif
+#endif //ADC_VOLUME_STEP_ENABLE
+
+                            ADC3_Value_bk = ADC3_Value;
+                        }
+                    }
+                    else if((uSelect_Ch%3) == 2) //Area2
+                    {
+                        ADC4_Value = ADC_PollingRun(4);
+
+                        if(ADC4_Value_bk != ADC4_Value)
+                        {
+#ifdef ADC_INPUT_DEBUG_MSG
+                            _DBG("\n\r === Area2 Volume ADC = 0x");
+                            _DBH32(ADC4_Value);
+#endif
+#ifdef ADC_VOLUME_STEP_ENABLE
+                            for(i=1;i<52;i++)
+                            {
+                                B_Update = FALSE; //2023-02-06_3    
+
+                                if(i==1)
+                                    ADC_Level_Min = 0;
+                                else
+                                    ADC_Level_Min = (i-1)*5+1; //0 6 11 16 ... 241 246 // On case of 51 step, 251
+
+                                if(i==51)
+                                    ADC_Level_Max = 255; //On case of 51 step, 255
+                                else
+                                    ADC_Level_Max = (i*5); //5 10 15 20 ... 245 250~253 // On case of 51 step, 250
+
+                                if((ADC4_Value >= ADC_Level_Min) && (ADC_Level_Max >= ADC4_Value))
+                                {
+                                    if(i==1)
+                                        ADC_Level_Min = 0;
+                                    else
+                                        ADC_Level_Min = (i-1)*5+1; //0 6 11 16 ... 241 246
+
+                                    if(i==51)
+                                        ADC_Level_Max = 255;
+                                    else
+                                        ADC_Level_Max = (i*5)-1; //4 9 14 19 ... 244 249~253
+
+                                    if((ADC4_Value >= ADC_Level_Min) && (ADC_Level_Max >= ADC4_Value)) //2023-02-08_3 : Added additional code for Volume GAP
+                                    {
+#ifdef ADC_INPUT_DEBUG_MSG
+                                        _DBG("\n\r ++++ Volume ADC Valid Value !!!!");
+                                        _DBG("\n\r === Volume ADC Level Step = ");
+                                        _DBD(i);
+#endif
+                                        uCurVolLevel = 51 - i;
+
+#ifdef ADC_INPUT_DEBUG_MSG
+                                        _DBG("\n\rVolume Level cur - cur_bk = ");
+                                        _DBD(uCurVolLevel);
+                                        _DBG(" - ");
+                                        _DBD(uCurVolLevel_bk);
+#endif								
+
+                                        B_Update = TRUE; //2023-02-06_3 
+                                    }
+                                    else //2023-02-06_3 : Do not update cur volume level and current ADC value is not valid
+                                    {
+                                        if(uCurVolLevel > uCurVolLevel_bk)
+                                        {
+                                            if((uCurVolLevel - uCurVolLevel_bk) > 1)
+                                                B_Update = TRUE;
+                                            else
+                                                B_Update = FALSE;
+                                        }
+                                        else
+                                        {
+                                            if((uCurVolLevel_bk - uCurVolLevel) > 1)
+                                                B_Update = TRUE;
+                                            else
+                                                B_Update = FALSE;
+                                        }
+
+#ifdef ADC_INPUT_DEBUG_MSG
+                                        if(B_Update)
+                                            _DBG("\n\r ++++ Volume ADC Gap - Valid Value even though if condition is FALSE");
+                                        else
+                                            _DBG("\n\r ++++ ADC Gap - Invalid Value");
+#endif
+                                    }
+
+                                    break;
+                                }
+                            }
+
+                            if(B_Update) //2023-02-06_3
+                            {
+                                uint32_t l_CurVolLevel = 0;
+
+                                uCurVolLevel = 51 - i;
+
+                                if(uCurVolLevel_bk != uCurVolLevel)
+                                {
+#ifdef ADC_INPUT_DEBUG_MSG
+                                    _DBG("\n\r === Volume Level Setting = ");
+                                    _DBD(uCurVolLevel);
+#endif
+                                    uCurVolLevel_bk = uCurVolLevel;
+
+                                    l_CurVolLevel = uCurVolLevel;
+                                    l_CurVolLevel <<= 8;
+
+                                    l_CurVolLevel |= 0xff;
+                                    l_CurVolLevel <<= 8;
+
+                                    l_CurVolLevel |= 0xff;
+
+                                    AD85050_Amp_Volume_Set_with_Index(l_CurVolLevel, FALSE, TRUE);
+
+                                    //uCurVolLevel = 15 - ADC3_Value; //15 Step, Inverse Value, The integer value need to match with (VOLUME_LEVEL_NUMER)
+#ifdef FLASH_SELF_WRITE_ERASE //2023-03-02_3 : BAP-01 do not use flash data to set volume level when power on.
+                                    //FlashSaveData(FLASH_SAVE_DATA_VOLUME, uCurVolLevel);
+#endif
+                                }
+                                
+                                B_Update = FALSE;
+                            }
+#else //ADC_VOLUME_STEP_ENABLE
+                            AD85050_Amp_Volume_Set_with_Index(ADC4_Value, TRUE, TRUE);
+                            
+                            uCurVolLevel = 15 - ADC4_Value; //15 Step, Inverse Value, The integer value need to match with (VOLUME_LEVEL_NUMER)
+#ifdef FLASH_SELF_WRITE_ERASE //2023-03-02_3 : BAP-01 do not use flash data to set volume level when power on.
+                            //FlashSaveData(FLASH_SAVE_DATA_VOLUME, uCurVolLevel);
+#endif
+#endif //ADC_VOLUME_STEP_ENABLE
+
+                            ADC4_Value_bk = ADC4_Value;
+                        }
+                    }  
+                    else
+                    {
+                        ADC2_Value = ADC_PollingRun(2);
+
+                        if(ADC2_Value_bk != ADC2_Value)
+                        {
+#ifdef ADC_INPUT_DEBUG_MSG
+                            _DBG("\n\r === BT Volume ADC = 0x");
+                            _DBH32(ADC2_Value);
+#endif
+#ifdef ADC_VOLUME_STEP_ENABLE
+                            for(i=1;i<52;i++)
+                            {
+                                B_Update = FALSE; //2023-02-06_3    
+
+                                if(i==1)
+                                    ADC_Level_Min = 0;
+                                else
+                                    ADC_Level_Min = (i-1)*5+1; //0 6 11 16 ... 241 246 // On case of 51 step, 251
+
+                                if(i==51)
+                                    ADC_Level_Max = 255; //On case of 51 step, 255
+                                else
+                                    ADC_Level_Max = (i*5); //5 10 15 20 ... 245 250~253 // On case of 51 step, 250
+
+                                if((ADC2_Value >= ADC_Level_Min) && (ADC_Level_Max >= ADC2_Value))
+                                {
+                                    if(i==1)
+                                        ADC_Level_Min = 0;
+                                    else
+                                        ADC_Level_Min = (i-1)*5+1; //0 6 11 16 ... 241 246
+
+                                    if(i==51)
+                                        ADC_Level_Max = 255;
+                                    else
+                                        ADC_Level_Max = (i*5)-1; //4 9 14 19 ... 244 249~253
+
+                                    if((ADC2_Value >= ADC_Level_Min) && (ADC_Level_Max >= ADC2_Value)) //2023-02-08_3 : Added additional code for Volume GAP
+                                    {
+#ifdef ADC_INPUT_DEBUG_MSG
+                                        _DBG("\n\r ++++ Volume ADC Valid Value !!!!");
+                                        _DBG("\n\r === Volume ADC Level Step = ");
+                                        _DBD(i);
+#endif
+                                        uCurVolLevel = 51 - i;
+
+#ifdef ADC_INPUT_DEBUG_MSG
+                                        _DBG("\n\rVolume Level cur - cur_bk = ");
+                                        _DBD(uCurVolLevel);
+                                        _DBG(" - ");
+                                        _DBD(uCurVolLevel_bk);
+#endif								
+
+                                        B_Update = TRUE; //2023-02-06_3 
+                                    }
+                                    else //2023-02-06_3 : Do not update cur volume level and current ADC value is not valid
+                                    {
+                                        if(uCurVolLevel > uCurVolLevel_bk)
+                                        {
+                                            if((uCurVolLevel - uCurVolLevel_bk) > 1)
+                                                B_Update = TRUE;
+                                            else
+                                                B_Update = FALSE;
+                                        }
+                                        else
+                                        {
+                                            if((uCurVolLevel_bk - uCurVolLevel) > 1)
+                                                B_Update = TRUE;
+                                            else
+                                                B_Update = FALSE;
+                                        }
+
+#ifdef ADC_INPUT_DEBUG_MSG
+                                        if(B_Update)
+                                            _DBG("\n\r ++++ Volume ADC Gap - Valid Value even though if condition is FALSE");
+                                        else
+                                            _DBG("\n\r ++++ ADC Gap - Invalid Value");
+#endif
+                                    }
+
+                                    break;
+                                }
+                            }
+
+                            if(B_Update) //2023-02-06_3
+                            {
+                                uint32_t l_CurVolLevel = 0;
+
+                                uCurVolLevel = 51 - i;
+
+                                if(uCurVolLevel_bk != uCurVolLevel)
+                                {
+#ifdef ADC_INPUT_DEBUG_MSG
+                                    _DBG("\n\r === Volume Level Setting = ");
+                                    _DBD(uCurVolLevel);
+#endif
+                                    uCurVolLevel_bk = uCurVolLevel;
+
+                                    l_CurVolLevel = 0xff;
+                                    l_CurVolLevel <<= 8;
+                                    
+                                    l_CurVolLevel |= 0xff;
+                                    l_CurVolLevel <<= 8;
+                                    
+                                    l_CurVolLevel |= uCurVolLevel;
+
+                                    AD85050_Amp_Volume_Set_with_Index(l_CurVolLevel, FALSE, TRUE);
+
+                                    //uCurVolLevel = 15 - ADC3_Value; //15 Step, Inverse Value, The integer value need to match with (VOLUME_LEVEL_NUMER)
+#ifdef FLASH_SELF_WRITE_ERASE //2023-03-02_3 : BAP-01 do not use flash data to set volume level when power on.
+                                    //FlashSaveData(FLASH_SAVE_DATA_VOLUME, uCurVolLevel);
+#endif
+                                }
+                                
+                                B_Update = FALSE;
+                            }
+#else //ADC_VOLUME_STEP_ENABLE
+                            AD85050_Amp_Volume_Set_with_Index(ADC2_Value, TRUE, TRUE);
+                            
+                            uCurVolLevel = 15 - ADC2_Value; //15 Step, Inverse Value, The integer value need to match with (VOLUME_LEVEL_NUMER)
+#ifdef FLASH_SELF_WRITE_ERASE //2023-03-02_3 : BAP-01 do not use flash data to set volume level when power on.
+                            //FlashSaveData(FLASH_SAVE_DATA_VOLUME, uCurVolLevel);
+#endif
+#endif //ADC_VOLUME_STEP_ENABLE
+
+                            ADC2_Value_bk = ADC2_Value;
+                        }
+                    }                        
+#else //USEN_BAP2
 					if(uSelect_Ch%2)
 					{
 						ADC3_Value = ADC_PollingRun(3);
@@ -1301,7 +1799,7 @@ void mainloop(void)
 #ifdef TAS5806MD_ENABLE
 									TAS5806MD_Amp_Volume_Set_with_Index(uCurVolLevel, FALSE, TRUE);
 #elif defined(AD85050_ENABLE)
-									AD85050_Amp_Volume_Set_with_Index(uCurVolLevel, FALSE, TRUE);
+									AD85050_Amp_Volume_Set_with_Index(l_CurVolLevel, FALSE, TRUE);
 #endif
 									//uCurVolLevel = 15 - ADC3_Value; //15 Step, Inverse Value, The integer value need to match with (VOLUME_LEVEL_NUMER)
 #ifdef FLASH_SELF_WRITE_ERASE //2023-03-02_3 : BAP-01 do not use flash data to set volume level when power on.
@@ -1455,6 +1953,7 @@ void mainloop(void)
 #endif //ADC_VOLUME_STEP_ENABLE
 #endif //TAS5806MD_ENABLE
 					}
+#endif
 #ifndef ADC_INTERRUPT_INPUT_ENABLE
 					uSelect_Ch++;
 #endif
@@ -2133,7 +2632,7 @@ void GPIOAB_IRQHandler_IT(void)
 		/* bit 0 : PA Falling Edge / bit 1 : PA Rising Edge *///Just check Rising Edge (Normal : High / Push : Low)
 		if(status & 0x00000003) //PA0 : AUTO_SW //2022-10-17_1
 		{
-#ifdef USEN_BAP
+#if 1 //temp //#ifdef USEN_BAP
 		shift_bit = 0;
 
 			//Both Rising Edge and Falling Edge should work as switch input. so, in both case, the cur_button_status should be button_release.
@@ -2148,6 +2647,10 @@ void GPIOAB_IRQHandler_IT(void)
 				else
 #endif
 				{
+#if 1 //temp //BT
+          cur_button_status = button_release;
+          key = SW1_KEY;
+#else
 					if(!B_Auto_AUX_Mode) //2023-05-17_1 : To SW1_KEY chattering under BAP-01
 					{
 #ifdef SWITCH_BUTTON_KEY_ENABLE_DEBUG_MSG
@@ -2162,6 +2665,7 @@ void GPIOAB_IRQHandler_IT(void)
 						shift_bit = 0xffffffff;
 						key = NONE_KEY;
 					}
+#endif
 				}
 			}
 			else //status == 0x00000002
@@ -2175,6 +2679,11 @@ void GPIOAB_IRQHandler_IT(void)
 				else
 #endif
 				{
+#if 1 //temp
+          cur_button_status = button_release;
+          key = SW1_KEY;
+
+#else
 					if(B_Auto_AUX_Mode) //2023-05-17_1 : To SW1_KEY chattering under BAP-01
 					{
 #ifdef SWITCH_BUTTON_KEY_ENABLE_DEBUG_MSG
@@ -2184,6 +2693,7 @@ void GPIOAB_IRQHandler_IT(void)
 						key = SW1_KEY;
 						B_Auto_AUX_Mode = FALSE; //Aux Fixed Mode //B_Auto_AUX_Mode = TRUE; //Auto Aux Mode //2022-12-20_2
 					}
+#endif          
 				}
 			}
 
@@ -2562,6 +3072,29 @@ void GPIOAB_IRQHandler_IT(void)
 						ret = -1;
 					}
 #elif defined(MB3021_ENABLE) && defined(USEN_BAP2)
+                    if(key == SW1_KEY) //temp
+                    {
+                        key = NONE_KEY; //SW1_KEY set to NONE_KEY
+#if defined(TIMER20_COUNTER_ENABLE) && defined(AUTO_ONOFF_ENABLE) //Fixed Master SPK do not work Auto power off even though No siganl from BT when user remove Aux jack
+                        TIMER20_auto_power_flag_Start();
+#endif
+#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
+#ifdef SLAVE_ADD_MUTE_DELAY_ENABLE
+                        MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x02);
+#endif
+#ifdef AD82584F_ENABLE
+                        AD82584F_Amp_Mute(TRUE, FALSE); //MUTE ON
+#elif defined(AD85050_ENABLE)
+                        AD85050_Amp_Mute(TRUE, FALSE); //MUTE ON
+#else //TAS5806MD_ENABLE
+                        TAS5806MD_Amp_Mute(TRUE, FALSE); //MUTE ON
+#endif
+#endif
+                        Set_MB3021_BT_Module_Source_Change();
+
+                        ret = -1;
+                    }
+                    else
 					if(key == POWER_KEY)
 					{
 						if(Is_Power_Long_Key())
@@ -2570,7 +3103,7 @@ void GPIOAB_IRQHandler_IT(void)
 						TIMER13_Periodic_Mode_Run(FALSE, Timer13_Power_Key);
 					
 					  ret = -1;
-				  }
+                    }
 #endif
 					if(ret != -1)
 					{
@@ -4724,6 +5257,55 @@ uint8_t Convert_ADC_To_Attenuator(uint32_t ADC_Value)
 
 
 #if (defined(USEN_BAP) || defined(USEN_BAP2)) && (defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)) && defined(ADC_INPUT_ENABLE)
+#ifdef USEN_BAP2
+uint8_t ADC_Volume_Attenuator_Value_Init(Attenuator_Type attenuator_type)
+{
+  uint8_t uCurVolLevel = 0;
+  static uint32_t ADC_Value = 0xffffffff;
+  int i;
+  uint8_t ADC_Level_Min, ADC_Level_Max;
+  
+  if(attenuator_type == AREA1_VOLUME)
+    ADC_Value = ADC_PollingRun(3);
+  else if(attenuator_type == AREA2_VOLUME)
+    ADC_Value = ADC_PollingRun(4);
+  else if(attenuator_type == SLAVE_BT_VOLUME)
+    ADC_Value = ADC_PollingRun(2);  
+  
+#ifdef ADC_INPUT_DEBUG_MSG
+    _DBG("\n\r === Master Volume ADC = 0x");
+    _DBH32(ADC_Value);
+#endif
+
+  for(i=1;i<52;i++)
+  {
+    if(i==1)
+      ADC_Level_Min = 0;
+    else
+      ADC_Level_Min = (i-1)*5+1; //0 6 11 16 ... 241 246
+
+    if(i==51)
+      ADC_Level_Max = 255;
+    else
+      ADC_Level_Max = (i*5); //5 10 15 20 ... 245 250~253
+
+    if((ADC_Value >= ADC_Level_Min) && (ADC_Level_Max >= ADC_Value))
+    {
+      uCurVolLevel = 51 - i;
+
+#ifdef ADC_INPUT_DEBUG_MSG
+      _DBG("\n\r === ADC Level = ");
+      _DBD(i);
+#endif
+      break;
+    }
+  }
+
+  uCurVolLevel = 51 - i;
+  
+  return uCurVolLevel;
+}
+#else
 uint8_t ADC_Volume_Attenuator_Value_Init(void) //2023-03-02_3 : Changed the concept of volume level update under BAP-01, we just use ADC value for Amp_Init() instead of flash data.
 {//return cur_volume_level
 	uint8_t uCurVolLevel = 0;
@@ -4835,5 +5417,6 @@ uint8_t ADC_Volume_Attenuator_Value_Init(void) //2023-03-02_3 : Changed the conc
 	//TAS5806MD_Amp_Volume_Set_with_Index(uCurVolLevel, FALSE, TRUE);
 	return uCurVolLevel;
 }
+#endif
 #endif //defined(ADC_INPUT_ENABLE) && defined(USEN_BAP)
 

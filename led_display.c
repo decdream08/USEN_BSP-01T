@@ -947,7 +947,6 @@ void LED_Display_Volume(uint8_t Volume) // Value 0(Max) ~ 15(Min)
 #ifdef AD82584F_ENABLE
 	AD82584F_Amp_Set_Cur_Volume_Level(Volume); //Save current volume level
 #elif defined(AD85050_ENABLE)
-	AD85050_Amp_Set_Cur_Volume_Level(Volume); //Save current volume level
 #else //TAS5806MD_ENABLE
 	TAS5806MD_Amp_Set_Cur_Volume_Level(Volume); //Save current volume level
 #endif //AD82584F_ENABLE

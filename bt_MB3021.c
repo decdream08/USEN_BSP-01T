@@ -727,7 +727,7 @@ void MB3021_BT_Module_Send_Extra_Data(void) //2023-01-06_1 : Changed SW which se
 #ifdef TAS5806MD_ENABLE
 	uExtraData[7] = TAS5806MD_Amp_Get_Cur_Volume_Level(); //Parameter1
 #elif defined(AD85050_ENABLE)
-	uExtraData[7] = AD85050_Amp_Get_Cur_Volume_Level(); //Parameter1
+	uExtraData[7] = (uint8_t)(AD85050_Amp_Get_Cur_Volume_Level() && 0x0000ff); //Parameter1
 #else
 	uExtraData[7] = 0x05;;
 #endif
@@ -1464,7 +1464,7 @@ void MB3021_BT_Module_Input_Key_Init(void) //To Do!!! - Need to change later usi
 #ifdef USEN_BAP //Save is working in inverse when BAP-01 & Slave is changed "Power ON" //2023-01-02_1
 	uInput_Key_Sync_buf8[3] = TAS5806MD_Amp_Get_Cur_Volume_Level(); //Volume Level
 #elif defined(USEN_BAP2)
-	uInput_Key_Sync_buf8[3] = AD85050_Amp_Get_Cur_Volume_Level(); //Volume Level
+	uInput_Key_Sync_buf8[3] = (uint8_t)(AD85050_Amp_Get_Cur_Volume_Level() && 0x0000ff); //Volume Level
 #else
 	uInput_Key_Sync_buf8[3] = TAS5806MD_Amp_Get_Cur_Volume_Level_Inverse(); //Volume Level
 #endif
@@ -2694,7 +2694,11 @@ static void MB3021_BT_Module_Remote_Data_Receive(uint8_t source_type, uint8_t da
 	uint8_t uBuf = 0;
 #endif
 #ifdef AUTO_VOLUME_LED_OFF
+#ifdef USEN_BAP2
+	uint32_t uVolume_Level = 0;
+#else
 	uint8_t uVolume_Level = 0;
+#endif
 	uint8_t bMute = FALSE;
 #endif
 #if defined(ADC_VOLUME_STEP_ENABLE) && (defined(USEN_BAP) || defined(USEN_BAP2))//2023-01-10_1 : When we send volume info to Slave, we need to keep original value to avoid wrong volume level of slave
@@ -2981,6 +2985,7 @@ static void MB3021_BT_Module_Remote_Data_Receive(uint8_t source_type, uint8_t da
 											AD82584F_Amp_Volume_Set_with_Index(uVolume_Level, FALSE, FALSE);
 #elif defined(AD85050_ENABLE)
 											uVolume_Level = AD85050_Amp_Get_Cur_Volume_Level();
+											uVolume_Level &= 0xffff00;
 											AD85050_Amp_Volume_Set_with_Index(uVolume_Level, FALSE, FALSE);
 #else //AD82584F_ENABLE
 											uVolume_Level = TAS5806MD_Amp_Get_Cur_Volume_Level();
@@ -3028,6 +3033,7 @@ static void MB3021_BT_Module_Remote_Data_Receive(uint8_t source_type, uint8_t da
 											AD82584F_Amp_Volume_Set_with_Index(uVolume_Level, FALSE, FALSE);
 #elif defined(AD85050_ENABLE)
 											uVolume_Level = AD85050_Amp_Get_Cur_Volume_Level();
+											uVolume_Level &= 0xffff00;
 											AD85050_Amp_Volume_Set_with_Index(uVolume_Level, FALSE, FALSE);
 #else //AD82584F_ENABLE
 											uVolume_Level = TAS5806MD_Amp_Get_Cur_Volume_Level();
@@ -3476,7 +3482,11 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 #endif
 #endif
 #ifdef AUTO_VOLUME_LED_OFF
+#ifdef USEN_BAP2
+	uint32_t uVolume_Level = 0;
+#else
 	uint8_t uVolume_Level = 0;
+#endif
 	Bool bMute = FALSE;
 #endif
 #ifdef AVRCP_ENABLE
@@ -4863,7 +4873,7 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 												AD82584F_Amp_Volume_Set_with_Index(uVolume_Level, FALSE, FALSE);
 #elif defined(AD85050_ENABLE)
 												uVolume_Level = AD85050_Amp_Get_Cur_Volume_Level();
-											
+												uVolume_Level &= 0xffff00;
 												AD85050_Amp_Volume_Set_with_Index(uVolume_Level, FALSE, FALSE);
 #else //AD82584F_ENABLE
 												uVolume_Level = TAS5806MD_Amp_Get_Cur_Volume_Level();
@@ -5558,7 +5568,7 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 												AD82584F_Amp_Volume_Set_with_Index(uVolume_Level, FALSE, FALSE);
 #elif defined(AD85050_ENABLE)
 												uVolume_Level = AD85050_Amp_Get_Cur_Volume_Level();
-											
+												uVolume_Level &= 0xffff00;
 												AD85050_Amp_Volume_Set_with_Index(uVolume_Level, FALSE, FALSE);
 #else //AD82584F_ENABLE
 												uVolume_Level = TAS5806MD_Amp_Get_Cur_Volume_Level();

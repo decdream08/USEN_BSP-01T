@@ -514,6 +514,14 @@ typedef enum{
 	SERIAL_PORT_MAX	
 }SerialPort_t;
 
+#ifdef USEN_BAP2
+typedef enum{
+  SLAVE_BT_VOLUME,
+	AREA1_VOLUME,
+	AREA2_VOLUME
+}Attenuator_Type;
+#endif
+
 typedef void (*Serial_Handle_t)(uint8_t *Data);
 #endif //defined(SPI_11_ENABLE) || defined(UART_10_ENABLE)
 
@@ -542,7 +550,7 @@ extern Bool B_Master_Is_BAP; //2023-01-09_2
 /* Private function prototypes -----------------------------------------------*/
 
 #if defined(USEN_BAP) || defined(USEN_BAP2) //2023-07-20_1
-uint8_t ADC_Value_Update_to_send_Slave(void);
+uint32_t ADC_Value_Update_to_send_Slave(void);
 #endif
 
 #ifdef WATCHDOG_TIMER_RESET
@@ -662,7 +670,11 @@ void SW_Reset(void);
 int8_t uAttenuator_Vol_Value(void);
 #endif
 #if defined(ADC_INPUT_ENABLE) && (defined(USEN_BAP) || defined(USEN_BAP2)) && (defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)) //2023-03-02_3
+#ifdef USEN_BAP2
+uint8_t ADC_Volume_Attenuator_Value_Init(Attenuator_Type attenuator_type);
+#else
 uint8_t ADC_Volume_Attenuator_Value_Init(void);
+#endif
 #endif
 
 #ifdef __cplusplus

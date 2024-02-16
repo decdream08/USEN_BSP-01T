@@ -1751,12 +1751,14 @@ void TIMER20_IRQHandler_IT(void)
 #ifdef TAS5806MD_ENABLE
 				uVolume_Level = TAS5806MD_Amp_Get_Cur_Volume_Level();
 #elif defined(AD85050_ENABLE)
-				uVolume_Level = AD85050_Amp_Get_Cur_Volume_Level();
+				//uVolume_Level = AD85050_Amp_Get_Cur_Volume_Level();
 #else
 				uVolume_Level = AD82584F_Amp_Get_Cur_Volume_Level();
 #endif
 #endif //#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+#ifndef USEN_BAP2
 				LED_Display_Volume(uVolume_Level);
+#endif
 #endif
 			}
 			else

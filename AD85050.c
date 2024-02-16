@@ -65,61 +65,107 @@
 #define AD85050_RAM_SETTING_REG						(0x2D)
 
 #define VOLUME_DEFAULT_LEVEL		(0x32)
+#define MASTER_VOLUME_LEVEL		(0x32)
 
 #define AD85050_VOL_CONTROL_REG1					(0x03)
+#define AD85050_CHANNEL1_VOL_CONTROL_REG1					(0x04)
+#define AD85050_CHANNEL2_VOL_CONTROL_REG1					(0x05)
+
 #define AD85050_ERROR_REG								(0x84)
 
 uint8_t AD85050_Volume_Table[] = {
-	0x00,	// MAX
-  0x02,
-  0x04,
-  0x06,
-  0x08,
-  0x0a,
-  0x0c,
-  0x0e,
-  0x10,
-  0x12,
-  0x14,
-  0x16,
-  0x18,
-  0x1a,
-  0x1c,
-  0x1e,
-  0x20,
-  0x22,
-  0x24,
-  0x26,
-  0x28,
-  0x2a,
-  0x2c,
-  0x2e,
-  0x30,
-  0x32,
-  0x34,
-  0x36,
-  0x38,
-  0x3a,
-  0x3c,
-  0x3e,
-  0x40,
-  0x42,
-  0x44,
-  0x46,
-  0x48,
-  0x4a,
-  0x4c,
-  0x4e,
-  0x50,
-  0x52,
-  0x54,
-  0x56,
-  0x58,
-  0x5a,
-  0x5c,
-  0x5e,
-  0x60,
-	0xff	// Mute
+  0x18  , //0db
+  0x19  , //-0.5db
+  0x1A  , //-1db
+  0x1C  , //-2db
+  0x1E  , //-3db
+  0x20  , //-4db
+  0x22  , //-5db
+  0x24  , //-6db
+  0x26  , //-7db
+  0x28  , //-8db
+  0x2A  , //-9db
+  0x2C  , //-10db
+  0x2E  , //-11db
+  0x30  , //-12db
+  0x32  , //-13db
+  0x34  , //-14db
+  0x36  , //-15db
+  0x38  , //-16db
+  0x3A  , //-17db
+  0x3C  , //-18db
+  0x3E  , //-19db
+  0x40  , //-20db
+  0x42  , //-21db
+  0x44  , //-22db
+  0x46  , //-23db
+  0x48  , //-24db
+  0x4C  , //-26db
+  0x50  , //-28db
+  0x54  , //-30db
+  0x58  , //-32db
+  0x5C  , //-34db
+  0x60  , //-36db
+  0x64  , //-38db
+  0x68  , //-40db
+  0x6C  , //-42db
+  0x70  , //-44db
+  0x74  , //-46db
+  0x78  , //-48db
+  0x7C  , //-50db
+  0x80  , //-52db
+  0x84  , //-54db
+  0x88  , //-56db
+  0x8C  , //-58db
+  0x90  , //-60db
+  0x94  , //-62db
+  0x98  , //-64db
+  0x9C  , //-66db
+  0xA0  , //-68db
+  0xA4  , //-70db
+  0xA8  , //-72db
+  0xff  , //Min
+};
+
+#define AD85050_RAM_SINGLE_SIZE	5
+const uint8_t AD85050_Set_Ch1_Mixer1[AD85050_RAM_SINGLE_SIZE][2] = {
+    {0x1D, 0x4B},	/* Coefficient RAM base address */
+    	
+    {0x1E, 0x00},	/* Top 8-bits of coefficient A1 */		/* Ch1_Mix1 */
+    {0x1F, 0x00},	/* Middle 8-bits of coefficient A1 */		/* Ch1_Mix1 */
+    {0x20, 0x00},	/* Bottom 8-bits of coefficient A1 */		/* Ch1_Mix1 */
+
+    {0x2D, 0x01},	/* CfRW : bank0, writing set coefficient to RAM */
+};
+
+const uint8_t AD85050_Set_Ch1_Mixer2[AD85050_RAM_SINGLE_SIZE][2] = {
+    {0x1D, 0x4C},	/* Coefficient RAM base address */
+    	
+    {0x1E, 0x7F},	/* Top 8-bits of coefficient A1 */		/* Ch1_Mix2 */
+    {0x1F, 0xFF},	/* Middle 8-bits of coefficient A1 */		/* Ch1_Mix2 */
+    {0x20, 0xFF},	/* Bottom 8-bits of coefficient A1 */		/* Ch1_Mix2 */
+
+    {0x2D, 0x01},	/* CfRW : bank0, writing set coefficient to RAM */
+};
+
+const uint8_t AD85050_Set_Ch2_Mixer1[AD85050_RAM_SINGLE_SIZE][2] = {
+    {0x1D, 0x4B},	/* Coefficient RAM base address */
+    	
+    {0x1E, 0x7F},	/* Top 8-bits of coefficient A1 */		/* Ch2_Mix1 */
+    {0x1F, 0xFF},	/* Middle 8-bits of coefficient A1 */		/* Ch2_Mix1 */
+    {0x20, 0xFF},	/* Bottom 8-bits of coefficient A1 */		/* Ch2_Mix1 */
+
+    {0x2D, 0x41},	/* CfRW : bank1, writing set coefficient to RAM */
+};
+
+const uint8_t AD85050_Set_Ch2_Mixer2[AD85050_RAM_SINGLE_SIZE][2] = {
+    {0x1D, 0x4C},	/* Coefficient RAM base address */
+    	
+    {0x1E, 0x00},	/* Top 8-bits of coefficient A1 */		/* Ch2_Mix2 */
+    {0x1F, 0x00},	/* Middle 8-bits of coefficient A1 */		/* Ch2_Mix2 */
+    {0x20, 0x00},	/* Bottom 8-bits of coefficient A1 */		/* Ch2_Mix2 */
+
+    {0x2D, 0x41},	/* CfRW : bank1, writing set coefficient to RAM */
 };
 
 #define MAX_VOLUME_LEVEL		(0)
@@ -128,7 +174,7 @@ uint8_t AD85050_Volume_Table[] = {
 
 /* Private macro -----------------------------------------------------*/
 /* Private variables -------------------------------------------------*/
-uint8_t uCurrent_Vol_Level = 0;
+uint32_t uCurrent_Vol_Level = 0;
 static Bool IS_Mute = FALSE;
 #ifdef AD82584F_USE_POWER_DOWN_MUTE
 static Bool Display_Mute = FALSE;
@@ -230,51 +276,80 @@ void Set_Is_Mute(Bool mute_on) //For Actual Mute Status
 
 void AD85050_Amp_Init(Bool Power_On_Init)
 {
-  uint8_t uVol_Level = 0;
-  uint8_t uCurVolLevel = 0;
+    uint8_t uArea1_Vol_Level = 0;
+    uint8_t uArea2_Vol_Level = 0;
+    uint8_t uSlaveBT_Vol_Level = 0;
 
-	_DBG("\n\rAD85050_Amp_Init");
+    uint32_t uVol_Level = 0;
+    uint8_t uRead = 0;
+    uint8_t i = 0;    
 
- 	BAmp_Init = TRUE;
+    _DBG("\n\rAD85050_Amp_Init");
 
-  delay_ms(20); //t7(20ms)
-  AD85050_Amp_Reset(TRUE);
-  delay_ms(20); //t8(20ms)
-  AD85050_Amp_Reset(FALSE);  
+    	BAmp_Init = TRUE;
 
-	BAmp_Init = FALSE;
+    delay_ms(20); //t7(20ms)
+    AD85050_Amp_Reset(TRUE);
+    delay_ms(20); //t8(20ms)
+    AD85050_Amp_Reset(FALSE);  
 
-	//Master Volume Control
-	//Data = 0x1f; //0x13; //1dB
-	//I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, 0x03,&Data,1);
+    BAmp_Init = FALSE;
 
-  uVol_Level = ADC_Volume_Attenuator_Value_Init();
-  
-  AD85050_Dac_Volume_Set(FALSE);
+    for(i =0;i<AD85050_RAM_SINGLE_SIZE;i++)
+    {
+    	uRead = AD85050_Set_Ch1_Mixer1[i][1];
+        I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_Set_Ch1_Mixer1[i][0],&uRead,1);        
+    }
 
-  if(uVol_Level == 0xff)
-  {
-#ifdef _DBG_FLASH_WRITE_ERASE
-    _DBG("\n\r#### Flash Data : First Init(Volume Level is 0xff)");
-#endif
-    uCurVolLevel = 64; //Level 64
-    AD85050_Amp_Volume_Register_Writing(uCurVolLevel);
-    AD85050_Amp_Set_Cur_Volume_Level(uCurVolLevel); //Save current volume level
-  }
-  else
-  {
-#ifdef _DBG_FLASH_WRITE_ERASE
-    _DBG("\n\r#### Flash Data : Find Volume Level");
-#endif
-    AD85050_Amp_EQ_DRC_Control(Cur_EQ_Mode); //2023-05-02_2 : To keep current EQ mode under Amp init //(EQ_NORMAL_MODE); //DRC / EQ Setting
+    for(i =0;i<AD85050_RAM_SINGLE_SIZE;i++)
+    {
+    	uRead = AD85050_Set_Ch1_Mixer2[i][1];
+        I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_Set_Ch1_Mixer2[i][0],&uRead,1);        
+    }
 
-    if(Power_On_Init == TRUE)
-      AD85050_Amp_Volume_Set_with_Index(uVol_Level, FALSE, TRUE); //Power On Init Call //2023-03-28_5 : Changed condition actual_key from FALSE to TRUE. When power on init, BAP-01 Master send wrong volume data until user changed voluem thru rotary button or remote app. Also, BAP-01 can use ACTUAL KEY in this case.
-    else
-      AD85050_Amp_Volume_Set_with_Index(uVol_Level, FALSE, TRUE); //Actual Key Input
-  }
+    for(i =0;i<AD85050_RAM_SINGLE_SIZE;i++)
+    {
+    	uRead = AD85050_Set_Ch2_Mixer1[i][1];
+        I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_Set_Ch2_Mixer1[i][0],&uRead,1);        
+    }
 
-  delay_ms(10); //t9(10ms)
+    for(i =0;i<AD85050_RAM_SINGLE_SIZE;i++)
+    {
+    	uRead = AD85050_Set_Ch2_Mixer2[i][1];
+        I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_Set_Ch2_Mixer2[i][0],&uRead,1);        
+    }    
+
+    //Master Volume Control
+    //Data = 0x1f; //0x13; //1dB
+    //I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, 0x03,&Data,1);
+
+    uArea1_Vol_Level = ADC_Volume_Attenuator_Value_Init(AREA1_VOLUME);
+    uArea2_Vol_Level = ADC_Volume_Attenuator_Value_Init(AREA2_VOLUME);
+    uSlaveBT_Vol_Level = ADC_Volume_Attenuator_Value_Init(SLAVE_BT_VOLUME);
+
+    AD85050_Dac_Volume_Set(FALSE);
+
+    if(uArea1_Vol_Level == 0xff)
+    uArea1_Vol_Level = 50;
+
+    if(uArea2_Vol_Level == 0xff)
+    uArea2_Vol_Level = 50;
+
+    if(uSlaveBT_Vol_Level == 0xff)
+    uSlaveBT_Vol_Level = 50;
+
+    uVol_Level = uArea2_Vol_Level;
+    uVol_Level <<= 8;
+    uVol_Level |= uArea1_Vol_Level;
+    uVol_Level <<= 8;
+    uVol_Level |= uSlaveBT_Vol_Level;
+
+    AD85050_Amp_EQ_DRC_Control(Cur_EQ_Mode);
+
+    AD85050_Amp_Volume_Set_with_Index(uVol_Level, FALSE, TRUE);
+    //MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Volume, (VOLUME_LEVEL_NUMER-1) - uSlaveBT_Vol_Level);
+
+    delay_ms(10); //t9(10ms)
 }
 
 void AD85050_Amp_Reset(Bool Reset_On)
@@ -430,31 +505,65 @@ void AD85050_Amp_Mute_Toggle(void) //Toggle
 	BAmp_COM = FALSE;
 }
 
-uint8_t AD85050_Amp_Volume_Set_with_Index(uint8_t Vol_Level, Bool Inverse, Bool Actual_Key) //Actual Key says this is not SSP or BLE communication. So, we need to send same key to Slave SPK
+uint32_t AD85050_Amp_Volume_Set_with_Index(uint32_t Vol_Level, Bool Inverse, Bool Actual_Key) //Actual Key says this is not SSP or BLE communication. So, we need to send same key to Slave SPK
 {
-  uint8_t uCurVolLevel = 0;
+  uint16_t areaVolLevel = 0;
+  uint8_t area1_Vol_Level = 0;
+  uint8_t area2_Vol_Level = 0;
+  uint8_t slaveBT_Vol_Level = 0;
 
-	if(((Vol_Level > VOLUME_LEVEL_NUMER) && Inverse) || ((Vol_Level > (VOLUME_LEVEL_NUMER-1)) && !Inverse))
+  uint32_t uCurVolLevel = 0;
+
+  slaveBT_Vol_Level = (uint8_t)(Vol_Level & 0x0000ff);
+  area1_Vol_Level = (uint8_t)((Vol_Level & 0x00ff00) >> 8);
+  area2_Vol_Level = (uint8_t)((Vol_Level & 0xff0000) >> 16);
+
+	if(((area1_Vol_Level > VOLUME_LEVEL_NUMER) && Inverse) || ((area1_Vol_Level > (VOLUME_LEVEL_NUMER-1)) && !Inverse))
   {
-    return 0xff;
+    area1_Vol_Level = 0xff;
   }
 
+	if(((area2_Vol_Level > VOLUME_LEVEL_NUMER) && Inverse) || ((area2_Vol_Level > (VOLUME_LEVEL_NUMER-1)) && !Inverse))
+  {
+    area2_Vol_Level = 0xff;
+  }
+
+	if(((slaveBT_Vol_Level > VOLUME_LEVEL_NUMER) && Inverse) || ((slaveBT_Vol_Level > (VOLUME_LEVEL_NUMER-1)) && !Inverse))
+  {
+    slaveBT_Vol_Level = 0xff;
+  }  
+
 	if(Inverse)
-	{
-		uCurVolLevel = VOLUME_LEVEL_NUMER - Vol_Level; //Input : 50~1 / Output : 0 ~ 49(Actual Volume Table)
-	}
-	else
-		uCurVolLevel = Vol_Level;
+  { 
+    if(area1_Vol_Level != 0xff)
+  		area1_Vol_Level = VOLUME_LEVEL_NUMER - area1_Vol_Level; //Input : 50~1 / Output : 0 ~ 49(Actual Volume Table)
+
+    if(area2_Vol_Level != 0xff)
+      area2_Vol_Level = VOLUME_LEVEL_NUMER - area2_Vol_Level; //Input : 50~1 / Output : 0 ~ 49(Actual Volume Table)
+
+    if(slaveBT_Vol_Level != 0xff)
+      slaveBT_Vol_Level = VOLUME_LEVEL_NUMER - slaveBT_Vol_Level; //Input : 50~1 / Output : 0 ~ 49(Actual Volume Table)
+  }
+
+  areaVolLevel = area2_Vol_Level;
+  areaVolLevel <<= 8;
+  areaVolLevel |= area1_Vol_Level;
 
 	BAmp_COM = TRUE;
-  AD85050_Amp_Volume_Register_Writing(uCurVolLevel);
+  AD85050_Amp_Volume_Register_Writing(areaVolLevel);
 	BAmp_COM = FALSE;
   
+  uCurVolLevel = area2_Vol_Level;
+  uCurVolLevel <<= 8;
+  uCurVolLevel |= area1_Vol_Level;
+  uCurVolLevel <<= 8;
+  uCurVolLevel |= slaveBT_Vol_Level;
+
 	AD85050_Amp_Set_Cur_Volume_Level(uCurVolLevel); //Save current volume level  
 
-	if(Actual_Key)
+	if(slaveBT_Vol_Level != 0xff && Actual_Key)
 	{
-		MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Volume, (VOLUME_LEVEL_NUMER-1) - Vol_Level);
+		MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Volume, (VOLUME_LEVEL_NUMER-1) - slaveBT_Vol_Level);
 	}  
 
 	return uCurVolLevel;
@@ -463,6 +572,7 @@ uint8_t AD85050_Amp_Volume_Set_with_Index(uint8_t Vol_Level, Bool Inverse, Bool 
 // First of all, You need to make sure if current page is Book 00 & Page00
 void AD85050_Amp_Volume_Control(Vol_Setting Vol_mode) //Volume Up/Down
 {
+#if 0
 	uint8_t uCurVolLevel = 0;
 	static uint8_t uCount = 0;
   
@@ -491,6 +601,7 @@ void AD85050_Amp_Volume_Control(Vol_Setting Vol_mode) //Volume Up/Down
 
 	AD85050_Amp_Set_Cur_Volume_Level(uCurVolLevel); //Save current volume level
 	MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Volume, (VOLUME_LEVEL_NUMER-1) - uCurVolLevel);
+#endif
 }
 
 void AD85050_Amp_RAM_Single_Write(uint8_t uCount, uint8_t uData)
@@ -686,8 +797,7 @@ void AD85050_Amp_Mode_Control(Audio_Output_Setting mode) //To Do !!!
 
 void AD85050_Amp_EQ_DRC_Control(EQ_Mode_Setting EQ_mode)
 {
-	uint8_t uCurVolLevel;
-	uint8_t uData = 0, uCount = 0, uSize = 0;
+	uint32_t uCurVolLevel;
 
 #ifdef AD85050_DEBUG_MSG
 	_DBG("\n\r+++ AD85050_Amp_EQ_DRC_Control() !!!!");
@@ -733,7 +843,7 @@ void AD85050_Amp_EQ_DRC_Control(EQ_Mode_Setting EQ_mode)
 	BAmp_COM = FALSE;  
 }
 
-void AD85050_Amp_Set_Cur_Volume_Level(uint8_t volume)
+void AD85050_Amp_Set_Cur_Volume_Level(uint32_t volume)
 {
 #ifdef AD85050_DEBUG_MSG
 		_DBG("\n\rAD85050_Amp_Set_Cur_Volume_Level() : volume =");
@@ -743,7 +853,7 @@ void AD85050_Amp_Set_Cur_Volume_Level(uint8_t volume)
 	uCurrent_Vol_Level = volume;
 }
 
-uint8_t AD85050_Amp_Get_Cur_Volume_Level(void) //Start count from Max(15)
+uint32_t AD85050_Amp_Get_Cur_Volume_Level(void) //Start count from Max(15)
 {
 #ifdef AD85050_DEBUG_MSG
 		_DBG("\n\rAD85050_Amp_Get_Cur_Volume_Level() : volume =");
@@ -1164,16 +1274,22 @@ void AD85050_DRC_Off(void)
 }
 #endif
 
-void AD85050_Amp_Volume_Register_Writing(uint8_t uVolumeLevel)
+void AD85050_Amp_Volume_Register_Writing(uint16_t uVolumeLevel)
 {
 	uint8_t uReg_Value = 0;
-	//uint8_t uArrayLevel = 0;
-	int i;
+	uint8_t uArea1_Level = 0;
+	uint8_t uArea2_Level = 0;  
 
-	if(uVolumeLevel > 50)
-		uVolumeLevel = 50;
+  uArea1_Level = (uint8_t)(uVolumeLevel & 0x00ff);
+  uArea2_Level = (uint8_t)((uVolumeLevel & 0xff00) >> 8);
 
-  if(uVolumeLevel != 50)
+	if(uArea1_Level != 0xff && uArea1_Level > 50)
+		uArea1_Level = 50;
+
+	if(uArea2_Level != 0xff && uArea2_Level > 50)
+		uArea2_Level = 50;  
+
+  if(uArea1_Level != 50)
   {
     switch(Cur_EQ_Mode)
     {
@@ -1192,8 +1308,39 @@ void AD85050_Amp_Volume_Register_Writing(uint8_t uVolumeLevel)
     }
   }
 
-	uReg_Value = AD85050_Volume_Table[uVolumeLevel];
-	I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_VOL_CONTROL_REG1,&uReg_Value,1);  
+  if(uArea2_Level != 50)
+  {
+    switch(Cur_EQ_Mode)
+    {
+      case EQ_POP_ROCK_MODE:
+      break;
+      case EQ_JAZZ_MODE:
+      break;
+      case EQ_VOCAL_MODE:
+      break;
+
+      case EQ_NORMAL_MODE:
+      case EQ_CLUB_MODE:
+      //case EQ_BAP_NORMAL_MODE:
+      default:
+      break;
+    }
+  } 
+
+  uReg_Value = MASTER_VOLUME_LEVEL;
+  I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_VOL_CONTROL_REG1,&uReg_Value,1);  
+
+  if(uArea1_Level != 0xff)
+  {
+	  uReg_Value = AD85050_Volume_Table[uArea1_Level];
+	  I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_CHANNEL1_VOL_CONTROL_REG1,&uReg_Value,1);  
+  }
+
+  if(uArea2_Level != 0xff)
+  {
+	  uReg_Value = AD85050_Volume_Table[uArea2_Level];
+	  I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_CHANNEL2_VOL_CONTROL_REG1,&uReg_Value,1);  
+  }
 }
 
 void AD85050_Dac_Volume_Set(Bool Aux_Mode) //2023-06-13_1 : Added parameter "Aux_Mode" and changed this function
