@@ -507,66 +507,66 @@ void AD85050_Amp_Mute_Toggle(void) //Toggle
 
 uint32_t AD85050_Amp_Volume_Set_with_Index(uint32_t Vol_Level, Bool Inverse, Bool Actual_Key) //Actual Key says this is not SSP or BLE communication. So, we need to send same key to Slave SPK
 {
-  uint16_t areaVolLevel = 0;
-  uint8_t area1_Vol_Level = 0;
-  uint8_t area2_Vol_Level = 0;
-  uint8_t slaveBT_Vol_Level = 0;
+    uint16_t areaVolLevel = 0;
+    uint8_t area1_Vol_Level = 0;
+    uint8_t area2_Vol_Level = 0;
+    uint8_t slaveBT_Vol_Level = 0;
 
-  uint32_t uCurVolLevel = 0;
+    uint32_t uCurVolLevel = 0;
 
-  slaveBT_Vol_Level = (uint8_t)(Vol_Level & 0x0000ff);
-  area1_Vol_Level = (uint8_t)((Vol_Level & 0x00ff00) >> 8);
-  area2_Vol_Level = (uint8_t)((Vol_Level & 0xff0000) >> 16);
+    slaveBT_Vol_Level = (uint8_t)(Vol_Level & 0x0000ff);
+    area1_Vol_Level = (uint8_t)((Vol_Level & 0x00ff00) >> 8);
+    area2_Vol_Level = (uint8_t)((Vol_Level & 0xff0000) >> 16);
 
-	if(((area1_Vol_Level > VOLUME_LEVEL_NUMER) && Inverse) || ((area1_Vol_Level > (VOLUME_LEVEL_NUMER-1)) && !Inverse))
-  {
-    area1_Vol_Level = 0xff;
-  }
+    if(((area1_Vol_Level > VOLUME_LEVEL_NUMER) && Inverse) || ((area1_Vol_Level > (VOLUME_LEVEL_NUMER-1)) && !Inverse))
+    {
+        area1_Vol_Level = 0xff;
+    }
 
-	if(((area2_Vol_Level > VOLUME_LEVEL_NUMER) && Inverse) || ((area2_Vol_Level > (VOLUME_LEVEL_NUMER-1)) && !Inverse))
-  {
-    area2_Vol_Level = 0xff;
-  }
+    if(((area2_Vol_Level > VOLUME_LEVEL_NUMER) && Inverse) || ((area2_Vol_Level > (VOLUME_LEVEL_NUMER-1)) && !Inverse))
+    {
+        area2_Vol_Level = 0xff;
+    }
 
-	if(((slaveBT_Vol_Level > VOLUME_LEVEL_NUMER) && Inverse) || ((slaveBT_Vol_Level > (VOLUME_LEVEL_NUMER-1)) && !Inverse))
-  {
-    slaveBT_Vol_Level = 0xff;
-  }  
+    if(((slaveBT_Vol_Level > VOLUME_LEVEL_NUMER) && Inverse) || ((slaveBT_Vol_Level > (VOLUME_LEVEL_NUMER-1)) && !Inverse))
+    {
+        slaveBT_Vol_Level = 0xff;
+    }  
 
-	if(Inverse)
-  { 
-    if(area1_Vol_Level != 0xff)
-  		area1_Vol_Level = VOLUME_LEVEL_NUMER - area1_Vol_Level; //Input : 50~1 / Output : 0 ~ 49(Actual Volume Table)
+    if(Inverse)
+    { 
+        if(area1_Vol_Level != 0xff)
+    		area1_Vol_Level = VOLUME_LEVEL_NUMER - area1_Vol_Level; //Input : 50~1 / Output : 0 ~ 49(Actual Volume Table)
 
-    if(area2_Vol_Level != 0xff)
-      area2_Vol_Level = VOLUME_LEVEL_NUMER - area2_Vol_Level; //Input : 50~1 / Output : 0 ~ 49(Actual Volume Table)
+        if(area2_Vol_Level != 0xff)
+            area2_Vol_Level = VOLUME_LEVEL_NUMER - area2_Vol_Level; //Input : 50~1 / Output : 0 ~ 49(Actual Volume Table)
 
-    if(slaveBT_Vol_Level != 0xff)
-      slaveBT_Vol_Level = VOLUME_LEVEL_NUMER - slaveBT_Vol_Level; //Input : 50~1 / Output : 0 ~ 49(Actual Volume Table)
-  }
+        if(slaveBT_Vol_Level != 0xff)
+            slaveBT_Vol_Level = VOLUME_LEVEL_NUMER - slaveBT_Vol_Level; //Input : 50~1 / Output : 0 ~ 49(Actual Volume Table)
+    }
 
-  areaVolLevel = area2_Vol_Level;
-  areaVolLevel <<= 8;
-  areaVolLevel |= area1_Vol_Level;
+    areaVolLevel = area2_Vol_Level;
+    areaVolLevel <<= 8;
+    areaVolLevel |= area1_Vol_Level;
 
-	BAmp_COM = TRUE;
-  AD85050_Amp_Volume_Register_Writing(areaVolLevel);
-	BAmp_COM = FALSE;
-  
-  uCurVolLevel = area2_Vol_Level;
-  uCurVolLevel <<= 8;
-  uCurVolLevel |= area1_Vol_Level;
-  uCurVolLevel <<= 8;
-  uCurVolLevel |= slaveBT_Vol_Level;
+    BAmp_COM = TRUE;
+    AD85050_Amp_Volume_Register_Writing(areaVolLevel);
+    BAmp_COM = FALSE;
 
-	AD85050_Amp_Set_Cur_Volume_Level(uCurVolLevel); //Save current volume level  
+    uCurVolLevel = area2_Vol_Level;
+    uCurVolLevel <<= 8;
+    uCurVolLevel |= area1_Vol_Level;
+    uCurVolLevel <<= 8;
+    uCurVolLevel |= slaveBT_Vol_Level;
 
-	if(slaveBT_Vol_Level != 0xff && Actual_Key)
-	{
-		MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Volume, (VOLUME_LEVEL_NUMER-1) - slaveBT_Vol_Level);
-	}  
+    AD85050_Amp_Set_Cur_Volume_Level(uCurVolLevel); //Save current volume level  
 
-	return uCurVolLevel;
+    if(slaveBT_Vol_Level != INVALID_VOLUME && Actual_Key)
+    {
+        MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Volume, (VOLUME_LEVEL_NUMER-1) - slaveBT_Vol_Level);
+    }  
+
+    return uCurVolLevel;
 }
 
 // First of all, You need to make sure if current page is Book 00 & Page00
@@ -836,7 +836,8 @@ void AD85050_Amp_EQ_DRC_Control(EQ_Mode_Setting EQ_mode)
   }
   
 	uCurVolLevel = AD85050_Amp_Get_Cur_Volume_Level();
-	AD85050_Amp_Volume_Register_Writing(uCurVolLevel);
+    uCurVolLevel = uCurVolLevel >> 8;
+	AD85050_Amp_Volume_Register_Writing((uint16_t)uCurVolLevel);
 
 	MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_EQ, EQ_mode);  
 
@@ -870,7 +871,7 @@ uint8_t AD85050_Amp_Get_Cur_Volume_Level_Inverse(void) //Start count from Min(0)
 		_DBG("\n\rAD85050_Amp_Get_Cur_Volume_Level_Inverse() : volume =");
 		_DBD(uCurrent_Vol_Level);
 #endif
-	uInverse_Vol = (VOLUME_LEVEL_NUMER-1) -uCurrent_Vol_Level;
+	uInverse_Vol = (VOLUME_LEVEL_NUMER-1) -(uint8_t)(uCurrent_Vol_Level & 0x0000ff);
 
 	return uInverse_Vol;
 }
@@ -1283,10 +1284,10 @@ void AD85050_Amp_Volume_Register_Writing(uint16_t uVolumeLevel)
   uArea1_Level = (uint8_t)(uVolumeLevel & 0x00ff);
   uArea2_Level = (uint8_t)((uVolumeLevel & 0xff00) >> 8);
 
-	if(uArea1_Level != 0xff && uArea1_Level > 50)
+	if(uArea1_Level != INVALID_VOLUME && uArea1_Level > 50)
 		uArea1_Level = 50;
 
-	if(uArea2_Level != 0xff && uArea2_Level > 50)
+	if(uArea2_Level != INVALID_VOLUME && uArea2_Level > 50)
 		uArea2_Level = 50;  
 
   if(uArea1_Level != 50)
@@ -1330,13 +1331,13 @@ void AD85050_Amp_Volume_Register_Writing(uint16_t uVolumeLevel)
   uReg_Value = MASTER_VOLUME_LEVEL;
   I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_VOL_CONTROL_REG1,&uReg_Value,1);  
 
-  if(uArea1_Level != 0xff)
+  if(uArea1_Level != INVALID_VOLUME)
   {
 	  uReg_Value = AD85050_Volume_Table[uArea1_Level];
 	  I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_CHANNEL1_VOL_CONTROL_REG1,&uReg_Value,1);  
   }
 
-  if(uArea2_Level != 0xff)
+  if(uArea2_Level != INVALID_VOLUME)
   {
 	  uReg_Value = AD85050_Volume_Table[uArea2_Level];
 	  I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_CHANNEL2_VOL_CONTROL_REG1,&uReg_Value,1);  

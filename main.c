@@ -1373,13 +1373,13 @@ void mainloop(void)
 #endif
                                     uCurVolLevel_bk = uCurVolLevel;
 
-                                    l_CurVolLevel = 0xff;
+                                    l_CurVolLevel = INVALID_VOLUME;
                                     l_CurVolLevel <<= 8;
 
                                     l_CurVolLevel |= uCurVolLevel;
                                     l_CurVolLevel <<= 8;
 
-                                    l_CurVolLevel |= 0xff;
+                                    l_CurVolLevel |= INVALID_VOLUME;
 
                                     AD85050_Amp_Volume_Set_with_Index(l_CurVolLevel, FALSE, TRUE);
 
@@ -1504,10 +1504,10 @@ void mainloop(void)
                                     l_CurVolLevel = uCurVolLevel;
                                     l_CurVolLevel <<= 8;
 
-                                    l_CurVolLevel |= 0xff;
+                                    l_CurVolLevel |= INVALID_VOLUME;
                                     l_CurVolLevel <<= 8;
 
-                                    l_CurVolLevel |= 0xff;
+                                    l_CurVolLevel |= INVALID_VOLUME;
 
                                     AD85050_Amp_Volume_Set_with_Index(l_CurVolLevel, FALSE, TRUE);
 
@@ -1629,10 +1629,10 @@ void mainloop(void)
 #endif
                                     uCurVolLevel_bk = uCurVolLevel;
 
-                                    l_CurVolLevel = 0xff;
+                                    l_CurVolLevel = INVALID_VOLUME;
                                     l_CurVolLevel <<= 8;
                                     
-                                    l_CurVolLevel |= 0xff;
+                                    l_CurVolLevel |= INVALID_VOLUME;
                                     l_CurVolLevel <<= 8;
                                     
                                     l_CurVolLevel |= uCurVolLevel;

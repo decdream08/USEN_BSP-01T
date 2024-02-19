@@ -106,7 +106,11 @@ Bool USEN_Tablet_auto_power_on = FALSE;
 #endif
 
 #if (defined(POWER_KEY_TOGGLE_ENABLE) || defined(SWITCH_BUTTON_KEY_ENABLE)) && (defined(AD82584F_ENABLE) ||defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE))
+#ifdef USEN_BAP2
+static uint32_t bVolume_Level = 0;
+#else
 static uint8_t bVolume_Level = 0;
+#endif
 #endif
 #ifndef MASTER_MODE_ONLY
 static Switch_Master_Slave_Mode Power_Off_MS_Mode; //Under Power Off mode, we need to enable Master/Slave Switch action 2022-09-29

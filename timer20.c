@@ -932,7 +932,11 @@ void TIMER20_Periodic_Mode_Run(Bool On)
 void TIMER20_IRQHandler_IT(void)
 {
 #ifdef FACTORY_RESET_LED_DISPLAY
+#ifdef USEN_BAP2
+	uint32_t uVolume_Level = 0;
+#else
 	uint8_t uVolume_Level = 0;
+#endif
 	Status_LED_Mode mode;
 #endif
 

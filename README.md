@@ -568,3 +568,6 @@
   
 ## 2024-02-16 (BAP-02)
   - USEN BAP-2 2차 작업본 적용 (L/R change, volume, BT/Aux Input select)
+  
+## 2024-02-19 (BAP-02)
+  - USEN BAP-2 Volume 처리 수정

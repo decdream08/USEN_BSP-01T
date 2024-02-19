@@ -516,10 +516,12 @@ typedef enum{
 
 #ifdef USEN_BAP2
 typedef enum{
-  SLAVE_BT_VOLUME,
-	AREA1_VOLUME,
-	AREA2_VOLUME
+    SLAVE_BT_VOLUME,
+    AREA1_VOLUME,
+    AREA2_VOLUME
 }Attenuator_Type;
+
+#define INVALID_VOLUME 0xff
 #endif
 
 typedef void (*Serial_Handle_t)(uint8_t *Data);

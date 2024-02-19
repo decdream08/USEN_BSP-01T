@@ -399,7 +399,6 @@ void FlashSaveData(FLASH_SAVE_DATA data_num, uint8_t data) //Now we save FLASH_S
 #ifdef AD82584F_ENABLE
 		databuffers[FLASH_SAVE_DATA_VOLUME] = AD82584F_Amp_Get_Cur_Volume_Level();
 #elif defined(AD85050_ENABLE)
-		databuffers[FLASH_SAVE_DATA_VOLUME] = AD85050_Amp_Get_Cur_Volume_Level();
 #else //TAS5806MD_ENABLE
 		databuffers[FLASH_SAVE_DATA_VOLUME] = TAS5806MD_Amp_Get_Cur_Volume_Level();
 #endif //AD82584F_ENABLE
@@ -438,11 +437,13 @@ void FlashSaveData(FLASH_SAVE_DATA data_num, uint8_t data) //Now we save FLASH_S
 		}
 		break;
 #endif
+#ifndef USEN_BAP2
 		case FLASH_SAVE_DATA_VOLUME: //Volume Level
 		{
 			databuffers[FLASH_SAVE_DATA_VOLUME] = data;
 		}
 		break;
+#endif
 #if defined(FLASH_SELF_WRITE_ERASE_EXTENSION) && !defined(FLASH_SELF_WRITE_ERASE_EXCEPTING_EQ)
 		case FLASH_SAVE_DATA_EQ: //EQ Mode
 		{
