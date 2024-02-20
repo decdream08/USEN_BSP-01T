@@ -2958,7 +2958,6 @@ void GPIOAB_IRQHandler_IT(void)
 				else
 #endif
 				{
-					TIMER13_Periodic_Mode_Run(TRUE, Timer13_Power_Key);
 					cur_button_status = button_push; //High -> Low
 				}
 			}
@@ -3072,38 +3071,28 @@ void GPIOAB_IRQHandler_IT(void)
 						ret = -1;
 					}
 #elif defined(MB3021_ENABLE) && defined(USEN_BAP2)
-                    if(key == SW1_KEY) //temp
-                    {
-                        key = NONE_KEY; //SW1_KEY set to NONE_KEY
+					if(key == SW1_KEY) //temp
+					{
+							key = NONE_KEY; //SW1_KEY set to NONE_KEY
 #if defined(TIMER20_COUNTER_ENABLE) && defined(AUTO_ONOFF_ENABLE) //Fixed Master SPK do not work Auto power off even though No siganl from BT when user remove Aux jack
-                        TIMER20_auto_power_flag_Start();
+							TIMER20_auto_power_flag_Start();
 #endif
 #if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
 #ifdef SLAVE_ADD_MUTE_DELAY_ENABLE
-                        MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x02);
+							MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x02);
 #endif
 #ifdef AD82584F_ENABLE
-                        AD82584F_Amp_Mute(TRUE, FALSE); //MUTE ON
+							AD82584F_Amp_Mute(TRUE, FALSE); //MUTE ON
 #elif defined(AD85050_ENABLE)
-                        AD85050_Amp_Mute(TRUE, FALSE); //MUTE ON
+							AD85050_Amp_Mute(TRUE, FALSE); //MUTE ON
 #else //TAS5806MD_ENABLE
-                        TAS5806MD_Amp_Mute(TRUE, FALSE); //MUTE ON
+							TAS5806MD_Amp_Mute(TRUE, FALSE); //MUTE ON
 #endif
 #endif
-                        Set_MB3021_BT_Module_Source_Change();
+							Set_MB3021_BT_Module_Source_Change();
 
-                        ret = -1;
-                    }
-                    else
-					if(key == POWER_KEY)
-					{
-						if(Is_Power_Long_Key())
-							key = NONE_KEY;
-						
-						TIMER13_Periodic_Mode_Run(FALSE, Timer13_Power_Key);
-					
-					  ret = -1;
-                    }
+							ret = -1;
+					}
 #endif
 					if(ret != -1)
 					{

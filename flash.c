@@ -380,7 +380,11 @@ void FlashSaveData(FLASH_SAVE_DATA data_num, uint8_t data) //Now we save FLASH_S
 #ifdef FLASH_SELF_WRITE_ERASE_EXTENSION
 	if(databuffers[FLASH_SAVE_DATA_POWER] == 0xff)
 	{
+#ifdef USEN_BAP2
+		databuffers[FLASH_SAVE_DATA_POWER] = 0x00; //Power Off
+#else
 		databuffers[FLASH_SAVE_DATA_POWER] = 0x01; //Power On
+#endif
 	}
 	
 	if(databuffers[FLASH_SAVE_DATA_MUTE] == 0xff)

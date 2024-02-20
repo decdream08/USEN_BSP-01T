@@ -574,3 +574,4 @@
   
 ## 2024-02-20 (BAP-02)
   - USEN BAP-2 Volume 처리 수정
+  - Power on / off 수정
