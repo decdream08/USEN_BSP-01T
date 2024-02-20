@@ -571,3 +571,6 @@
   
 ## 2024-02-19 (BAP-02)
   - USEN BAP-2 Volume 贸府 荐沥
+  
+## 2024-02-20 (BAP-02)
+  - USEN BAP-2 Volume 贸府 荐沥

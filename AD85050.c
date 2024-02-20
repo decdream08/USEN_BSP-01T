@@ -174,7 +174,7 @@ const uint8_t AD85050_Set_Ch2_Mixer2[AD85050_RAM_SINGLE_SIZE][2] = {
 
 /* Private macro -----------------------------------------------------*/
 /* Private variables -------------------------------------------------*/
-uint32_t uCurrent_Vol_Level = 0;
+uint32_t uCurrent_Vol_Level = 0xffffff;
 static Bool IS_Mute = FALSE;
 #ifdef AD82584F_USE_POWER_DOWN_MUTE
 static Bool Display_Mute = FALSE;
@@ -514,9 +514,9 @@ uint32_t AD85050_Amp_Volume_Set_with_Index(uint32_t Vol_Level, Bool Inverse, Boo
 
     uint32_t uCurVolLevel = 0;
 
-    slaveBT_Vol_Level = (uint8_t)(Vol_Level & 0x0000ff);
-    area1_Vol_Level = (uint8_t)((Vol_Level & 0x00ff00) >> 8);
-    area2_Vol_Level = (uint8_t)((Vol_Level & 0xff0000) >> 16);
+    slaveBT_Vol_Level = (uint8_t)(Vol_Level & BT_VOLUME_MASK);
+    area1_Vol_Level = (uint8_t)((Vol_Level & AREA1_VOLUME_MASK) >> 8);
+    area2_Vol_Level = (uint8_t)((Vol_Level & AREA2_VOLUME_MASK) >> 16);
 
     if(((area1_Vol_Level > VOLUME_LEVEL_NUMER) && Inverse) || ((area1_Vol_Level > (VOLUME_LEVEL_NUMER-1)) && !Inverse))
     {
@@ -846,19 +846,42 @@ void AD85050_Amp_EQ_DRC_Control(EQ_Mode_Setting EQ_mode)
 
 void AD85050_Amp_Set_Cur_Volume_Level(uint32_t volume)
 {
+    uint8_t area2_vol_level = 0;
+    uint8_t area1_vol_level = 0;
+    uint8_t bt_vol_level = 0;
+
 #ifdef AD85050_DEBUG_MSG
 		_DBG("\n\rAD85050_Amp_Set_Cur_Volume_Level() : volume =");
-		_DBD(volume);
+		_DBD32(volume);
 #endif
+    area2_vol_level = (uint8_t)((volume & AREA2_VOLUME_MASK) >> 16);
+    if(area2_vol_level == INVALID_VOLUME)
+        area2_vol_level = (uint8_t)((uCurrent_Vol_Level & AREA2_VOLUME_MASK) >> 16);
 
-	uCurrent_Vol_Level = volume;
+    area1_vol_level = (uint8_t)((volume & AREA1_VOLUME_MASK) >> 8);
+    if(area1_vol_level == INVALID_VOLUME)
+        area1_vol_level = (uint8_t)((uCurrent_Vol_Level & AREA2_VOLUME_MASK) >> 8);
+
+    bt_vol_level = (uint8_t)(volume & BT_VOLUME_MASK);
+    if(bt_vol_level == INVALID_VOLUME)
+        bt_vol_level = (uint8_t)(uCurrent_Vol_Level & BT_VOLUME_MASK);
+
+    volume = area2_vol_level;
+
+    volume <<= 8;
+    volume |= area1_vol_level;
+
+    volume <<= 8;
+    volume |= bt_vol_level;
+
+    uCurrent_Vol_Level = volume;
 }
 
 uint32_t AD85050_Amp_Get_Cur_Volume_Level(void) //Start count from Max(15)
 {
 #ifdef AD85050_DEBUG_MSG
 		_DBG("\n\rAD85050_Amp_Get_Cur_Volume_Level() : volume =");
-		_DBD(uCurrent_Vol_Level);
+		_DBD32(uCurrent_Vol_Level);
 #endif
 
 	return uCurrent_Vol_Level;
@@ -869,7 +892,7 @@ uint8_t AD85050_Amp_Get_Cur_Volume_Level_Inverse(void) //Start count from Min(0)
 	uint8_t uInverse_Vol;
 #ifdef AD85050_DEBUG_MSG
 		_DBG("\n\rAD85050_Amp_Get_Cur_Volume_Level_Inverse() : volume =");
-		_DBD(uCurrent_Vol_Level);
+		_DBD32(uCurrent_Vol_Level);
 #endif
 	uInverse_Vol = (VOLUME_LEVEL_NUMER-1) -(uint8_t)(uCurrent_Vol_Level & 0x0000ff);
 
@@ -1277,21 +1300,21 @@ void AD85050_DRC_Off(void)
 
 void AD85050_Amp_Volume_Register_Writing(uint16_t uVolumeLevel)
 {
-	uint8_t uReg_Value = 0;
-	uint8_t uArea1_Level = 0;
-	uint8_t uArea2_Level = 0;  
+    uint8_t uReg_Value = 0;
+    uint8_t uArea1_Level = 0;
+    uint8_t uArea2_Level = 0;  
 
-  uArea1_Level = (uint8_t)(uVolumeLevel & 0x00ff);
-  uArea2_Level = (uint8_t)((uVolumeLevel & 0xff00) >> 8);
+    uArea1_Level = (uint8_t)(uVolumeLevel & (uint16_t)(AREA1_VOLUME_MASK >> 8));
+    uArea2_Level = (uint8_t)((uVolumeLevel & (uint16_t)(AREA2_VOLUME_MASK >> 8)) >> 8);
 
-	if(uArea1_Level != INVALID_VOLUME && uArea1_Level > 50)
-		uArea1_Level = 50;
+    if(uArea1_Level != INVALID_VOLUME && uArea1_Level > 50)
+    	uArea1_Level = 50;
 
-	if(uArea2_Level != INVALID_VOLUME && uArea2_Level > 50)
-		uArea2_Level = 50;  
+    if(uArea2_Level != INVALID_VOLUME && uArea2_Level > 50)
+    	uArea2_Level = 50;  
 
-  if(uArea1_Level != 50)
-  {
+    if(uArea1_Level != 50)
+    {
     switch(Cur_EQ_Mode)
     {
       case EQ_POP_ROCK_MODE:
@@ -1307,10 +1330,10 @@ void AD85050_Amp_Volume_Register_Writing(uint16_t uVolumeLevel)
       default:
       break;
     }
-  }
+    }
 
-  if(uArea2_Level != 50)
-  {
+    if(uArea2_Level != 50)
+    {
     switch(Cur_EQ_Mode)
     {
       case EQ_POP_ROCK_MODE:
@@ -1326,22 +1349,22 @@ void AD85050_Amp_Volume_Register_Writing(uint16_t uVolumeLevel)
       default:
       break;
     }
-  } 
+    } 
 
-  uReg_Value = MASTER_VOLUME_LEVEL;
-  I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_VOL_CONTROL_REG1,&uReg_Value,1);  
+    uReg_Value = MASTER_VOLUME_LEVEL;
+    I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_VOL_CONTROL_REG1,&uReg_Value,1);  
 
-  if(uArea1_Level != INVALID_VOLUME)
-  {
-	  uReg_Value = AD85050_Volume_Table[uArea1_Level];
-	  I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_CHANNEL1_VOL_CONTROL_REG1,&uReg_Value,1);  
-  }
+    if(uArea1_Level != INVALID_VOLUME)
+    {
+      uReg_Value = AD85050_Volume_Table[uArea1_Level];
+      I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_CHANNEL1_VOL_CONTROL_REG1,&uReg_Value,1);  
+    }
 
-  if(uArea2_Level != INVALID_VOLUME)
-  {
-	  uReg_Value = AD85050_Volume_Table[uArea2_Level];
-	  I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_CHANNEL2_VOL_CONTROL_REG1,&uReg_Value,1);  
-  }
+    if(uArea2_Level != INVALID_VOLUME)
+    {
+      uReg_Value = AD85050_Volume_Table[uArea2_Level];
+      I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_CHANNEL2_VOL_CONTROL_REG1,&uReg_Value,1);  
+    }
 }
 
 void AD85050_Dac_Volume_Set(Bool Aux_Mode) //2023-06-13_1 : Added parameter "Aux_Mode" and changed this function

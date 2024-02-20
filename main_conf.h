@@ -522,6 +522,10 @@ typedef enum{
 }Attenuator_Type;
 
 #define INVALID_VOLUME 0xff
+
+#define AREA2_VOLUME_MASK 0xff0000
+#define AREA1_VOLUME_MASK 0x00ff00
+#define BT_VOLUME_MASK    0x0000ff
 #endif
 
 typedef void (*Serial_Handle_t)(uint8_t *Data);

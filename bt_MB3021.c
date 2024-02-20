@@ -2902,6 +2902,9 @@ static void MB3021_BT_Module_Remote_Data_Receive(uint8_t source_type, uint8_t da
 #endif
 										if(data[3] <= 0x0f)
 										{
+#ifdef USEN_BAP2
+                                            uint32_t l_volume = 0xffff00;
+#endif
 #if defined(ADC_VOLUME_STEP_ENABLE) && (defined(USEN_BAP) || defined(USEN_BAP2))//2023-01-09_3 : To Fit SPP volume data from PeerDevice under BAP //2023-01-10_1
 #ifdef ADC_VOLUME_64_STEP_ENABLE
 											uVol_buf = Convert_16Step_to_64Step(data[3]); //2023-01-09_1 : To convert from 16-step to 64-step
@@ -2912,7 +2915,9 @@ static void MB3021_BT_Module_Remote_Data_Receive(uint8_t source_type, uint8_t da
 #ifdef AD82584F_ENABLE
 											AD82584F_Amp_Volume_Set_with_Index(uVol_buf, TRUE, FALSE);
 #elif defined(AD85050_ENABLE)
-											AD85050_Amp_Volume_Set_with_Index(uVol_buf, TRUE, FALSE);
+                                            l_volume |= uVol_buf;
+
+											AD85050_Amp_Volume_Set_with_Index(l_volume, TRUE, FALSE);
 #else //AD82584F_ENABLE
 											TAS5806MD_Amp_Volume_Set_with_Index(uVol_buf, TRUE, FALSE);
 #endif //TAS5806MD_ENABLE
@@ -2921,7 +2926,8 @@ static void MB3021_BT_Module_Remote_Data_Receive(uint8_t source_type, uint8_t da
 #ifdef AD82584F_ENABLE
 											AD82584F_Amp_Volume_Set_with_Index(data[3], TRUE, FALSE);
 #elif defined(AD85050_ENABLE)
-											AD85050_Amp_Volume_Set_with_Index(data[3], TRUE, FALSE);
+                                            l_volume |= data[3];
+											AD85050_Amp_Volume_Set_with_Index(l_volume, TRUE, FALSE);
 #else //AD82584F_ENABLE
 											TAS5806MD_Amp_Volume_Set_with_Index(data[3], TRUE, FALSE);
 #endif //TAS5806MD_ENABLE
@@ -4818,10 +4824,15 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 												if(Power_State())
 #endif
 												{
+#ifdef USEN_BAP2
+                                                    uint32_t l_volume = 0xffff00;
+#endif
 #ifdef AD82584F_ENABLE
 													AD82584F_Amp_Volume_Set_with_Index(data[3+6], TRUE, FALSE);
 #elif defined(AD85050_ENABLE)
-													AD85050_Amp_Volume_Set_with_Index(data[3+6], TRUE, FALSE);
+                                                    l_volume |= data[3+6];
+
+													AD85050_Amp_Volume_Set_with_Index(l_volume, TRUE, FALSE);
 #else //AD82584F_ENABLE
 													TAS5806MD_Amp_Volume_Set_with_Index(data[3+6], TRUE, FALSE);
 #endif //TAS5806MD_ENABLE
@@ -5492,6 +5503,9 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 #endif
 											if(data[3] <= 0x0f)
 											{
+#ifdef USEN_BAP2
+                                                uint32_t l_volume = 0xffff00;
+#endif
 #if defined(ADC_VOLUME_STEP_ENABLE) && (defined(USEN_BAP) || defined(USEN_BAP2)) //2023-01-09_2 : To disable BLE_VOLUME_KEY using BLE DATA from Master under BAP slave when Master & Slave are BAP
 												if(B_Master_Is_BAP) //Master is BAP-01
 													BRet = TRUE;
@@ -5505,7 +5519,8 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 #ifdef AD82584F_ENABLE
 													AD82584F_Amp_Volume_Set_with_Index(data[3], TRUE, FALSE);
 #elif defined(AD85050_ENABLE)
-													AD85050_Amp_Volume_Set_with_Index(data[3], TRUE, FALSE);
+                                                    l_volume |= data[3];
+													AD85050_Amp_Volume_Set_with_Index(l_volume, TRUE, FALSE);
 #else //AD82584F_ENABLE
 													TAS5806MD_Amp_Volume_Set_with_Index(data[3], TRUE, FALSE);
 #endif //TAS5806MD_ENABLE
@@ -5517,7 +5532,8 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 #ifdef AD82584F_ENABLE
 													AD82584F_Amp_Volume_Set_with_Index(data[3], TRUE, FALSE);
 #elif defined(AD85050_ENABLE)
-													AD85050_Amp_Volume_Set_with_Index(data[3], TRUE, FALSE);
+                                                    l_volume |= data[3];
+													AD85050_Amp_Volume_Set_with_Index(l_volume, TRUE, FALSE);
 #else //AD82584F_ENABLE
 													TAS5806MD_Amp_Volume_Set_with_Index(data[3], TRUE, FALSE);
 #endif //TAS5806MD_ENABLE
@@ -5834,6 +5850,9 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 									{
 										case BLE_EXT_VOLUME_DATA: //##BLE Extera Data## Parameter 1
 										{
+#ifdef USEN_BAP2
+                                            uint32_t l_volume = 0xffff00;
+#endif
 #ifdef BT_DEBUG_MSG
 											_DBG("\n\rxxx BAP Volume Setting : For Slave ");
 #endif
@@ -5842,7 +5861,8 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 #ifdef AD82584F_ENABLE
 												AD82584F_Amp_Volume_Set_with_Index(data[1], FALSE, FALSE);
 #elif defined(AD85050_ENABLE)
-												AD85050_Amp_Volume_Set_with_Index(data[1], FALSE, FALSE);
+                                                l_volume |= data[1];
+												AD85050_Amp_Volume_Set_with_Index(l_volume, FALSE, FALSE);
 #else //AD82584F_ENABLE
 #ifdef TAS5806MD_ENABLE
 												TAS5806MD_Amp_Volume_Set_with_Index(data[1], FALSE, FALSE);
