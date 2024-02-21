@@ -42,6 +42,9 @@ void SysTick_Handler(void);
 #ifdef I2C_0_ENABLE
 void I2C0_IRQHandler(void);
 #endif
+#ifdef I2C_1_ENABLE
+void I2C1_IRQHandler(void);
+#endif
 #if defined(REMOCON_TIMER20_CAPTURE_ENABLE) || defined(TIMER20_COUNTER_ENABLE)
 void TIMER20_IRQHandler(void);
 #endif

@@ -17,7 +17,7 @@
 #ifdef UART_10_ENABLE
 #include "serial.h"
 #endif
-#ifdef I2C_0_ENABLE
+#if defined(I2C_0_ENABLE) || defined(I2C_1_ENABLE)
 #include "i2c.h"
 #endif
 #ifdef REMOCON_TIMER20_CAPTURE_ENABLE
@@ -953,6 +953,10 @@ void mainloop(void)
 #ifdef I2C_0_ENABLE
 	/*ADC Configure*/
 	I2C_Configure();
+#endif
+#ifdef I2C_1_ENABLE
+    /*ADC Configure*/
+    I2C1_Configure();
 #endif
 #ifdef UART_10_ENABLE
 	/*UART USART10 Configure*/
@@ -4660,6 +4664,14 @@ void GPIO_Configure(void)
     HAL_GPIO_ConfigPullup(PF, 7, DISPUPD);
     HAL_GPIO_SetPin(PF, _BIT(7));
 #endif //I2C_0_ENABLE
+#ifdef I2C_1_ENABLE
+    /* I2C0 PA1:SCL1, PA0:SDA1 */
+    HAL_GPIO_ConfigOutput(PA, 0, ALTERN_FUNC);
+    HAL_GPIO_ConfigFunction(PA, 0, FUNC1);
+    HAL_GPIO_ConfigOutput(PA, 1, ALTERN_FUNC);
+    HAL_GPIO_ConfigFunction(PA, 1, FUNC1);
+#endif //I2C_1_ENABLE
+
 
 #else //USEN_BAP
 

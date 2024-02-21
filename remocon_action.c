@@ -20,7 +20,7 @@
 #include "ad82584f.h"
 #endif
 #ifdef TAS3251_ENABLE
-#ifdef I2C_0_ENABLE
+#if defined(I2C_0_ENABLE) || defined(I2C_1_ENABLE)
 #include "i2c.h"
 #endif
 #include "dsp_amp.h"

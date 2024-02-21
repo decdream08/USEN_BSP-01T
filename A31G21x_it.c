@@ -141,6 +141,12 @@ void I2C0_IRQHandler(void)
 	I2C0_IRQHandler_IT();
 }
 #endif
+#ifdef I2C_1_ENABLE
+void I2C1_IRQHandler(void)
+{
+	I2C1_IRQHandler_IT();
+}
+#endif
 #if defined(REMOCON_TIMER20_CAPTURE_ENABLE) || defined(TIMER20_COUNTER_ENABLE)
 void TIMER20_IRQHandler(void)
 {

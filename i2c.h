@@ -28,4 +28,10 @@ typedef enum {
 void I2C_Configure(void);
 void I2C_Interrupt_Write_Data(uint8_t uDeviceId, uint8_t uAddr, uint8_t *uData, uint8_t uDataSize);
 void I2C_Interrupt_Read_Data(uint8_t uDeviceId, uint8_t uAddr, uint8_t *uData, uint8_t uDataSize);
+
+#ifdef I2C_1_ENABLE
+void I2C1_Configure(void);
+void I2C1_Interrupt_Write_Data(uint8_t uDeviceId, uint8_t uAddr, uint8_t *uData, uint8_t uDataSize);
+void I2C1_Interrupt_Read_Data(uint8_t uDeviceId, uint8_t uAddr, uint8_t *uData, uint8_t uDataSize);
+#endif
 #endif //I2C_H

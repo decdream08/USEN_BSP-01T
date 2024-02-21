@@ -111,6 +111,12 @@ extern "C"
 // I2C Feature **************/
 #define I2C_0_ENABLE							(1) //Use I2C 0 for the communication with AD82584F - PF6:SCL0, PF7:SDA0. If you don't use I2C0, please make sure to disable this macro !!!
 
+#ifdef USEN_BAP2
+//#define PCM9211_ENABLE
+#ifdef PCM9211_ENABLE
+#define I2C_1_ENABLE
+#endif
+#endif
 // SPI Feature **************/
 #ifdef LGD_SOUND_BAR
 #define SPI_11_ENABLE							(1) //Use USART 11 as SPI for the communication with ADAU1452(DSP) - MOSI:PD2/MISO:PD3/SCK:PD4/SS:PD5. If you don't use USART11 as SPI, please make sure to disable this macro !!!
@@ -580,6 +586,9 @@ void Serial_Data_Get(uint8_t *Buf, uint8_t length, uint8_t start_count);
 #endif
 #ifdef I2C_0_ENABLE /*I2C0_IRQHandler_IT */
 void I2C0_IRQHandler_IT(void);
+#endif
+#ifdef I2C_1_ENABLE /*I2C1_IRQHandler_IT */
+void I2C1_IRQHandler_IT(void);
 #endif
 #if defined(REMOCON_TIMER20_CAPTURE_ENABLE) || defined(TIMER20_COUNTER_ENABLE)
 void TIMER20_IRQHandler_IT(void);
