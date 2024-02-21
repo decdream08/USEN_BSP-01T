@@ -284,9 +284,11 @@ void AD85050_Amp_Init(Bool Power_On_Init)
     uint8_t uRead = 0;
     uint8_t i = 0;    
 
-    _DBG("\n\rAD85050_Amp_Init");
+#ifdef AD85050_DEBUG_MSG
+	_DBG("\n\rAD85050_Amp_Init");
+#endif    
 
-    	BAmp_Init = TRUE;
+   	BAmp_Init = TRUE;
 
     delay_ms(20); //t7(20ms)
     AD85050_Amp_Reset(TRUE);
@@ -356,8 +358,8 @@ void AD85050_Amp_Reset(Bool Reset_On)
 {
   uint8_t uRead = 0;
 
-#ifdef AD82584F_DEBUG
-  _DBG("\n\rAD82584F_Amp_Reset() : Reset_On = ");
+#ifdef AD85050_DEBUG_MSG
+  _DBG("\n\rAD85050_Amp_Reset() : Reset_On = ");
   _DBD(Reset_On);
 #endif
 
@@ -454,7 +456,11 @@ void AD85050_Amp_Mute_Toggle(void) //Toggle
 	uint8_t uRead = 0;
 
 	uint8_t uRead_Buf[FLASH_SAVE_DATA_END];
-	
+
+#ifdef MUTE_CHECK_DEBUG_MSG	
+	_DBG("\n\rAD85050_Amp_Mute_Toggle()");
+#endif    
+
 	Flash_Read(FLASH_SAVE_START_ADDR, uRead_Buf, FLASH_SAVE_DATA_END);
 	
 	BAmp_COM = TRUE;
@@ -513,6 +519,10 @@ uint32_t AD85050_Amp_Volume_Set_with_Index(uint32_t Vol_Level, Bool Inverse, Boo
     uint8_t slaveBT_Vol_Level = 0;
 
     uint32_t uCurVolLevel = 0;
+
+#ifdef AD85050_DEBUG_MSG
+	_DBG("\n\rAD85050_Amp_Volume_Set_with_Index() !!!");
+#endif
 
     slaveBT_Vol_Level = (uint8_t)(Vol_Level & BT_VOLUME_MASK);
     area1_Vol_Level = (uint8_t)((Vol_Level & AREA1_VOLUME_MASK) >> 8);
@@ -690,7 +700,7 @@ void AD85050_Amp_RAM_Set_Write(uint8_t uCount, uint8_t uData)
 {
 	uint8_t Data = 0, count = 0;
 #ifdef AD85050_DEBUG_MSG
-		_DBG("\n\rAD85050_Amp_RAM_Set_Write() !!!");
+	_DBG("\n\rAD85050_Amp_RAM_Set_Write() !!!");
 #endif
 
 	Data = uData;
@@ -851,8 +861,8 @@ void AD85050_Amp_Set_Cur_Volume_Level(uint32_t volume)
     uint8_t bt_vol_level = 0;
 
 #ifdef AD85050_DEBUG_MSG
-		_DBG("\n\rAD85050_Amp_Set_Cur_Volume_Level() : volume =");
-		_DBD32(volume);
+	_DBG("\n\rAD85050_Amp_Set_Cur_Volume_Level() : volume =");
+	_DBD32(volume);
 #endif
     area2_vol_level = (uint8_t)((volume & AREA2_VOLUME_MASK) >> 16);
     if(area2_vol_level == INVALID_VOLUME)
@@ -880,8 +890,8 @@ void AD85050_Amp_Set_Cur_Volume_Level(uint32_t volume)
 uint32_t AD85050_Amp_Get_Cur_Volume_Level(void) //Start count from Max(15)
 {
 #ifdef AD85050_DEBUG_MSG
-		_DBG("\n\rAD85050_Amp_Get_Cur_Volume_Level() : volume =");
-		_DBD32(uCurrent_Vol_Level);
+	_DBG("\n\rAD85050_Amp_Get_Cur_Volume_Level() : volume =");
+	_DBD32(uCurrent_Vol_Level);
 #endif
 
 	return uCurrent_Vol_Level;
@@ -891,8 +901,8 @@ uint8_t AD85050_Amp_Get_Cur_Volume_Level_Inverse(void) //Start count from Min(0)
 {
 	uint8_t uInverse_Vol;
 #ifdef AD85050_DEBUG_MSG
-		_DBG("\n\rAD85050_Amp_Get_Cur_Volume_Level_Inverse() : volume =");
-		_DBD32(uCurrent_Vol_Level);
+    _DBG("\n\rAD85050_Amp_Get_Cur_Volume_Level_Inverse() : volume =");
+    _DBD32(uCurrent_Vol_Level);
 #endif
 	uInverse_Vol = (VOLUME_LEVEL_NUMER-1) -(uint8_t)(uCurrent_Vol_Level & 0x0000ff);
 
@@ -906,7 +916,7 @@ Bool AD85050_Amp_Get_Cur_CLK_Status(void) //TRUE : Clock Exist / FALSE : Clock a
 	
 	I2C_Interrupt_Read_Data(AD85050_I2C_ADDR, AD85050_ERROR_REG, &uRead, 1);
 
-#ifdef AD85050_DEBUG
+#ifdef AD85050_DEBUG_MSG
 	_DBG("\n\rRead_Amp_Data : ");
 	_DBH(uRead);
 #endif
@@ -1302,7 +1312,12 @@ void AD85050_Amp_Volume_Register_Writing(uint16_t uVolumeLevel)
 {
     uint8_t uReg_Value = 0;
     uint8_t uArea1_Level = 0;
-    uint8_t uArea2_Level = 0;  
+    uint8_t uArea2_Level = 0;
+
+#ifdef AD85050_DEBUG_MSG
+    _DBG("\n\AD85050_Amp_Volume_Register_Writing() - Vol_Level = ");
+    _DBD16(uVolumeLevel);
+#endif
 
     uArea1_Level = (uint8_t)(uVolumeLevel & (uint16_t)(AREA1_VOLUME_MASK >> 8));
     uArea2_Level = (uint8_t)((uVolumeLevel & (uint16_t)(AREA2_VOLUME_MASK >> 8)) >> 8);

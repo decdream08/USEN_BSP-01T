@@ -575,3 +575,6 @@
 ## 2024-02-20 (BAP-02)
   - USEN BAP-2 Volume 처리 수정
   - Power on / off 수정
+
+## 2024-02-21 (BAP-02)
+  - AD85050_DEBUG_MSG 추가
