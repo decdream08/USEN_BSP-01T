@@ -252,10 +252,9 @@ Bool Aux_In_Exist(void)
 #endif
 
 	if(HAL_GPIO_ReadPin(PC) & (1<<3)) //High : Aux /Low : BT
-  //if(HAL_GPIO_ReadPin(PA) & (1<<0))
-		return FALSE; //TRUE;
+		return TRUE;
 	else
-    return TRUE; //FALSE;
+		return FALSE;
 }
 
 /**********************************************************************
@@ -570,7 +569,7 @@ void GPIOCD_IRQHandler_IT2(void)
 
 			if(HAL_GPIO_ReadPin(PC) & (1<<3)) //PC3 : High - Aux
 			{
-				key = INPUT_BT_KEY; //INPUT_AUX_KEY;
+				key = INPUT_AUX_KEY;
 			}
 			else //Low Invalid value in here
 			{
@@ -586,7 +585,7 @@ void GPIOCD_IRQHandler_IT2(void)
 
 			if(!(HAL_GPIO_ReadPin(PC) & (1<<3)) )
 			{
-				key = INPUT_AUX_KEY; //INPUT_BT_KEY;
+				key = INPUT_BT_KEY;
 			}
 			else //High - Aux out //Invalid value in here
 			{
