@@ -640,6 +640,26 @@
               <FileType>1</FileType>
               <FilePath>..\AD85050.c</FilePath>
             </File>
+            <File>
+              <FileName>PCM9211.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\PCM9211.c</FilePath>
+            </File>
+            <File>
+              <FileName>power.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\power.c</FilePath>
+            </File>
+            <File>
+              <FileName>adc_polling.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\adc_polling.c</FilePath>
+            </File>
+            <File>
+              <FileName>key.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\key.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>

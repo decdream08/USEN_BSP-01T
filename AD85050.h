@@ -1,6 +1,6 @@
 /**********************************************************************
 * @file		AD85050.h
-* @brief	IR code
+* @brief	AD85050
 * @version	1.0
 * @date		
 * @author	SC Park
@@ -12,7 +12,6 @@
 
 #ifndef AD85050_H
 #define AD85050_H
-
 #include "i2c.h"
 
 //Macro
@@ -21,8 +20,6 @@ typedef enum {
 	Volume_Down
 }Vol_Setting;
 
-#ifdef ADC_INPUT_ENABLE
-#ifdef ADC_VOLUME_STEP_ENABLE
 typedef enum {
 	Attenuator_Volume_MAX, 	//-0dB
 	Attenuator_Volume_19, 	//-1dB
@@ -46,14 +43,6 @@ typedef enum {
 	Attenuator_Volume_1,	//-19dB
 	Attenuator_Volume_MIN	//-20dB
 }Attenuator_Volume_Level;
-#else //ADC_VOLUME_STEP_ENABLE
-typedef enum {
-	Attenuator_Volume_Low,
-	Attenuator_Volume_Mid,
-	Attenuator_Volume_High
-}Attenuator_Volume_Level;
-#endif //ADC_VOLUME_STEP_ENABLE
-#endif
 
 typedef enum {
 	LL_MODE,
@@ -61,17 +50,33 @@ typedef enum {
 	STEREO_MODE
 }Audio_Output_Setting;
 
-#define AD85050_I2C_ADDR						(0x30) //DDD...TEST
+typedef enum {
+    AD85050_POWER_DOWN,
+    AD85050_POWER_UP,
+	AD85050_POWER_UP_RESET_ON,
+	AD85050_POWER_UP_RESET_OFF,
+	AD85050_POWER_UP_INIT,
+	AD85050_POWER_UP_COMPLETE,
+    AD85050_CHECK_STAUS,
+}AD85050_Status;
+
+#define AD85050_I2C_ADDR						(0x30)
+
+void AD85050_10ms_timer(void);
+void AD85050_Process(void);
+
+AD85050_Status AD85050_GetStatus(void);
+void AD85050_PowerUp(void);
+void AD85050_PowerDown(void);
 
 //Function
 void AD85050_Set_Cur_EQ_DRC_Mode(void);
 
 Bool Is_Mute(void);
 void Set_Is_Mute(Bool mute_on);
-#ifdef AD82584F_USE_POWER_DOWN_MUTE
+Bool Get_Is_Mute(void);
 Bool IS_Display_Mute(void);
 void Set_Display_Mute(Bool B_Mute_On_Display); //For LED Display
-#endif
 void AD85050_Amp_EQ_DRC_Control(EQ_Mode_Setting EQ_mode);
 void AD85050_Amp_Init(Bool Power_On_Init);
 void AD85050_Amp_Reset(Bool Reset_On);

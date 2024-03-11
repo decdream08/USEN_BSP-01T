@@ -17,7 +17,6 @@
 
 /* Includes ------------------------------------------------------------------*/
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -35,29 +34,13 @@ void UsageFault_Handler(void);
 void SVC_Handler(void);
 void DebugMon_Handler(void);
 void PendSV_Handler(void);
-#ifndef TOUCHKEY_ENABLE
 void SysTick_Handler(void);
-#endif
 
-#ifdef I2C_0_ENABLE
 void I2C0_IRQHandler(void);
-#endif
 #ifdef I2C_1_ENABLE
 void I2C1_IRQHandler(void);
 #endif
-#if defined(REMOCON_TIMER20_CAPTURE_ENABLE) || defined(TIMER20_COUNTER_ENABLE)
 void TIMER20_IRQHandler(void);
-#endif
-#ifdef SPI_11_ENABLE
-void USART11_IRQHandler(void);
-#endif
-#ifdef TIMER30_LED_PWM_ENABLE
-void TIMER30_IRQHandler(void);
-#endif
-#ifdef ADC_INTERRUPT_INPUT_ENABLE
-void ADC_IRQHandler(void);
-#endif
-
 #ifdef __cplusplus
 }
 #endif

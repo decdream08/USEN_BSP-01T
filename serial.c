@@ -168,45 +168,12 @@ void USART10_IRQHandler(void)
 	}
 }
 
-#ifndef UART_10_ENABLE
-void USART11_IRQHandler_IT(void)
-{
-	uint32_t intsrc, tmp;
-
-	/* Determine the interrupt source */
-	intsrc = HAL_USART_GetStatus(USART11);
-	tmp = intsrc & USART_SR_BITMASK;
-
-	// Receive Data Available or Character time-out
-	if ((tmp & USART_SR_RXC) == USART_SR_RXC)
-	{
-		//_usart10_rx_buffer[_usart10_buffer_tail++] = HAL_USART_ReceiveByte(USART10);
-		//_usart10_rx_flag = 1;
-		Rx11_Buffer = HAL_USART_ReceiveByte(USART11);
-		if(Serial_HandleTable[SERIAL_PORT11])
-		{	
-			Serial_HandleTable[SERIAL_PORT11](&Rx11_Buffer);
-		}
-	}
-
-	// Transmit Holding Empty
-	if ((tmp & USART_SR_TXC) == USART_SR_TXC)
-	{
-		HAL_USART_ClearStatus(USART11, USART_STATUS_TXC);
-		//_usart10_tx_flag = 1;
-	}	
-}
-#endif
-
 void Serial_Send(SerialPort_t port, uint8_t *txbuf, uint8_t buflen)
 {
 	uint8_t i;
 
-#ifdef FACTORY_MODE
 	if(bFACTORY_MODE)
 		return;	
-#endif
-
 
 #ifdef _UART_DEBUG_MSG
 	_DBG("\n\rSend Data : ");

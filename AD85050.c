@@ -14,23 +14,12 @@
 #ifdef AD85050_ENABLE
 #include "i2c.h"
 #include "AD85050.h"
-#if (defined(TIMER30_LED_PWM_ENABLE) && defined(TIMER1n_LED_PWM_ENABLE) || defined(TIMER21_LED_ENABLE))
 #include "led_display.h"
-#endif
-#ifdef MB3021_ENABLE
-#ifdef INPUT_KEY_SYNC_WITH_SLAVE_ENABLE
 #include "bt_MB3021.h"
-#endif
-#endif
-#if defined(AUTO_VOLUME_LED_OFF) || defined(SLAVE_ADD_MUTE_DELAY_ENABLE)
 #include "timer20.h"
-#endif
-#ifdef FLASH_SELF_WRITE_ERASE
 #include "flash.h"
-#ifdef FLASH_SELF_WRITE_ERASE_EXTENSION
 #include "remocon_action.h"
-#endif
-#endif //FLASH_SELF_WRITE_ERASE
+#include "key.h"
 
 /* Private typedef ---------------------------------------------------*/
 /* Private define ----------------------------------------------------*/
@@ -184,6 +173,113 @@ Bool volatile BAmp_COM = FALSE; //2023-02-27_3 : To check whether AMP is busy(ca
 
 static EQ_Mode_Setting Cur_EQ_Mode = EQ_NORMAL_MODE;
 
+uint16_t ad85050_timer;
+static AD85050_Status ad85050_status;
+static Bool BNeed_Mute_Off_Delay = FALSE;
+
+void AD85050_10ms_timer(void)
+{
+	if(ad85050_timer > df10msTimer0ms )
+	{
+		--ad85050_timer;
+	}
+}
+
+void AD85050_Process(void)
+{
+	switch(ad85050_status)
+	{
+		case AD85050_POWER_UP:
+			if(ad85050_timer == df10msTimer0ms)
+			{
+				AD85050_Amp_Reset(TRUE);
+				ad85050_status = AD85050_POWER_UP_RESET_ON;
+			}
+			break;
+
+		case AD85050_POWER_UP_RESET_ON:
+			if(ad85050_timer == df10msTimer0ms)
+			{
+				AD85050_Amp_Reset(FALSE);
+				ad85050_status = AD85050_POWER_UP_RESET_OFF;
+				ad85050_timer = df10msTimer20ms; /* Spec : t8 = 20ms */
+			}
+			break;
+
+		case AD85050_POWER_UP_RESET_OFF:
+			if(ad85050_timer == df10msTimer0ms)
+			{
+				AD85050_Amp_Init(TRUE);
+				ad85050_timer = df10msTimer10ms; /* Spec : t9 = 10ms */
+				ad85050_status = AD85050_POWER_UP_INIT;
+			}
+			break;
+
+		case AD85050_POWER_UP_INIT:
+			if(!BNeed_Mute_Off_Delay)
+			{
+				HAL_GPIO_SetPin(PF, _BIT(4)); //DAMP_PDN
+				Set_Is_Mute(FALSE);
+		    }
+			else
+			{
+				TIMER20_mute_flag_Start(); //Mute off delay when Aux is connected under power bootin on.
+			}
+
+			ad85050_status = AD85050_POWER_UP_COMPLETE;
+			break;
+
+		case AD85050_POWER_UP_COMPLETE:
+			ad85050_status = AD85050_CHECK_STAUS;
+			break;
+
+		case AD85050_CHECK_STAUS:
+			break;
+
+	    case AD85050_POWER_DOWN:
+			break;
+
+		default:
+			break;
+	}
+}
+
+AD85050_Status AD85050_GetStatus(void)
+{
+	return ad85050_status;
+}
+
+void AD85050_PowerUp(void)
+{
+	BNeed_Mute_Off_Delay =  FALSE;
+	BAmp_Init = TRUE;
+
+    HAL_GPIO_SetPin(PD, _BIT(4)); //+24V DAMP Power
+    HAL_GPIO_SetPin(PA, _BIT(5)); //+3.3V DAMP Power
+
+	if(HAL_GPIO_ReadPin(PC) & (1<<3)) //Input(Aux Detec Pin) : High -Aux Out / Low -Aux In
+		BNeed_Mute_Off_Delay = FALSE;
+	else
+		BNeed_Mute_Off_Delay = TRUE;
+
+	if((BNeed_Mute_Off_Delay == FALSE) && (BT_Is_Routed() ==TRUE)) //When Aux is none and BT has Audio Stream, it need to use mute off delay
+		BNeed_Mute_Off_Delay = TRUE;
+
+	ad85050_status = AD85050_POWER_UP;
+	ad85050_timer = df10msTimer20ms;
+}
+
+void AD85050_PowerDown(void)
+{
+	HAL_GPIO_ClearPin(PF, _BIT(4)); //DAMP_PDN
+	HAL_GPIO_ClearPin(PD, _BIT(4)); //+24V DAMP Power
+	HAL_GPIO_ClearPin(PA, _BIT(5)); //+3.3V DAMP Power
+
+	Set_Is_Mute(TRUE);
+
+	ad85050_status = AD85050_POWER_DOWN;
+}
+
 void AD85050_Set_Cur_EQ_DRC_Mode(void)
 {
 	AD85050_Amp_EQ_DRC_Control(Cur_EQ_Mode);
@@ -230,37 +326,28 @@ Bool Is_Mute(void)
 
 void Set_Display_Mute(Bool B_Mute_On_Display) //2023-03-08_4 : For LED Display
 {
-#ifdef FLASH_SELF_WRITE_ERASE_EXTENSION
 	uint8_t uRead_Buf[FLASH_SAVE_DATA_END];
 	
 	Flash_Read(FLASH_SAVE_START_ADDR, uRead_Buf, FLASH_SAVE_DATA_END);
-#endif
 
 	Display_Mute = B_Mute_On_Display;
 
 	if(Display_Mute)
 	{
-#ifdef FLASH_SELF_WRITE_ERASE_EXTENSION
 		if(uRead_Buf[FLASH_SAVE_DATA_MUTE] != 1)
 			FlashSaveData(FLASH_SAVE_DATA_MUTE, 1); //Save mute on status to Flash
-#endif
-#ifdef TIMER21_LED_ENABLE //Set status led mode to Mute on
+
 		Set_Status_LED_Mode(STATUS_MUTE_ON_MODE);
-#endif	
 	}
 	else
 	{
-#ifdef FLASH_SELF_WRITE_ERASE_EXTENSION
 		if(uRead_Buf[FLASH_SAVE_DATA_MUTE] != 0)
 			FlashSaveData(FLASH_SAVE_DATA_MUTE, 0); //Save mute off status to Flash
-#endif
-#ifdef AUX_INPUT_DET_ENABLE
+
 		if(Aux_In_Exist()) //Need to keep LED off under Aux Mode
 			Set_Status_LED_Mode(STATUS_AUX_MODE);
 		else
-#endif
 			Set_Status_LED_Mode(Get_Return_Status_LED_Mode());
-
 	}
 }
 
@@ -272,6 +359,11 @@ Bool IS_Display_Mute(void) //For LED Display
 void Set_Is_Mute(Bool mute_on) //For Actual Mute Status
 {
 	IS_Mute = mute_on;
+}
+
+Bool Get_Is_Mute(void)
+{
+	return IS_Mute;
 }
 
 void AD85050_Amp_Init(Bool Power_On_Init)
@@ -288,12 +380,12 @@ void AD85050_Amp_Init(Bool Power_On_Init)
 	_DBG("\n\rAD85050_Amp_Init");
 #endif    
 
-   	BAmp_Init = TRUE;
+   	//BAmp_Init = TRUE;
 
-    delay_ms(20); //t7(20ms)
-    AD85050_Amp_Reset(TRUE);
-    delay_ms(20); //t8(20ms)
-    AD85050_Amp_Reset(FALSE);  
+    //delay_ms(20); //t7(20ms)
+    //AD85050_Amp_Reset(TRUE);
+    //delay_ms(20); //t8(20ms)
+    //AD85050_Amp_Reset(FALSE);  
 
     BAmp_Init = FALSE;
 
@@ -546,7 +638,7 @@ uint32_t AD85050_Amp_Volume_Set_with_Index(uint32_t Vol_Level, Bool Inverse, Boo
     if(Inverse)
     { 
         if(area1_Vol_Level != 0xff)
-    		area1_Vol_Level = VOLUME_LEVEL_NUMER - area1_Vol_Level; //Input : 50~1 / Output : 0 ~ 49(Actual Volume Table)
+						area1_Vol_Level = VOLUME_LEVEL_NUMER - area1_Vol_Level; //Input : 50~1 / Output : 0 ~ 49(Actual Volume Table)
 
         if(area2_Vol_Level != 0xff)
             area2_Vol_Level = VOLUME_LEVEL_NUMER - area2_Vol_Level; //Input : 50~1 / Output : 0 ~ 49(Actual Volume Table)

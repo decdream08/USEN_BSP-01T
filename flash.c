@@ -16,19 +16,8 @@
 #include "flash.h"
 #include "string.h"
 
-#ifdef AD82584F_ENABLE
-#include "ad82584f.h"
-#endif
-#ifdef TAS5806MD_ENABLE
-#include "tas5806md.h"
-#endif
-#ifdef AD85050_ENABLE
 #include "AD85050.h"
-#endif
-
-#ifdef MB3021_ENABLE
 #include "bt_MB3021.h"
-#endif
 
 #ifdef WATCHDOG_TIMER_RESET
 #include "A31G21x_hal_wdt.h"
@@ -377,49 +366,24 @@ void FlashSaveData(FLASH_SAVE_DATA data_num, uint8_t data) //Now we save FLASH_S
 	Flash_Read(FLASH_SAVE_START_ADDR, databuffers, FLASH_SAVE_DATA_END); //Read Volume Level from Flash and set the value to Amp Device
 
 	//Data init 
-#ifdef FLASH_SELF_WRITE_ERASE_EXTENSION
 	if(databuffers[FLASH_SAVE_DATA_POWER] == 0xff)
 	{
-#ifdef USEN_BAP2
 		databuffers[FLASH_SAVE_DATA_POWER] = 0x00; //Power Off
-#else
-		databuffers[FLASH_SAVE_DATA_POWER] = 0x01; //Power On
-#endif
 	}
 	
 	if(databuffers[FLASH_SAVE_DATA_MUTE] == 0xff)
 	{
-#ifdef AD82584F_USE_POWER_DOWN_MUTE
 		if(IS_Display_Mute())
 			databuffers[FLASH_SAVE_DATA_MUTE] = 0x01;
 		else
-#endif
 			databuffers[FLASH_SAVE_DATA_MUTE] = 0;
 	}
-#endif
+
 	if(databuffers[FLASH_SAVE_DATA_VOLUME] == 0xff)
 	{
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
-#ifdef AD82584F_ENABLE
-		databuffers[FLASH_SAVE_DATA_VOLUME] = AD82584F_Amp_Get_Cur_Volume_Level();
-#elif defined(AD85050_ENABLE)
-#else //TAS5806MD_ENABLE
-		databuffers[FLASH_SAVE_DATA_VOLUME] = TAS5806MD_Amp_Get_Cur_Volume_Level();
-#endif //AD82584F_ENABLE
-#else //#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
-		databuffers[FLASH_SAVE_DATA_VOLUME] = 10;
-#endif //#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE)
+		;
 	}
-#if defined(FLASH_SELF_WRITE_ERASE_EXTENSION) && !defined(FLASH_SELF_WRITE_ERASE_EXCEPTING_EQ)
-	if(databuffers[FLASH_SAVE_DATA_EQ] == 0xff)
-	{
-#if defined(MB3021_ENABLE) && defined(FLASH_SELF_WRITE_ERASE_EXTENSION)
-		databuffers[FLASH_SAVE_DATA_EQ] = Get_Current_EQ_Mode();
-#else
-		databuffers[FLASH_SAVE_DATA_EQ] = 0;
-#endif
-	}
-#endif
+
 	if(databuffers[FLASH_SAVE_DATA_PDL_NUM] == 0xff)
 	{
 		databuffers[FLASH_SAVE_DATA_PDL_NUM] = 0; //1 : PDL Exist / 0 : PDL absence
@@ -428,7 +392,6 @@ void FlashSaveData(FLASH_SAVE_DATA data_num, uint8_t data) //Now we save FLASH_S
 	//Data Update
 	switch(data_num)
 	{
-#ifdef FLASH_SELF_WRITE_ERASE_EXTENSION
 		case FLASH_SAVE_DATA_POWER: //Power On/Off
 		{
 			databuffers[FLASH_SAVE_DATA_POWER] = data;
@@ -440,39 +403,16 @@ void FlashSaveData(FLASH_SAVE_DATA data_num, uint8_t data) //Now we save FLASH_S
 			databuffers[FLASH_SAVE_DATA_MUTE] = data;
 		}
 		break;
-#endif
-#ifndef USEN_BAP2
+
 		case FLASH_SAVE_DATA_VOLUME: //Volume Level
-		{
-			databuffers[FLASH_SAVE_DATA_VOLUME] = data;
-		}
 		break;
-#endif
-#if defined(FLASH_SELF_WRITE_ERASE_EXTENSION) && !defined(FLASH_SELF_WRITE_ERASE_EXCEPTING_EQ)
-		case FLASH_SAVE_DATA_EQ: //EQ Mode
-		{
-			databuffers[FLASH_SAVE_DATA_EQ] = data;
-		}
-		break;
-#endif
+
 		case FLASH_SAVE_DATA_PDL_NUM: //Device Exist in PDL
 		{
 			databuffers[FLASH_SAVE_DATA_PDL_NUM] = data;
 		}
 		break;
 
-#if defined(MASTER_SLAVE_GROUPING) && !defined(MASTER_MODE_ONLY)
-		case FLASH_SAVE_SLAVE_LAST_CONNECTION: //Check if Slave is last connection(0x01 or 0x02) or first connection(0x00 or 0xff)
-		{//Need to save this information even thoug Master mode becasue we erase all data using flash erase function.
-			databuffers[FLASH_SAVE_SLAVE_LAST_CONNECTION] = data;
-#ifdef MASTER_SLAVE_GROUPING_DEBUG_MSG
-			_DBG("\n\rSave FLASH_SAVE_SLAVE_LAST_CONNECTION :  Data is ");
-			_DBH(data);
-#endif
-		}
-		break;
-#endif
-#ifdef BT_GENERAL_MODE_KEEP_ENABLE //2022-12-23 : To save FLASH_SAVE_GENERAL_MODE_KEEP information to flash
 		case FLASH_SAVE_GENERAL_MODE_KEEP: //Check if Master is GIA_PAIRING_MODE(0x01) or DEVICE_NAME_CHEKING_PAIRING MODE(0x00 or 0xff)
 		{
 			databuffers[FLASH_SAVE_GENERAL_MODE_KEEP] = data;
@@ -482,8 +422,7 @@ void FlashSaveData(FLASH_SAVE_DATA data_num, uint8_t data) //Now we save FLASH_S
 #endif
 		}
 		break;
-		
-#endif
+
 		default:
 #ifdef _DBG_FLASH_WRITE_ERASE
 			_DBG("\n\rFlashSaveData - Error !!!");
@@ -501,148 +440,8 @@ void FlashSaveData(FLASH_SAVE_DATA data_num, uint8_t data) //Now we save FLASH_S
 	}
 #endif
 
-#ifdef MASTER_SLAVE_GROUPING
 	FlashWriteErase(databuffers, FLASH_SAVE_DATA_END);
-#else
-	FlashWriteErase(databuffers, FLASH_SAVE_DATA_END);
-#endif
 }
-
-#ifdef TWS_MASTER_SLAVE_GROUPING
-void FlashSave_SET_DEVICE_ID(uint8_t data_num, uint8_t data) //2022-12-15 //TWS : Save SET_DEVICE_ID to Flash
-{
-	int8_t i;
-	static uint8_t databuffers1[FLASH_SAVE_DATA_END];
-	uint8_t readbuffer[FLASH_SAVE_DATA_END];
-
-#ifdef _DBG_FLASH_WRITE_ERASE
-	_DBG("\n\rFlashSave_SET_DEVICE_ID() :");
-	_DBG("\n\rdata_num / data =");
-	_DBH(data_num);
-	_DBG("/");
-	_DBH(data);
-#endif
-
-	if(data_num < FLASH_SAVE_SET_DEVICE_ID_0) //Save SET DEVICE ID Only
-		return;
-	
-	//Data Update
-	switch(data_num)
-	{
-		case FLASH_SAVE_SET_DEVICE_ID_0:
-		{
-			databuffers1[FLASH_SAVE_SET_DEVICE_ID_0] = data;
-#ifdef MASTER_SLAVE_GROUPING_DEBUG_MSG
-			_DBG("\n\rSave FLASH_SAVE_SET_DEVICE_ID_0 :  Data is ");
-			_DBH(data);
-#endif
-		}
-		break;
-
-		case FLASH_SAVE_SET_DEVICE_ID_1:
-		{
-			databuffers1[FLASH_SAVE_SET_DEVICE_ID_1] = data;
-#ifdef MASTER_SLAVE_GROUPING_DEBUG_MSG
-			_DBG("\n\rSave FLASH_SAVE_SET_DEVICE_ID_1 :  Data is ");
-			_DBH(data);
-#endif
-		}
-		break;
-
-		case FLASH_SAVE_SET_DEVICE_ID_2:
-		{
-			databuffers1[FLASH_SAVE_SET_DEVICE_ID_2] = data;
-#ifdef MASTER_SLAVE_GROUPING_DEBUG_MSG
-			_DBG("\n\rSave FLASH_SAVE_SET_DEVICE_ID_2 :  Data is ");
-			_DBH(data);
-#endif
-		}
-		break;
-
-		case FLASH_SAVE_SET_DEVICE_ID_3:
-		{
-			databuffers1[FLASH_SAVE_SET_DEVICE_ID_3] = data;
-#ifdef MASTER_SLAVE_GROUPING_DEBUG_MSG
-			_DBG("\n\rSave FLASH_SAVE_SET_DEVICE_ID_3 :  Data is ");
-			_DBH(data);
-#endif
-		}
-		break;
-		
-		case FLASH_SAVE_SET_DEVICE_ID_4:
-		{
-			databuffers1[FLASH_SAVE_SET_DEVICE_ID_4] = data;
-#ifdef MASTER_SLAVE_GROUPING_DEBUG_MSG
-			_DBG("\n\rSave FLASH_SAVE_SET_DEVICE_ID_4 :  Data is ");
-			_DBH(data);
-#endif
-		}
-		break;
-
-		case FLASH_SAVE_SET_DEVICE_ID_5:
-		{
-			databuffers1[FLASH_SAVE_SET_DEVICE_ID_5] = data;
-#ifdef MASTER_SLAVE_GROUPING_DEBUG_MSG
-			_DBG("\n\rSave FLASH_SAVE_SET_DEVICE_ID_5 :  Data is ");
-			_DBH(data);
-#endif
-		}
-		break;
-
-#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-05-15_2
-		case FLASH_TWS_MASTER_SLAVE_ID:
-		{
-			databuffers1[FLASH_TWS_MASTER_SLAVE_ID] = data; //0x01 : Master / 0x02 : Slave
-#ifdef MASTER_SLAVE_GROUPING_DEBUG_MSG
-			_DBG("\n\rSave FLASH_TWS_MASTER_SLAVE_ID :  Data is ");
-			_DBH(data);
-#endif
-		}
-		break;
-#endif
-
-		default:
-#ifdef MASTER_SLAVE_GROUPING_DEBUG_MSG
-			_DBG("\n\rFlashSave_SET_DEVICE_ID - Error !!!");
-#endif
-		break;
-	}	
-
-#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-05-15_2
-	if(data_num == FLASH_TWS_MASTER_SLAVE_ID)
-#else
-	if(data_num == FLASH_SAVE_SET_DEVICE_ID_5) //When we receive all data, we save SET_DEVICE_ID to flash.
-#endif
-	{
-		Flash_Read(FLASH_SAVE_START_ADDR, readbuffer, FLASH_SAVE_DATA_END); //Read Volume Level from Flash and set the value to Amp Device
-
-		//for(i= 0; i < (FLASH_SAVE_SET_DEVICE_ID_0-1); i++) //Overwrite other flash data excepting SET_DEVICE_ID
-		for(i= 0; i < FLASH_SAVE_SET_DEVICE_ID_0; i++) //2023-03-16_1 : Changed max condition because this code erases FLASH_SAVE_SLAVE_LAST_CONNECTION info when user execute TWS connection between Master and Slave.  //Overwrite other flash data excepting SET_DEVICE_ID
-		{
-#ifdef _DBG_FLASH_WRITE_ERASE		
-			//_DBG("\n\rdatabuffers[");_DBD(i);_DBG("] = ");_DBH(databuffers1[i]);
-#endif
-			databuffers1[i] = readbuffer[i]; 
-#ifdef _DBG_FLASH_WRITE_ERASE
-			//_DBG("\n\rreadbuffer[");_DBD(i);_DBG("] = ");_DBH(readbuffer[i]);
-#endif
-		}
-		
-		FlashWriteErase(databuffers1, FLASH_SAVE_DATA_END);
-
-#ifdef _DBG_FLASH_WRITE_ERASE
-		_DBG("\n\rWrite Data : ");
-
-		for(i=0; i<(FLASH_SAVE_DATA_END); i++)
-		{
-			_DBG("/");
-			_DBH(databuffers1[i]);
-		}
-#endif
-	}
-}
-#endif //TWS_MASTER_SLAVE_GROUPING
-
 
 void FlashEraseOnly(void)
 {

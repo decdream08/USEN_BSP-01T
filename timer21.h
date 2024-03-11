@@ -12,7 +12,6 @@
 **********************************************************************/
 #ifndef __TIMER21_H__
 #define __TIMER21_H__
-
 	
 /* Includes ---------------------------------------------------------*/
 /* Uncomment the line below to enable peripheral header file inclusion */
@@ -23,11 +22,9 @@
 /* Private define ------------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
 
-#ifdef TIMER21_LED_ENABLE
 void TIMER21_Configure(void);
 void TIMER21_Periodic_Mode_Run(Bool On);
 int16_t TIMER21_500ms_Count_Value(void);
-#endif
 
 #endif /* __TIMER21_H__ */
 

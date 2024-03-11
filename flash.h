@@ -67,31 +67,13 @@
 #error "Please check SELF_WRITE_LENGTH length is align with 4 bytes"
 #endif
 
-#ifdef FLASH_SELF_WRITE_ERASE
 //Flash Size 0xFFFF (64KB)
 #define ABOV_FLASH_PAGE_LENGTH    					(512)//(256)//(2048)
 #define ABOV_FLASH_WRITE_BYTE_LENGTH				(4) //Can write with just Word size
 
 /* The test area should not be the user code execution area of code flash. */
 #define FLASH_SAVE_START_ADDR           			(0x0000FE00UL) //(0x0000F800UL)(0x0000F800UL)//Size : byte (0x00004000UL)
-#ifdef TWS_MASTER_SLAVE_GROUPING
-#ifndef FLASH_SELF_WRITE_ERASE_EXCEPTING_EQ //2023-01-17 : To save EQ Mode
-#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-05-15_2
-#define FLASH_SAVE_DATA_LENGTH						(20) //Just save 20 Byte memory data to flash
-#else
-#define FLASH_SAVE_DATA_LENGTH						(16) //Just save 16 Byte memory data to flash
-#endif
-#else
-#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-05-15_2
-#define FLASH_SAVE_DATA_LENGTH						(16) //Just save 16 Byte memory data to flash
-#else
-#define FLASH_SAVE_DATA_LENGTH						(12) //Just save 12 Byte memory data to flash
-#endif
-#endif
-#else //TWS_MASTER_SLAVE_GROUPING
 #define FLASH_SAVE_DATA_LENGTH						(8) //Just save 8 Byte memory data to flash
-#endif //TWS_MASTER_SLAVE_GROUPING
-#endif //FLASH_SELF_WRITE_ERASE
 
 /* CODE FLASH - COMMON REGISTERS ----------------------------------------------------*/
 #define FMCFG_ENTRY         0x78580500
@@ -154,35 +136,12 @@ typedef enum {
 } FLASH_STATUS_TYPE;
 
 typedef enum {
-#ifdef FLASH_SELF_WRITE_ERASE_EXTENSION
 	FLASH_SAVE_DATA_POWER,
 	FLASH_SAVE_DATA_MUTE,
-#endif
 	FLASH_SAVE_DATA_VOLUME,
-#ifdef USEN_BAP2
-    FLASH_SAVE_DATA_VOLUME_END = (FLASH_SAVE_DATA_VOLUME+2),
-#endif
-#if defined(FLASH_SELF_WRITE_ERASE_EXTENSION) && !defined(FLASH_SELF_WRITE_ERASE_EXCEPTING_EQ)
-	FLASH_SAVE_DATA_EQ,
-#endif
+  FLASH_SAVE_DATA_VOLUME_END = (FLASH_SAVE_DATA_VOLUME+2),
 	FLASH_SAVE_DATA_PDL_NUM,
-#if defined(MASTER_SLAVE_GROUPING) && !defined(MASTER_MODE_ONLY)
-	FLASH_SAVE_SLAVE_LAST_CONNECTION,
-#endif
-#ifdef TWS_MASTER_SLAVE_GROUPING
-	FLASH_SAVE_SET_DEVICE_ID_0,
-	FLASH_SAVE_SET_DEVICE_ID_1,
-	FLASH_SAVE_SET_DEVICE_ID_2,
-	FLASH_SAVE_SET_DEVICE_ID_3,
-	FLASH_SAVE_SET_DEVICE_ID_4,
-	FLASH_SAVE_SET_DEVICE_ID_5,
-#ifdef NEW_TWS_MASTER_SLAVE_LINK //2023-05-15_2 : When Slave is changed to Master under TWS mode, we don't connect the changed Master to Original Master.
-	FLASH_TWS_MASTER_SLAVE_ID, //0x01 : Master / 0x02 : Slave
-#endif
-#endif
-#ifdef BT_GENERAL_MODE_KEEP_ENABLE //2022-12-23
 	FLASH_SAVE_GENERAL_MODE_KEEP,
-#endif
 	FLASH_SAVE_DATA_END
 } FLASH_SAVE_DATA;
 
@@ -201,9 +160,6 @@ Bool Flash_Read(uint32_t flash_addr, uint8_t *data, uint32_t len);
 void FlashWriteErase(uint8_t *uData, uint8_t uSize);
 
 void FlashSaveData(FLASH_SAVE_DATA data_num, uint8_t data); //Now we save byte data only !!!
-#ifdef TWS_MASTER_SLAVE_GROUPING
-void FlashSave_SET_DEVICE_ID(uint8_t data_num, uint8_t data); //Now we save FLASH_SAVE_DATA_END byte data only !!
-#endif
 void FlashEraseOnly(void);
 
 #endif

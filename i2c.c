@@ -12,9 +12,9 @@
 **********************************************************************/
 #include "main_conf.h"
 #include "i2c.h"
-#ifdef USEN_BT_SPK
 #include "remocon_action.h"
-#endif
+#include "key.h"
+
 #ifdef SOC_ERROR_ALARM
 #include "timer20.h"
 #include "led_display.h"
@@ -60,7 +60,6 @@ void I2C_Error_Handler(void)
     }
 }
 
-#ifdef I2C_0_ENABLE
 /**********************************************************************
  * @brief		I2C0_IRQHandler_IT
  * @param[in]	None
@@ -93,13 +92,7 @@ void I2C0_IRQHandler_IT(void)
 void I2C_Configure(void)
 {
 	 /*Initialize Slave I2C peripheral*/
-#ifdef AD82584F_ENABLE
-	if(HAL_I2C_Init(I2C0, 100000) != HAL_OK) //100Kbps - Low speed mode
-#elif defined(AD85050_ENABLE)
 	if(HAL_I2C_Init(I2C0, 400000) != HAL_OK) //400kbps - Fast mode
-#else //TAS5806MD_ENABLE
-	if(HAL_I2C_Init(I2C0, 400000) != HAL_OK) //400kbps - Fast mode
-#endif //AD82584F_ENABLE
 	{
 		 /* Initialization Error */
      		I2C_Error_Handler();
@@ -121,7 +114,6 @@ void I2C_Interrupt_Write_Data(uint8_t uDeviceId, uint8_t uAddr, uint8_t *uData, 
 #endif
 #endif
 
-#if defined(USEN_BT_SPK) && !defined(NOT_USE_POWER_DOWN_MUTE) //220217 //2022-10-04_1 : To enable I2C communication under power off mode when we use TAS5806MD due to "Deep Sleep + Mute"
 	if(!Power_State())
 	{
 #ifdef _I2C_DEBUG_MSG
@@ -130,7 +122,6 @@ void I2C_Interrupt_Write_Data(uint8_t uDeviceId, uint8_t uAddr, uint8_t *uData, 
 #endif
 		return;
 	}
-#endif
 
 #ifdef ESD_ERROR_RECOVERY
 	do {
@@ -148,22 +139,6 @@ void I2C_Interrupt_Write_Data(uint8_t uDeviceId, uint8_t uAddr, uint8_t *uData, 
 		_DBG("\n+++I2C uAddr : \n");
 		_DBH(Master_Buf[0]);
 		_DBG("\n+++I2C Write Data : \n");
-#endif
-
-#if defined(USEN_BAP) && defined(ADC_INPUT_ENABLE) && !defined(TI_AMP_DSP_VOLUME_CONTROL_ENABLE)
-		if(uAddr == 0x4C && !Is_BAmp_Init()) //2022-11-22_1 //#define TAS5806MD_DAC_GAIN_CONTROL_REG					(0x4C)
-		{
-#ifdef ADC_INPUT_DEBUG_MSG
-			_DBG("\n+++I2C Write Vol = \n");
-			_DBH(uData[0]);
-#endif
-			if(uData[0] != 0xff)
-			uData[0] = uData[0] + uAttenuator_Vol_Value();
-#ifdef ADC_INPUT_DEBUG_MSG
-			_DBG("\n===I2C Write Vol = \n");
-			_DBH(uData[0]);
-#endif
-		}
 #endif
 
 		for(i=0;i<uDataSize;i++)
@@ -254,7 +229,7 @@ void I2C_Interrupt_Read_Data(uint8_t uDeviceId, uint8_t uAddr, uint8_t *uData, u
 	Bool B_Error = FALSE;
 #endif
 #endif
-#if defined(USEN_BT_SPK) && !defined(NOT_USE_POWER_DOWN_MUTE) //220217 2022-10-04_1 : To enable I2C communication under power off mode when we use TAS5806MD due to "Deep Sleep + Mute"
+
 	if(!Power_State())
 	{
 #ifdef _I2C_DEBUG_MSG
@@ -263,7 +238,6 @@ void I2C_Interrupt_Read_Data(uint8_t uDeviceId, uint8_t uAddr, uint8_t *uData, u
 #endif
 		return;
 	}
-#endif
 
 #ifdef ESD_ERROR_RECOVERY
 	do{
@@ -349,24 +323,7 @@ void I2C_Interrupt_Read_Data(uint8_t uDeviceId, uint8_t uAddr, uint8_t *uData, u
 		_DBH(uData[i]);
 #endif		
 	}
-#if defined(USEN_BAP) && defined(ADC_INPUT_ENABLE) && !defined(TI_AMP_DSP_VOLUME_CONTROL_ENABLE)
-	if(uAddr == 0x4C && !Is_BAmp_Init()) //2022-11-22_1 //#define TAS5806MD_DAC_GAIN_CONTROL_REG					(0x4C)
-	{
-#ifdef ADC_INPUT_DEBUG_MSG
-		_DBG("\n+++I2C Read Vol = \n");
-		_DBH(uData[0]);
-#endif
-		if(uData[0] != 0xff)
-			uData[0] = uData[0] + uAttenuator_Vol_Value();
-#ifdef ADC_INPUT_DEBUG_MSG
-		_DBG("\n===I2C Read Vol = \n");
-		_DBH(uData[0]);
-#endif
-	}
-#endif
 }
-
-#endif //I2C_0_ENABLE
 
 #ifdef I2C_1_ENABLE
 /**********************************************************************
@@ -568,7 +525,4 @@ void I2C1_Interrupt_Read_Data(uint8_t uDeviceId, uint8_t uAddr, uint8_t *uData, 
 #endif		
 	}
 }
-
 #endif //I2C_1_ENABLE
-
-

@@ -15,9 +15,7 @@
 #ifdef TIMER21_LED_ENABLE
 #include "timer21.h"
 #include "led_display.h"
-#ifdef LED_DISPLAY_CHANGE
 #include "timer20.h"
-#endif
 
 /* Private typedef ---------------------------------------------------*/
 /* Private define ----------------------------------------------------*/
@@ -103,24 +101,13 @@ void TIMER21_IRQHandler_IT(void)
 	static Bool Very_Fast_Flag = FALSE; //250ms
 	static Bool Fast_Flag = FALSE; //500ms
 	static Bool Slow_Flag = FALSE; // 1sec
-#if defined(MASTER_SLAVE_GROUPING_LED_DISPLAY) || defined(GIA_MODE_LED_DISPLAY_ENABLE)
 	Bool Blue_White_Flag;
-#endif
 	Bool Mute_On;  //Upon Mute On, this flag check whether need to set bliking mode or not. When mute is on, we don't need to run blinking mode except red led.
 	Status_LED_Mode mode;
-#ifndef MASTER_MODE_ONLY
-	Switch_Master_Slave_Mode Master_Slave;
-	
-	Master_Slave = Get_Cur_Master_Slave_Mode();
-#endif
+
 	mode = Get_Cur_Status_LED_Mode();
-#if defined(AD82584F_ENABLE) || defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)
-#ifdef AD82584F_USE_POWER_DOWN_MUTE
 	Mute_On = IS_Display_Mute();
-#else
-	Mute_On = Is_Mute(); //AD82584F_Amp_Get_Cur_Mute_Status();
-#endif	
-#endif
+
 	if (HAL_TIMER2n_GetMatchInterrupt(TIMER21) == 1) //250ms
 	{
 		HAL_TIMER2n_ClearMatchInterrupt(TIMER21);
@@ -160,32 +147,15 @@ void TIMER21_IRQHandler_IT(void)
 				//White Fast Blinking
 				if(!Mute_On)
 					LED_Status_Display_Blinking(STATUS_LED_WHITE, Fast_Flag);
-#ifdef MASTER_MODE_ONLY
+
 				LED_Status_Display_Blinking(L3_LED_WHITE, Fast_Flag); //Master Mode //Fast Blinking
-#else
-				if(Master_Slave == Switch_Master_Mode) //Master Mode //Fast Blinking
-				{
-					LED_Status_Display_Blinking(L3_LED_WHITE, Fast_Flag);
-				}
-				else //Slave Mode
-				{
-					LED_Status_Display_Blinking(L3_LED_BLUE, Fast_Flag);
-				}
-#endif
 				break;
 				
-#ifdef AMP_ERROR_ALARM
 			case STATUS_AMP_ERROR_MODE: // White Very Fast Blinking(250ms)
 				//White Fast Blinking
 				LED_Status_Display_Blinking(STATUS_LED_WHITE, Very_Fast_Flag);
-#ifndef USEN_BAP2 //2024-01-31_1 : BAP-02 display Power status LED blinking under AMP error(BAP-01 used BT status led White/Blue)
-				LED_Status_Display_Blinking(L3_LED_WHITE, Very_Fast_Flag);
-				LED_Status_Display_Blinking(L3_LED_BLUE, Very_Fast_Flag);
-#endif
 				break;
-#endif
 
-#ifdef MASTER_SLAVE_GROUPING_LED_DISPLAY
 			case STATUS_BT_MASTER_SLAVE_PAIRING_MODE: // White/Blue Fast Blinking (each 0.25sec)
 				//White Fast Blinking
 				if(!Mute_On)
@@ -201,66 +171,24 @@ void TIMER21_IRQHandler_IT(void)
 				LED_Status_Display_Blinking(L3_LED_BLUE, Fast_Flag);
 			break;
 
-#ifdef GIA_MODE_LED_DISPLAY_ENABLE
 			case STATUS_BT_GIA_PAIRING_MODE: // White Very Fast Blinking(250ms)
 				//White Fast Blinking
 				if(!Mute_On)
 					LED_Status_Display_Blinking(STATUS_LED_WHITE, Very_Fast_Flag);
-#ifndef MASTER_MODE_ONLY
-				if(Master_Slave == Switch_Master_Mode)
-#endif
-				{
-					LED_Status_Display_Blinking(L3_LED_WHITE, Very_Fast_Flag);
-				}
+
+				LED_Status_Display_Blinking(L3_LED_WHITE, Very_Fast_Flag);
 				break;
-#endif
-#else //MASTER_SLAVE_GROUPING_LED_DISPLAY
-#ifdef GIA_MODE_LED_DISPLAY_ENABLE
-			case STATUS_BT_GIA_PAIRING_MODE: // White/Blue Slow Blinking
-				//White Fast Blinking
-				if(!Mute_On)
-					LED_Status_Display_Blinking(STATUS_LED_WHITE, Fast_Flag);
-				
-#ifndef MASTER_MODE_ONLY				
-				if(Master_Slave == Switch_Master_Mode) //Master Mode //White/Blue Slow Blinking
-#endif
-				{
-					if(Slow_Flag)
-					Blue_White_Flag = FALSE;
-				else
-					Blue_White_Flag = TRUE;
-				
-				LED_Status_Display_Blinking(L3_LED_WHITE, Blue_White_Flag);
-					LED_Status_Display_Blinking(L3_LED_BLUE, Slow_Flag);
-				}
-			break;
-#endif
-#endif //MASTER_SLAVE_GROUPING_LED_DISPLAY
 
 			case STATUS_BT_FAIL_OR_DISCONNECTION_MODE: // White Slow Blinking
 				//White Slow Blinking
 				if(!Mute_On)
 					LED_Status_Display_Blinking(STATUS_LED_WHITE, Slow_Flag);
 
-#ifdef MASTER_MODE_ONLY
-
 				LED_Status_Display_Blinking(L3_LED_WHITE, Slow_Flag);
-#else
-				if(Master_Slave == Switch_Master_Mode) //Master Mode //Fast Blinking
-				{
-					LED_Status_Display_Blinking(L3_LED_WHITE, Slow_Flag);
-				}
-				else //Slave Mode
-				{
-					LED_Status_Display_Blinking(L3_LED_BLUE, Slow_Flag);
-				}
-#endif
+
 				break;
  				
 			case STATUS_SOC_ERROR_MODE: // Red Blinking
-#if !defined(USEN_BAP) && !defined(USEN_BAP2) //Red Fast Blinking
-				LED_Status_Display_Blinking(STATUS_LED_RED, Fast_Flag);
-#endif
 				break;
 			
 			default:

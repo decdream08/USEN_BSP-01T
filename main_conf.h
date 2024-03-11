@@ -51,11 +51,6 @@ extern "C"
 //#define SIG_TEST				(1) //Need to Delete !!!
 //#define ENABLE_TWS_MODE_AP_TEST				(1) //If TWS_MODE is enabled and then user wants to test TWS_MODE standalone with AP, it shuld be enabled.
 
-#if defined(USEN_BT_SPK_TI) || defined(USEN_BT_SPK_ESMT)
-#define USEN_BT_SPK				(1)
-#define LR_360_FACTORY_ENABLE	(1) //2023-04-06_1 : Changed SPEC which LR/360 swich should work with Factory Reset
-#endif
-
 #if defined(USEN_BAP) || defined(USEN_BAP2)
 #define MASTER_MODE_ONLY		(1) //2023-03-27_1 : USEN BAP-01 is only supporting Master mode
 #define USEN_BT_SPK				(1)
@@ -79,25 +74,8 @@ extern "C"
 #endif
 
 // Model Specific Features ****************************************************/
-#if !defined(USEN_BAP) && !defined(USEN_BAP2)
-#define TWS_MODE_ENABLE							(1) //Support TWS MODE //2022-11-02
-#endif
-//#define NO_BROADCAST_MODE						(1)
-
-#ifdef LGD_BT_SPK
-#define ESTEC_BOARD			(1)
-#endif
-
 // Features ****************************************************************/
-#ifdef LGD_SOUND_BAR
-#define SOUND_BAR_GPIO_ENABLE				(1) //PC4(FAULT)/PD0(CLIP_OTW) : Interrupt Input, PC3(MUTE)/PD1(RESET) : Output
-#endif
-
 // IR Feature ****************/
-#if defined(USING_REFERENCE_FLATFORM) || defined(LGD_BT_SPK) || defined(LGD_SOUND_BAR) //Under ESTec board, PC0 must be MODULE_RESET pin for BT Module
-#define REMOCON_TIMER20_CAPTURE_ENABLE		(1) //Use TIMER20 CAPTURE for the IR function implement - PC0
-#endif
-//#define SUPPORT_LG_REMOCON	(1)
 
 //ADC Fearue **************/
 #if defined(USEN_BAP) || defined(USEN_BAP2)
@@ -112,38 +90,19 @@ extern "C"
 #define I2C_0_ENABLE							(1) //Use I2C 0 for the communication with AD82584F - PF6:SCL0, PF7:SDA0. If you don't use I2C0, please make sure to disable this macro !!!
 
 #ifdef USEN_BAP2
-//#define PCM9211_ENABLE
+#define PCM9211_ENABLE
 #ifdef PCM9211_ENABLE
-#define I2C_1_ENABLE
+//#define I2C_1_ENABLE
 #endif
 #endif
-// SPI Feature **************/
-#ifdef LGD_SOUND_BAR
-#define SPI_11_ENABLE							(1) //Use USART 11 as SPI for the communication with ADAU1452(DSP) - MOSI:PD2/MISO:PD3/SCK:PD4/SS:PD5. If you don't use USART11 as SPI, please make sure to disable this macro !!!
-#ifdef SPI_11_ENABLE
-#define ADAU1452_ENABLE						(1) //Use ADAU1452 DSP using SPI control
-#endif //SPI_11_ENABLE
-#endif //LGD_SOUND_BAR
 
 // GPIO Feature **************/
-#ifdef LGD_BT_SPK
-#define BT_SPK_GPIO_ENABLE							(1) //PC4 / PD0 : Interrupt Input, PD2 / PD3 : Output
-#endif //LGD_BT_SPK
 #ifdef USEN_BT_SPK
 #define AUX_INPUT_DET_ENABLE						(1) // PC3 : interrupt Input for Aux In Detect.
 #define USEN_GPIO_OTHERS_ENABLE					(1) //PF0(FACTORY RESET)/PF2(+3.3V_DAMP_SW_1)/PF3(+14V_DAMP_SW_1)/PF4(+14V_DAMP_PDN) /PF5(DAMP_ERROR)
 #endif
 
 // Button/Touch Key Feature **************/
-#ifdef LGD_BT_SPK
-#ifdef BT_SPK_GPIO_ENABLE //Touch Key Disable
-#define BT_SPK_TACT_SWITCH						(1) //PE3 / PE4 / PE5 / PE6 / PE7 : TACT Switch input
-#endif
-#ifndef BT_SPK_TACT_SWITCH
-//#define TOUCHKEY_ENABLE					(1) //Use Touchkey
-#endif
-#endif //LGD_BT_SPK
-
 #ifdef USEN_BT_SPK
 #ifdef USING_REFERENCE_FLATFORM
 #define MODE_KEY_TOGGLE_ENABLE		(1)
@@ -512,15 +471,12 @@ typedef enum {
 }EQ_Mode_Setting;
 #endif
 
-
-#if defined(SPI_11_ENABLE) || defined(UART_10_ENABLE)
 typedef enum{
 	SERIAL_PORT10,
 	SERIAL_PORT11,
 	SERIAL_PORT_MAX	
 }SerialPort_t;
 
-#ifdef USEN_BAP2
 typedef enum{
     SLAVE_BT_VOLUME,
     AREA1_VOLUME,
@@ -532,38 +488,189 @@ typedef enum{
 #define AREA2_VOLUME_MASK 0xff0000
 #define AREA1_VOLUME_MASK 0x00ff00
 #define BT_VOLUME_MASK    0x0000ff
-#endif
+
+#define OFF 0
+#define ON	1
+
+enum enTimer1msStatus {
+	df1msTimer0ms		= 0,
+	df1msTimer1ms		= 1,
+	df1msTimer2ms		= 2,
+	df1msTimer3ms		= 3,
+	df1msTimer5ms		= 5,
+	df1msTimer10ms		= 10,
+	df1msTimer15ms		= 15,
+	df1msTimer20ms		= 20,
+	df1msTimer30ms		= 30,
+	df1msTimer40ms		= 40,
+	df1msTimer50ms		= 50,
+	df1msTimer60ms		= 60,
+	df1msTimer70ms		= 70,
+	df1msTimer80ms		= 80,
+	df1msTimer90ms		= 90,
+	df1msTimer100ms		= 100,
+	df1msTimer120ms		= 120,
+	df1msTimer150ms		= 150,
+	df1msTimer200ms		= 200,
+	df1msTimer400ms		= 400,	
+	df1msTimer500ms		= 500,
+	df1msTimer1s			= 1000,
+	df1msTimer60s			= 60000,
+};
+
+enum enTimer10msStatus {
+	df10msTimer0ms		= 0,
+	df10msTimer10ms		= 1,
+	df10msTimer20ms		= 2,
+	df10msTimer30ms		= 3,
+	df10msTimer40ms		= 4,
+	df10msTimer50ms		= 5,
+	df10msTimer60ms		= 6,
+	df10msTimer70ms		= 7,
+	df10msTimer80ms		= 8,
+	df10msTimer90ms		= 9,
+	df10msTimer100ms	= 10,
+	df10msTimer110ms  = 11,
+	df10msTimer150ms	= 15,
+	df10msTimer170ms	= 17,	
+	df10msTimer200ms	= 20,
+	df10msTimer210ms	= 21,
+	df10msTimer250ms   = 25,
+	df10msTimer300ms	= 30,
+	df10msTimer400ms	= 40,
+	df10msTimer450ms	= 45,
+	df10msTimer500ms	= 50,
+	df10msTimer600ms	= 60,
+	df10msTimer700ms	= 70,
+	df10msTimer800ms	= 80,
+	df10msTimer900ms	= 90,
+	df10msTimer1s		= 100,
+	df10msTimer1s100ms	= 110,
+	df10msTimer1s200ms	= 120,
+	df10msTimer1s500ms	= 150,
+	df10msTimer1s900ms	= 190,	
+	df10msTimer2s		= 200,
+	df10msTimer2s200ms		= 220,
+	df10msTimer2s250ms		= 225,
+	df10msTimer2s500ms = 250,
+	df10msTimer3s		= 300,
+	df10msTimer3s500ms		= 350,	
+	df10msTimer3s800ms	= 380,
+	df10msTimer4s		= 400,
+	df10msTimer4s500ms	= 450,
+	df10msTimer5s		= 500,
+	df10msTimer5s500ms	= 550,	
+	df10msTimer6s		= 600,
+	df10msTimer7s		= 700,
+	df10msTimer8s		= 800,
+	df10msTimer9s		= 900,
+	df10msTimer10s		= 1000,
+	df10msTimer10s500ms		= 1050,
+	df10msTimer11s		= 1100,	
+	df10msTimer12s		= 1200,
+	df10msTimer15s		= 1500,
+	df10msTimer30s		= 3000,
+	df10msTimer32s		= 3200,
+	df10msTimer60s		= 6000,
+	df10msTimer1min15sec	= 7500,
+	df10msTimer2min		= 12000,
+	df10msTimer2min30sec	= 14000,
+	df10msTimer3min		= 18000,
+	df10msTimer15min	= 90000,
+};
+
+enum enTimer50msStatus {
+	df50msTimer0ms		= 0,
+	df50msTimer50ms		= 1,
+	df50msTimer100ms		= 2,
+	df50msTimer150ms		= 3,
+	df50msTimer200ms		= 4,
+	df50msTimer250ms		= 5,
+	df50msTimer300ms		= 6,
+	df50msTimer350ms		= 7,
+	df50msTimer400ms		= 8,
+	df50msTimer450ms		= 9,
+	df50msTimer500ms	= 10,
+	df50msTimer1s		= 20,
+	df50msTimer1s500ms		= 30,
+	df50msTimer2s	= 40,
+	df50msTimer3s	= 60,
+	df50msTimer5s	= 100,
+	df50msTimer6s	= 120,
+};
+
+enum enTimer100msStatus {
+	df100msTimer0ms		= 0,
+	df100msTimer100ms	= 1,
+	df100msTimer200ms	= 2,
+	df100msTimer300ms	= 3,
+	df100msTimer400ms	= 4,
+	df100msTimer500ms	= 5,
+	df100msTimer700ms	= 7,	
+	df100msTimer1s		= 10,
+	df100msTimer1d1s	= 11,
+	df100msTimer1d5s	= 15,
+	df100msTimer1d6s	= 16,
+	df100msTimer1d9s	= 19,	
+	df100msTimer2s		= 20,
+	df100msTimer2d5s		= 25,
+	df100msTimer2d6s		= 26,
+	df100msTimer3s		= 30,
+	df100msTimer3d5s		= 35,
+	df100msTimer4s		= 40,
+	df100msTimer4d5s		= 45,
+	df100msTimer5s		= 50,
+	df100msTimer5d5s		= 55,
+	df100msTimer6s		= 60,
+	df100msTimer6d5s		= 65,	
+	df100msTimer7s		= 70,
+	df100msTimer7d5s		= 75,	
+	df100msTimer8s		= 80,
+	df100msTimer8d5s		= 85,	
+	df100msTimer10s		= 100,
+	df100msTimer12s		= 120,
+	df100msTimer13s		= 130,
+	df100msTimer15s		= 150,	
+	df100msTimer20s		= 200,
+	df100msTimer30s		= 300,
+	df100msTimer30d1s	= 301,
+	df100msTimer1min	= 1 * 60 * 10,	
+	df100msTimer2min	= 2* 60 * 10,	
+	df100msTimer3min	= 3 * 60 * 10,
+	df100msTimer5min	= 5 * 60 * 10,
+	df100msTimer10min	= 10 * 60 * 10,
+	df100msTimer20min	= 20 * 60 * 10,	
+	df100msTimer30min	= 30 * 60 * 10,
+	df100msTimer40min	= 40 * 60 * 10,
+	df100msTimer50min	= 50 * 60 * 10,	
+	df100msTimer60min	= 60 * 60 * 10,
+	df100msTimer70min	= 70 * 60 * 10,
+	df100msTimer80min	= 80 * 60 * 10,	
+	df100msTimer90min	= 90 * 60 * 10, 
+ 
+};
+
+
+void main_10ms_timer(void);
+void main_timer_function(void);
 
 typedef void (*Serial_Handle_t)(uint8_t *Data);
-#endif //defined(SPI_11_ENABLE) || defined(UART_10_ENABLE)
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-#ifdef UART_10_ENABLE
 #define UART10_Rx_Buffer_Size		255
 extern uint8_t uBuffer_Count;
-#endif
-#ifdef BT_SPK_GPIO_ENABLE
-extern Mute_Status Cur_Mute_Status;
-#endif
-#ifdef FACTORY_MODE
+
 extern Bool bFACTORY_MODE;
-#endif
-#ifdef SWITCH_BUTTON_KEY_ENABLE
+
 extern Bool BBT_Pairing_Key_In;
 extern Bool bFactory_Reset_Mode;
-#endif
 
-#if defined(ADC_VOLUME_STEP_ENABLE) && (defined(USEN_BAP) || defined(USEN_BAP2))
 extern Bool B_Master_Is_BAP; //2023-01-09_2
-#endif
 
 /* Private define ------------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
-
-#if defined(USEN_BAP) || defined(USEN_BAP2) //2023-07-20_1
 uint32_t ADC_Value_Update_to_send_Slave(void);
-#endif
 
 #ifdef WATCHDOG_TIMER_RESET
 void WDT_ReloadTimeRun(void);
@@ -579,118 +686,44 @@ void SystemClock_Config(void);
 void DEBUG_MenuPrint(void);
 void DEBUG_Init(void);
 void delay_ms(uint32_t m_ms);
-#ifdef UART_10_ENABLE
 void UART10_IRQHandler_IT(void);
 void Serial_Data_Clear(uint8_t length, uint8_t start_count);
 void Serial_Data_Get(uint8_t *Buf, uint8_t length, uint8_t start_count);
-#endif
-#ifdef I2C_0_ENABLE /*I2C0_IRQHandler_IT */
 void I2C0_IRQHandler_IT(void);
-#endif
 #ifdef I2C_1_ENABLE /*I2C1_IRQHandler_IT */
 void I2C1_IRQHandler_IT(void);
 #endif
-#if defined(REMOCON_TIMER20_CAPTURE_ENABLE) || defined(TIMER20_COUNTER_ENABLE)
 void TIMER20_IRQHandler_IT(void);
-#endif
-#ifdef SPI_11_ENABLE
-void USART11_IRQHandler_IT(void);
-#endif
 
-#if defined(TIMER21_LED_ENABLE) || defined(TIMER12_13_LONG_KEY_ENABLE)
 void All_Timer_Off(void); //TIMER12/TIMER13/TIMER21
-#endif
 
-#ifdef TIMER30_LED_PWM_ENABLE
-void TIMER30_IRQHandler_IT(void);
-#endif
-#ifdef TIMER1n_LED_PWM_ENABLE
-/* TIMER10/11 IRQHandler*/
-void TIMER10_IRQHandler_IT(void);
-void TIMER11_IRQHandler_IT(void);
-#endif
-#ifdef TIMER12_13_LONG_KEY_ENABLE
 void TIMER13_IRQHandler_IT(void);
 void TIMER12_IRQHandler_IT(void);
-#endif
-#ifdef TIMER21_LED_ENABLE
-void TIMER21_IRQHandler_IT(void);
-#endif
-#ifdef BT_SPK_GPIO_ENABLE
-void GPIOCD_IRQHandler_IT(void);
-//PC4 / PD0 : Interrupt Input, PD2 / PD3 : Output //PD2 - DAC_MUTE_SW : High - Unmute / Low - Mute
-void AMP_DAC_MUTE(Bool Mute);
-void AMP_RESET(Bool Reset);
-#ifdef BT_SPK_TACT_SWITCH
-void GPIOE_IRQHandler_IT(void);
-#endif
-#else //BT_SPK_GPIO_ENABLE
-#if (defined(USEN_BAP) || defined(USEN_BAP2)) && defined(SWITCH_BUTTON_KEY_ENABLE)
-void GPIOE_IRQHandler_IT(void);
-#endif
-#endif //BT_SPK_GPIO_ENABLE
 
-#ifdef SOUND_BAR_GPIO_ENABLE
-void GPIOCD_IRQHandler_IT1(void);
-void DSP_Reset(Bool Reset_On);
-#endif
-#ifdef AUX_INPUT_DET_ENABLE
+void TIMER21_IRQHandler_IT(void);
+void GPIOE_IRQHandler_IT(void);
 void GPIOCD_IRQHandler_IT2(void);
-#endif
-#ifdef SWITCH_BUTTON_KEY_ENABLE
 void GPIOAB_IRQHandler_IT(void);
-#endif
-#ifdef USEN_GPIO_OTHERS_ENABLE //Use External INT for Switchs and Button Keys - PF0 / PF5(AMP_ERROR input)
+
 void GPIOF_IRQHandler_IT(void);
-#endif
-#if (defined(USEN_BAP) || defined(USEN_BAP2)) && !(BT_SPK_TACT_SWITCH) //Implemented Interrupt Port E for BT Key(PE7) //2022-10-11_2 //2023-01-03
+
 void EXIT_PortE_Disable(void); //2023-01-03_2 : Disable Interrupt Port E for BT Key(PE7)
 void EXIT_PortE_Configure(void); //2023-01-03_2
-#endif
 
-#if (defined(USEN_BAP) || defined(USEN_BAP2)) && defined(AUX_INPUT_DET_ENABLE) && defined(TIMER20_COUNTER_ENABLE) //2023-01-10_3
 void Aux_Mode_Setting_After_Timer_Checking(Bool Aux_In);
 void Set_Aux_Detection_flag(void); //2023-04-12_1
-#endif
-#ifdef AUX_INPUT_DET_ENABLE
+
 Bool Aux_In_Exist(void);
-#endif
-#if defined(AMP_1_1CH_WORKAROUND) || defined(TAS5806MD_ENABLE) //2022-10-17_3
-void TAS5806MD_Init_After_Clk_Detect(void);
-#ifdef TAS5806MD_ENABLE
-uint32_t TAS5806MD_CLK_Detect_Count(void); //2022-12-06 : Clk_detect_uCount = 0xffffffff(Complete CLK detection)
-#endif
-#endif
-#ifdef ADC_INTERRUPT_INPUT_ENABLE
-void ADC_IRQHandler_IT(void);
-#endif //ADC_INTERRUPT_INPUT_ENABLE
-#ifdef MASTER_MODE_ONLY
+
 Switch_BAP_EQ_Mode Get_Cur_BAP_EQ_Mode(void);
-#else //MASTER_MODE_ONLY
-Switch_Master_Slave_Mode Get_Cur_Master_Slave_Mode(void);
-#endif //MASTER_MODE_ONLY
 Switch_LR_Stereo_Mode Get_Cur_LR_Stereo_Mode(void);
 
 void Factory_Reset_Value_Setting(void);
-#ifdef USEN_BT_SPK
-#if defined(USEN_BAP) || defined(USEN_BAP2) //2023-04-06_4 : To recognize the place which call this function is whther SW start or Power On
 void Init_Value_Setting(Bool B_bool);
-#else
-void Init_Value_Setting(void);
-#endif
-#endif
 void SW_Reset(void);
 
-#ifdef ADC_INPUT_ENABLE //2022-11-22_1
 int8_t uAttenuator_Vol_Value(void);
-#endif
-#if defined(ADC_INPUT_ENABLE) && (defined(USEN_BAP) || defined(USEN_BAP2)) && (defined(TAS5806MD_ENABLE) || defined(AD85050_ENABLE)) //2023-03-02_3
-#ifdef USEN_BAP2
 uint8_t ADC_Volume_Attenuator_Value_Init(Attenuator_Type attenuator_type);
-#else
-uint8_t ADC_Volume_Attenuator_Value_Init(void);
-#endif
-#endif
 
 #ifdef __cplusplus
 }

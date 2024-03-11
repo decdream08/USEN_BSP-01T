@@ -17,9 +17,8 @@
 #include "A31G21x_hal_timer1n.h"
 #include "led_display.h"
 
-#if defined(REMOCON_TIMER20_CAPTURE_ENABLE) || defined(SWITCH_BUTTON_KEY_ENABLE)
 #include "remocon_action.h"
-#endif
+#include "key.h"
 
 /* Private typedef ---------------------------------------------------*/
 //#define TIMER1N_DBG_ENABLE				(1)
@@ -44,29 +43,10 @@ Bool bVol_Up_Long = FALSE, bVol_Down_Long = FALSE; //To avoid, sending same key 
 Bool bBT_Long = FALSE;
 Bool bPower_Long = FALSE;
 Bool bTimer13_Long = FALSE;
-#ifdef FACTORY_RESET_LONG_KEY_SUPPORT
 Bool bFactory_Reset_Long = FALSE;
-#endif
-#ifdef EQ_TOGGLE_ENABLE //2023-01-17 : To display EQ Mode using volume level indicator during 3 sec
-Bool bEQ_Long = FALSE;
-#endif
-
 
 Timer13_Long_Key_Type Long_Key_Type = Timer13_None_Key;
 
-#ifdef EQ_TOGGLE_ENABLE //2023-01-17 : To display EQ Mode using volume level indicator during 3 sec
-Bool Is_EQ_Long_Key(void) //To avoid, sending same key again
-{
-#ifdef TIMER1N_DBG_ENABLE
-	_DBG("\n\rIs_EQ_Long_Key = ");
-	_DBD(bEQ_Long);
-#endif
-
-	return bEQ_Long;
-}
-#endif //EQ_TOGGLE_ENABLE
-
-#ifdef FACTORY_RESET_LONG_KEY_SUPPORT
 Bool Is_Factory_Reset_Long_Key(void)
 {
 #ifdef TIMER1N_DBG_ENABLE
@@ -75,8 +55,6 @@ Bool Is_Factory_Reset_Long_Key(void)
 #endif
 	return bFactory_Reset_Long;
 }
-#endif
-
 
 Bool Is_Power_Long_Key(void)
 {
@@ -130,9 +108,8 @@ Bool Is_Timer13_Long_Key(void) //To avoid, sending same key again
 void TIMER12_Configure(void)
 {
 	/*Timer1n clock source from PCLK*/
-#if !defined(TIMER1n_LED_PWM_ENABLE) && (defined(USEN_BAP) || defined(USEN_BAP2))//Need to Call clock setting function to use Timer1n //2022-10-11_3 
 	HAL_SCU_Timer1n_ClockConfig(TIMER1nCLK_PCLK); 
-#endif
+
 	TIMER1n_Config.CkSel = TIMER1n_MCCR1PCLK;    
 	TIMER1n_Config.Prescaler = 32;    
   
@@ -196,12 +173,12 @@ void TIMER12_IRQHandler_IT(void) //50msec timer
 		HAL_TIMER1n_ClearMatchInterrupt(TIMER12);
 		timer12_50ms_count++;
 
-		if(timer12_50ms_count >= 60) // 3 Sec
+		if(timer12_50ms_count >= df50msTimer3s) // 3 Sec
 		{
-			if(timer12_50ms_count == 60)
+			if(timer12_50ms_count == df50msTimer3s)
 				timer12_50ms_count_bk = timer12_50ms_count;
 
-			if((timer12_50ms_count - timer12_50ms_count_bk) == 10) //0.5 Sec
+			if((timer12_50ms_count - timer12_50ms_count_bk) == df50msTimer500ms) //0.5 Sec
 			{
 				if(bVolume_Up)
 				{
@@ -209,9 +186,7 @@ void TIMER12_IRQHandler_IT(void) //50msec timer
 					_DBG("\n\rLong key send - VOL_UP_KEY");
 #endif
 					bVol_Up_Long = TRUE;
-#ifdef SWITCH_BUTTON_KEY_ENABLE
 					Send_Remote_Key_Event(VOL_UP_KEY);
-#endif
 				}
 				else
 				{
@@ -219,9 +194,7 @@ void TIMER12_IRQHandler_IT(void) //50msec timer
 					_DBG("\n\rLong key send - VOL_DOWN_KEY");
 #endif
 					bVol_Down_Long = TRUE;
-#ifdef SWITCH_BUTTON_KEY_ENABLE
 					Send_Remote_Key_Event(VOL_DOWN_KEY);
-#endif
 				}
 				
 				timer12_50ms_count_bk = timer12_50ms_count;
@@ -299,12 +272,7 @@ void TIMER13_Periodic_Mode_Run(Bool On, Timer13_Long_Key_Type Key_Type)
 		Enable = FALSE;
 		bBT_Long = FALSE;
 		bPower_Long = FALSE;
-#ifdef FACTORY_RESET_LONG_KEY_SUPPORT
 		bFactory_Reset_Long = FALSE;
-#endif
-#ifdef EQ_TOGGLE_ENABLE //2023-01-17
-		bEQ_Long = FALSE;
-#endif
 	}
 }
 
@@ -321,22 +289,16 @@ void TIMER13_IRQHandler_IT(void) //50ms timer
 		timer13_50ms_count++;
 
 		bTimer13_Long = TRUE;
-#if !defined(USEN_BAP) /*&& !defined(USEN_BAP_2)*/ //2022-10-07_3
+#if !defined(USEN_BAP2)
 		if(Long_Key_Type == Timer13_Power_Key)
 		{
 			//POWER ON KEY(Long Key) condiiton is over than 6 sec(50ms * 120) 
-			if(timer13_50ms_count == /*120*/40)
+			if(timer13_50ms_count == df50msTimer6s)
 			{
 #ifdef TIMER1N_DBG_ENABLE
 				_DBG("\n\rTIMER13_IRQHandler_IT = Timer13_Power_Key");
 #endif
-#ifdef SWITCH_BUTTON_KEY_ENABLE
-#ifdef POWER_KEY_TOGGLE_ENABLE
 				Send_Remote_Key_Event(POWER_KEY);
-#else //POWER_KEY_TOGGLE_ENABLE
-				Send_Remote_Key_Event(POWER_ON_KEY);
-#endif //POWER_KEY_TOGGLE_ENABLE
-#endif //SWITCH_BUTTON_KEY_ENABLE
 				bPower_Long = TRUE;
 			}
 		}
@@ -345,53 +307,26 @@ void TIMER13_IRQHandler_IT(void) //50ms timer
 		if(Long_Key_Type == Timer13_BT_Pairing_Key)
 		{
 			//BT PAIRING KEY(Long Key) condiiton is over than 5 sec(50ms * 100) 
-			if(timer13_50ms_count == 100)
+			if(timer13_50ms_count == df50msTimer5s)
 			{
 #ifdef TIMER1N_DBG_ENABLE
 				_DBG("\n\rTIMER13_IRQHandler_IT = Timer13_BT_Pairing_Key");
 #endif
-#ifdef SWITCH_BUTTON_KEY_ENABLE
 				Send_Remote_Key_Event(BT_PAIRING_KEY);
-#endif
 				bBT_Long = TRUE;
 			}
 		}
 		else if(Long_Key_Type == Timer13_Factory_Reset_Key)
 		{
-#ifdef FACTORY_RESET_LONG_KEY_SUPPORT
-			if(timer13_50ms_count == 40) //BT PAIRING KEY(Long Key) condiiton is over than 2 sec(50ms * 40)//5 sec(50ms * 100) 
-#else
-			if(timer13_50ms_count == 120) //BT PAIRING KEY(Long Key) condiiton is over than 6 sec(50ms * 120) 
-#endif
+			if(timer13_50ms_count == df50msTimer2s) //BT PAIRING KEY(Long Key) condiiton is over than 2 sec(50ms * 40)//5 sec(50ms * 100) 
 			{
 #ifdef TIMER1N_DBG_ENABLE
 				_DBG("\n\rTIMER13_IRQHandler_IT = Timer13_Factory_Reset_Key");
 #endif
-#ifdef SWITCH_BUTTON_KEY_ENABLE
-#ifdef FACTORY_RESET_LONG_KEY_SUPPORT
 				Send_Remote_Key_Event(FACTORY_RESET_KEY);
 				bFactory_Reset_Long = TRUE;
-#else
-				//Send_Remote_Key_Event(FACTORY_RESET_KEY);  //To Do !!! : Disable D-code and Enablue G-code
-#endif
-#endif
 			}
 		}
-#ifdef EQ_TOGGLE_ENABLE //2023-01-17 : To display EQ Mode using volume level indicator during 3 sec
-		else if(Long_Key_Type == Timer13_EQ_Toggle_Key)
-		{
-			if(timer13_50ms_count == 60) //BT PAIRING KEY(Long Key) condiiton is over than 3 sec(50ms * 60)
-			{
-#ifdef TIMER1N_DBG_ENABLE
-				_DBG("\n\rTIMER13_IRQHandler_IT = Timer13_EQ_Toggle_Key");
-#endif
-#ifdef SWITCH_BUTTON_KEY_ENABLE
-				Send_Remote_Key_Event(EQ_KEY);
-				bEQ_Long = TRUE;
-			}
-#endif
-		}
-#endif //EQ_TOGGLE_ENABLE
 		else
 		{
 #ifdef TIMER1N_DBG_ENABLE
