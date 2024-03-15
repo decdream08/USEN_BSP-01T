@@ -449,7 +449,7 @@ uint8_t uCurrent_Status_buf8[8] = {0xff,};
 #ifdef INPUT_KEY_SYNC_WITH_SLAVE_ENABLE
 uint8_t uInput_Key_Sync_buf8[9] = {0xff,}; //For Master
 #endif
-uint8_t uBLE_Remocon_Data[9] = {0xff,}; //For Slave //Added mute off delay for SLAVE SPK
+uint8_t uBLE_Remocon_Data[9] = {0xff,}; //For Slave //Added mute off delay for SLAVE SPK //Start from 0xAA to data end.
 #else //SLAVE_ADD_MUTE_DELAY_ENABLE
 #ifdef INPUT_KEY_SYNC_WITH_SLAVE_ENABLE
 uint8_t uInput_Key_Sync_buf8[8] = {0xff,};
@@ -5545,7 +5545,7 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 								
 								for(i = 0; i<8; i++)
 								{
-									uBLE_Remocon_Data[i] = data[i]; //Save BLE Data finally !!!
+									uBLE_Remocon_Data[i] = data[i]; //Save BLE Data finally !!! from 0xAA to data end
 								}
 #ifdef AUTO_VOLUME_LED_OFF
 								if(bMute == FALSE)
