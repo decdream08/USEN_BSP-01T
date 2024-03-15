@@ -368,7 +368,7 @@ void FlashSaveData(FLASH_SAVE_DATA data_num, uint8_t data) //Now we save FLASH_S
 	//Data init 
 	if(databuffers[FLASH_SAVE_DATA_POWER] == 0xff)
 	{
-		databuffers[FLASH_SAVE_DATA_POWER] = 0x00; //Power Off
+		databuffers[FLASH_SAVE_DATA_POWER] = 0x01; //Default : Power On
 	}
 	
 	if(databuffers[FLASH_SAVE_DATA_MUTE] == 0xff)

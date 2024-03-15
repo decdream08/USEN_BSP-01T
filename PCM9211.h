@@ -129,6 +129,7 @@ void PCM9211_Set_Status(PCM92211_Status op);
 void PCM9211_Init(void);
 void PCM9211_Set_Output(uint8_t Port);
 
+void PCM9211_Set_Path_Init(void);
 void PCM9211_Set_Path_BT(void);
 void PCM9211_Set_Path_AUX(void);
 #endif //AD85050_H

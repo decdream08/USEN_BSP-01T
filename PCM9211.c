@@ -113,6 +113,17 @@ void PCM9211_Set_Output(uint8_t Port)
 #endif
 }
 
+void PCM9211_Set_Path_Init(void)
+{
+	if(HAL_GPIO_ReadPin(PE) & (1<<0))
+	{
+		PCM9211_Set_Path_BT();
+    }
+	else
+	{
+		PCM9211_Set_Path_AUX();
+	}
+}
 
 void PCM9211_Set_Path_BT(void)
 {

@@ -20,6 +20,7 @@
 #include "flash.h"
 #include "remocon_action.h"
 #include "key.h"
+#include "pcm9211.h"
 
 /* Private typedef ---------------------------------------------------*/
 /* Private define ----------------------------------------------------*/
@@ -210,6 +211,7 @@ void AD85050_Process(void)
 			if(ad85050_timer == df10msTimer0ms)
 			{
 				AD85050_Amp_Init(TRUE);
+				PCM9211_Set_Path_Init();
 				ad85050_timer = df10msTimer10ms; /* Spec : t9 = 10ms */
 				ad85050_status = AD85050_POWER_UP_INIT;
 			}
@@ -442,8 +444,6 @@ void AD85050_Amp_Init(Bool Power_On_Init)
 
     AD85050_Amp_Volume_Set_with_Index(uVol_Level, FALSE, TRUE);
     //MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Volume, (VOLUME_LEVEL_NUMER-1) - uSlaveBT_Vol_Level);
-
-    delay_ms(10); //t9(10ms)
 }
 
 void AD85050_Amp_Reset(Bool Reset_On)
@@ -638,7 +638,7 @@ uint32_t AD85050_Amp_Volume_Set_with_Index(uint32_t Vol_Level, Bool Inverse, Boo
     if(Inverse)
     { 
         if(area1_Vol_Level != 0xff)
-						area1_Vol_Level = VOLUME_LEVEL_NUMER - area1_Vol_Level; //Input : 50~1 / Output : 0 ~ 49(Actual Volume Table)
+			area1_Vol_Level = VOLUME_LEVEL_NUMER - area1_Vol_Level; //Input : 50~1 / Output : 0 ~ 49(Actual Volume Table)
 
         if(area2_Vol_Level != 0xff)
             area2_Vol_Level = VOLUME_LEVEL_NUMER - area2_Vol_Level; //Input : 50~1 / Output : 0 ~ 49(Actual Volume Table)

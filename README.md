@@ -582,3 +582,7 @@
   
 ## 2024-03-11 (BAP-02)
   - Source 구조 변경
+ 
+## 2024-03-15 (BAP-02)
+  - Change the default value of the power state to "Power On"
+  - Set audio path when Power On
