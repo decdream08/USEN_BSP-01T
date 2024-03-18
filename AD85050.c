@@ -21,6 +21,7 @@
 #include "remocon_action.h"
 #include "key.h"
 #include "pcm9211.h"
+#include "power.h"
 
 /* Private typedef ---------------------------------------------------*/
 /* Private define ----------------------------------------------------*/

@@ -40,6 +40,7 @@ Port Configuration:
 
 #include "AD85050.h" 
 #include "flash.h"
+#include "power.h"
 
 #ifdef DEVICE_NAME_CHECK_PAIRING
 #include <string.h>

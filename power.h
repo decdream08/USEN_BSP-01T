@@ -22,3 +22,5 @@ void Power_10ms_timer(void);
 void Power_Mode_Set(unsigned char mode);
 void Power_Process(void);
 
+Bool Power_State(void);
+

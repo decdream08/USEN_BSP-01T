@@ -23,6 +23,7 @@ static void Power_On_Start_Process(void);
 static void Power_Off_Start_Process(void);
 
 static PowerModeDef mainPowerMode;
+static Bool Power_state = FALSE;
 
 uint16_t power_timer;
 uint8_t  mainPowerStep;
@@ -69,6 +70,8 @@ static void Power_On_Start_Process(void)
 {
 	switch(mainPowerStep) {
 		case 0:
+			Power_state = TRUE;
+
 			PCM9211_PowerUp();
 			++mainPowerStep;
 			break;
@@ -125,6 +128,8 @@ static void Power_Off_Start_Process(void)
 {
 	switch(mainPowerStep) {
 		case 0:
+			Power_state = FALSE;
+
 			PCM9211_PowerDown();
 			AD85050_PowerDown();
 			++mainPowerStep;
@@ -167,4 +172,10 @@ static void Power_Off_Start_Process(void)
 			break;
 	}
 }
+
+Bool Power_State(void)
+{
+	return Power_state;
+}
+
 

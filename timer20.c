@@ -23,6 +23,7 @@
 #include "remocon_action.h"
 #include "key.h"
 #include "bt_MB3021.h"
+#include "power.h"
 
 /* Private typedef ---------------------------------------------------*/
 /* Private define ----------------------------------------------------*/

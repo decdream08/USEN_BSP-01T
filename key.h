@@ -18,8 +18,6 @@ void Key_10ms_timer(void);
 void Key_Process(void);
 
 void Factory_Mode_Setting(void);
-void Power_SetState(Bool p_state);
-Bool Power_State(void);
 void Remocon_MUTE_Key_Action(void);
 void Remocon_VOL_Key_Action(Volume_Input Volume_In);
 void Remocon_EQ_Toggle_Key_Action(void);

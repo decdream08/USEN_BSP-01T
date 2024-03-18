@@ -21,7 +21,6 @@
 #include "remocon_action.h"
 #include "power.h"
 
-static Bool Power_state = FALSE;
 Bool bFactory_Reset_Mode = FALSE;
 Bool BBT_Pairing_Key_In = FALSE;
 Bool bFACTORY_MODE = FALSE;
@@ -155,16 +154,6 @@ void Factory_Mode_Setting(void)
 	HAL_GPIO_SetPin(PB, _BIT(0));
 }
 
-void Power_SetState(Bool p_state)
-{
-	Power_state = p_state;
-}
-
-Bool Power_State(void)
-{
-	return Power_state;
-}
-
 void Remocon_MUTE_Key_Action(void)
 {
     AD85050_Amp_Mute_Toggle();
@@ -225,21 +214,19 @@ void Remocon_Power_Key_Action_Toggle(void) //For only Power Key input
 	_DBG("\n\rRemocon_Power_Key_Action_Toggle(Power_state) = ");
 #endif
 
-	if(!Power_state) //Execute Power On
+	if(!Power_State()) //Execute Power On
 	{
-		Power_state = TRUE;
 		Power_Mode_Set(PWR_ON_START);
 	}
 	else //Execute Power Off
 	{		
-		Power_state = FALSE;
 		Power_Mode_Set(PWR_OFF_START);
 	}
 }
 
 void Remocon_Power_Key_Action(Bool Power_on, Bool Slave_Sync, Bool Vol_Sync) //For SPP/BLE Com or Auto Power On/Off
 {		
-	if(Power_state == Power_on)
+	if(Power_State() == Power_on)
 		return;
 
 	if(Power_on == TRUE)
@@ -247,7 +234,6 @@ void Remocon_Power_Key_Action(Bool Power_on, Bool Slave_Sync, Bool Vol_Sync) //F
 #ifdef REMOCON_DEBUG_MSG
 		_DBG("\n\rPower On 1!!!");
 #endif
-		Power_state = TRUE;
 		Power_Mode_Set(PWR_ON_START);
 	}
 	else
@@ -255,7 +241,6 @@ void Remocon_Power_Key_Action(Bool Power_on, Bool Slave_Sync, Bool Vol_Sync) //F
 #ifdef REMOCON_DEBUG_MSG
 		_DBG("\n\rPower Off 1!!!");
 #endif
-		Power_state = FALSE;
 		Power_Mode_Set(PWR_OFF_START);
 	}
 }

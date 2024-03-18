@@ -476,12 +476,10 @@ void mainloop(void)
 
 	if(uFlash_Read_Buf1[FLASH_SAVE_DATA_POWER] == 0 || uFlash_Read_Buf1[FLASH_SAVE_DATA_POWER] == 0xff) //Power Off
 	{
-		Power_SetState(FALSE);
 		Power_Mode_Set(PWR_OFF_START);
 	}
 	else //Power On - 0xff or 0x01
 	{
-		Power_SetState(TRUE);
 		Power_Mode_Set(PWR_ON_START);		
 	}
 

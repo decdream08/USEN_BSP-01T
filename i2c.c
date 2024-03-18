@@ -20,6 +20,8 @@
 #include "led_display.h"
 #endif
 
+#include "power.h"
+
 /* Private typedef ---------------------------------------------------*/
 /* Private define ----------------------------------------------------*/
 

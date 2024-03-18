@@ -586,3 +586,6 @@
 ## 2024-03-15 (BAP-02)
   - Change the default value of the power state to "Power On"
   - Set audio path when Power On
+
+## 2024-03-18 (BAP-02)
+  - PowerState power.c∑Œ ¿Ãµø
