@@ -20,6 +20,8 @@
 #include "led_display.h"
 #include "remocon_action.h"
 #include "key.h"
+#include "power.h"
+#include "protection.h"
 
 /* Private typedef ---------------------------------------------------*/
 /* Private define ----------------------------------------------------*/
@@ -72,6 +74,7 @@ void Set_Status_LED_Mode(Status_LED_Mode mode)
 	//After Mute On --> Power Off--> On --> Mute Off, Front LED is not updated and just turned off.
 	if(mode != STATUS_MUTE_ON_MODE && mode != STATUS_AUX_MODE && mode != STATUS_POWER_OFF_MODE
 		&& mode != STATUS_BT_MASTER_SLAVE_PAIRING_MODE
+		&& mode != STATUS_PROTECTION_MODE
 		) //When user select un-mute, BT SPK should return latest status led mode. this variable must update status led mode excepting MUTE mode.		
 		return_status_led_mode = mode;
 
@@ -153,6 +156,19 @@ void LED_Status_Display_WR_Color(Status_LED_Mode mode) //L1/L3 LED
 	_DBD(mode);	
 	_DBG("\n\r Mute =");_DBH(Mute_On);
 #endif
+
+	if(mode == STATUS_PROTECTION_MODE)
+	{
+		TIMER21_Periodic_Mode_Run(TRUE); //Blinkiing Timer On
+
+		BT_PAIRING_LED_BLUE_OFF;
+		BT_PAIRING_LED_WHITE_OFF;
+
+		//Front Status LED //White Fast Blinking
+		STATUS_LED_W_ON;
+
+		return;
+	}
 
 	if(!Power_State()) //Do not LED turn on when Power off
 		return;
@@ -322,6 +338,23 @@ void LED_Status_Display_Blinking(Status_LED_Color Color, Bool On)
 	_DBG("\n\rOn = ");
 	_DBD(On);
 #endif
+
+	if(Color == STATUS_PROTECTION_LED_WHITE)
+	{
+		if(Get_Amp_error_flag())
+		{
+			if(On)
+			{
+				STATUS_LED_W_ON;
+			}
+			else
+			{
+				STATUS_LED_W_OFF;
+			}
+		}
+
+		return;
+	}
 
 	if(!Power_State()) //Do not LED turn on when Power off
 		return;

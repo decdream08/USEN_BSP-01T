@@ -18,6 +18,7 @@
 #include "led_display.h"
 #include "bt_MB3021.h"
 #include "timer20.h"
+#include "protection.h"
 
 static void Power_On_Start_Process(void);
 static void Power_Off_Start_Process(void);
@@ -51,6 +52,7 @@ void Power_Process(void)
 			break;
 
 		case PWR_OFF_START:
+		case PWR_OFF_PROTECTION_START:
 			Power_Off_Start_Process();
 			break;
 
@@ -71,6 +73,11 @@ static void Power_On_Start_Process(void)
 	switch(mainPowerStep) {
 		case 0:
 			Power_state = TRUE;
+
+			if(Get_Cur_Status_LED_Mode() == STATUS_PROTECTION_MODE)
+			{
+				TIMER20_Amp_error_flag_Stop();
+			}
 
 			PCM9211_PowerUp();
 			++mainPowerStep;
@@ -119,6 +126,8 @@ static void Power_On_Start_Process(void)
 		default:
 			mainPowerStep = 0;
 			HAL_GPIO_SetPin(PC, _BIT(2)); //Outlet On
+
+			protection_check_flag = TRUE;
 			Power_Mode_Set(PWR_ON_NORMAL);
 			break;
 	}
@@ -168,6 +177,21 @@ static void Power_Off_Start_Process(void)
 		default:
 			mainPowerStep = 0;
 			HAL_GPIO_ClearPin(PC, _BIT(2)); //Outlet Off
+
+			protection_check_flag = FALSE;
+
+			if(mainPowerMode == PWR_OFF_PROTECTION_START)
+			{
+				if(protection_mode != ProtectionLED)
+				{
+					HAL_GPIO_SetPin(PD, _BIT(5)); //LED POWER CONTROL - ON
+					Set_Status_LED_Mode(STATUS_PROTECTION_MODE);
+					TIMER20_Amp_error_flag_Start();
+				}
+
+				protection_mode = ProtectionNone;
+			}
+			
 			Power_Mode_Set(PWR_STNDBY);
 			break;
 	}

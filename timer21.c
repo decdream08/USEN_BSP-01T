@@ -152,8 +152,12 @@ void TIMER21_IRQHandler_IT(void)
 				break;
 				
 			case STATUS_AMP_ERROR_MODE: // White Very Fast Blinking(250ms)
+			case STATUS_PROTECTION_MODE:
 				//White Fast Blinking
-				LED_Status_Display_Blinking(STATUS_LED_WHITE, Very_Fast_Flag);
+				if(mode == STATUS_PROTECTION_MODE)
+					LED_Status_Display_Blinking(STATUS_PROTECTION_LED_WHITE, Very_Fast_Flag);
+				else
+					LED_Status_Display_Blinking(STATUS_LED_WHITE, Very_Fast_Flag);
 				break;
 
 			case STATUS_BT_MASTER_SLAVE_PAIRING_MODE: // White/Blue Fast Blinking (each 0.25sec)

@@ -32,6 +32,7 @@
 #include "power.h"
 #include "adc_polling.h"
 #include "key.h"
+#include "protection.h"
 
 /* Private typedef ---------------------------------------------------*/
 //BT_SPK_TACT_SWITCH - PE3 / PE4 / PE5 / PE6 / PE7 : TACT Switch input
@@ -467,6 +468,7 @@ void mainloop(void)
 
 	MB3021_PowerUp();
 	Init_Value_Setting(TRUE); //2023-04-06_4 : To recognize the place which call this function is whther SW start or Power On
+	init_protect_values();
 
 #ifdef COMMON_DEBUG_MSG
 	_DBG("\n\rAll Init Done !!!");
@@ -502,6 +504,7 @@ void mainloop(void)
 			AD85050_Process();
 #endif
 			ADC_Polling_Process();
+			Protection_Process();
 		}
 	}
 }

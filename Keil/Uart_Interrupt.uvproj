@@ -660,6 +660,11 @@
               <FileType>1</FileType>
               <FilePath>..\key.c</FilePath>
             </File>
+            <File>
+              <FileName>protection.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\protection.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>

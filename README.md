@@ -589,3 +589,6 @@
 
 ## 2024-03-18 (BAP-02)
   - PowerState power.c∑Œ ¿Ãµø
+
+## 2024-03-19 (BAP-02)
+  - protection

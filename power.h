@@ -16,6 +16,7 @@ typedef enum
   PWR_ON_START,
   PWR_ON_NORMAL,
   PWR_OFF_START,
+  PWR_OFF_PROTECTION_START,
 } PowerModeDef;
 
 void Power_10ms_timer(void);

@@ -27,14 +27,16 @@ typedef enum {
 	STATUS_BT_FAIL_OR_DISCONNECTION_MODE, //Disconnection//Status : White Slow Blinking
 	STATUS_MUTE_ON_MODE, //Mute : Red On/White Off, Status : Red On
 	STATUS_AMP_ERROR_MODE, //Status LED Very Fast
-	STATUS_SOC_ERROR_MODE //Status : Red Blinking
+	STATUS_SOC_ERROR_MODE, //Status : Red Blinking
+	STATUS_PROTECTION_MODE
 } Status_LED_Mode;
 
 typedef enum {
 	STATUS_LED_RED,
 	STATUS_LED_WHITE,
+	STATUS_PROTECTION_LED_WHITE,
 	L3_LED_BLUE,
-	L3_LED_WHITE
+	L3_LED_WHITE,
 } Status_LED_Color;
 
 //Function
