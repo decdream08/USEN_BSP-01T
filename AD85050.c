@@ -1014,11 +1014,11 @@ uint32_t AD85050_Amp_Get_Cur_Volume_Level(void) //Start count from Max(15)
 	return uCurrent_Vol_Level;
 }
 
-uint8_t AD85050_Amp_Get_Cur_Volume_Level_Inverse(void) //Start count from Min(0)
+uint8_t AD85050_Amp_Get_Cur_BT_Volume_Level_Inverse(void) //Start count from Min(0)
 {
 	uint8_t uInverse_Vol;
 #ifdef AD85050_DEBUG_MSG
-    _DBG("\n\rAD85050_Amp_Get_Cur_Volume_Level_Inverse() : volume =");
+    _DBG("\n\AD85050_Amp_Get_Cur_BT_Volume_Level_Inverse() : volume =");
     _DBD32(uCurrent_Vol_Level);
 #endif
 	uInverse_Vol = (VOLUME_LEVEL_NUMER-1) -(uint8_t)(uCurrent_Vol_Level & 0x0000ff);

@@ -50,7 +50,7 @@
 
 #ifdef TIMER21_LED_ENABLE //PC1 / PC2 
 Status_LED_Mode cur_status_led_mode = STATUS_POWER_OFF_MODE;
-Status_LED_Mode return_status_led_mode = STATUS_POWER_OFF_MODE; //When user select un-mute, BT SPK should return latest status led mode. this variable must update status led mode excepting MUTE mode.
+Status_LED_Mode return_status_led_mode = STATUS_POWER_ON_MODE; //When user select un-mute, BT SPK should return latest status led mode. this variable must update status led mode excepting MUTE mode.
 Status_LED_Mode return_status_led_mode2 = STATUS_POWER_OFF_MODE; //When current state is Amp Error mode, Just display fast blinking. But we need to return latest status when Amp Error mode is ended.
 Status_LED_Mode return_background_status_led_mode = STATUS_POWER_OFF_MODE; //When cur mode is STATUS_BT_MASTER_SLAVE_PAIRING_MODE, we need to return original value. this variable must update status led mode excepting STATUS_BT_MASTER_SLAVE_PAIRING_MODE mode.
 

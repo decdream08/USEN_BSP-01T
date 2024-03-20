@@ -105,7 +105,7 @@ uint8_t AD85050_Amp_Detect_Fault(Bool Return_Val_Only); //2022-10-25 : FAULT PIN
 
 uint32_t AD85050_Amp_Get_Cur_Volume_Level(void);
 uint32_t AD85050_Amp_Volume_Set_with_Index(uint32_t Vol_Level, Bool Inverse, Bool Actual_Key); //Actual Key says this is not SSP or BLE communication. So, we need to send same key to Slave SPK
-uint8_t AD85050_Amp_Get_Cur_Volume_Level_Inverse(void); //Start count from Min(0)
+uint8_t AD85050_Amp_Get_Cur_BT_Volume_Level_Inverse(void); //Start count from Min(0)
 
 void AD85050_Register_Read(void); //2022-10-25 : FAULT PIN
 void AD85050_Fault_Clear_Reg(void); //2022-10-25 : FAULT PIN

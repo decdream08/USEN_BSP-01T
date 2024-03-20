@@ -595,3 +595,4 @@
 
 ## 2024-03-20 (BAP-02)
   - AMP error (DC detection, Short-circuit protection, Over temperature protection) 처리
+  - funtion name 수정 및 전원 케이블 삽입 시 전원 led 바로 켜지도록 수정

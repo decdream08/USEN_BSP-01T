@@ -885,7 +885,7 @@ void Send_Cur_Master_Info_To_Tablet(void)
 			uCurrent_Status_buf8[2] = 0x00; //Mute On/Off : Mute Off mode
 	}
 
-	uVol_Level = AD85050_Amp_Get_Cur_Volume_Level_Inverse(); //Volume Level
+	uVol_Level = AD85050_Amp_Get_Cur_BT_Volume_Level_Inverse(); //Volume Level
 	uCurrent_Status_buf8[3] = Convert_50Step_to_16Step(uVol_Level);
 
 	if(Get_Cur_BAP_EQ_Mode() == Switch_EQ_NORMAL_Mode)
@@ -2104,7 +2104,7 @@ static void MB3021_BT_Module_Remote_Data_Receive(uint8_t source_type, uint8_t da
 										uCurrent_Status_buf8[2] = 0x00; //Mute On/Off : Mute Off mode
 								}
 
-								uVol_buf = AD85050_Amp_Get_Cur_Volume_Level_Inverse();
+								uVol_buf = AD85050_Amp_Get_Cur_BT_Volume_Level_Inverse();
 								uCurrent_Status_buf8[3] = Convert_50Step_to_16Step(uVol_buf);
 
 								uCurrent_Status_buf8[4] = uEQ_Mode; //Sound EQ mode
