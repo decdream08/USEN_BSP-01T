@@ -562,12 +562,11 @@ void GPIOCD_IRQHandler_IT2(void)
 
 	if (status & (3UL<<(3<<1))) //Just check PC3
 	{
+		shift_bit = 0;
+
 		if(status & 0x00000080) //Rising Edge : High check - Aux
 		{
-			shift_bit = 0;
-
 			delay_ms(80);
-
 			if(HAL_GPIO_ReadPin(PC) & (1<<3)) //PC3 : High - Aux
 			{
 				key = INPUT_AUX_KEY;
@@ -580,10 +579,7 @@ void GPIOCD_IRQHandler_IT2(void)
 		}
 		else //0x00000040 //Falling Edge
 		{
-			shift_bit = 2;
-
 			delay_ms(80);
-
 			if(!(HAL_GPIO_ReadPin(PC) & (1<<3)) )
 			{
 				key = INPUT_BT_KEY;
@@ -702,21 +698,6 @@ void GPIOAB_IRQHandler_IT(void)
 	_DBH32(status);
 #endif
 
-	if(!Power_State())
-	{
-		if(!(status & (3UL<<(6<<1))) //PA6
-			&& !(status & (3UL<<(7<<1))) //PA7
-			)
-		{
-#ifdef SWITCH_BUTTON_KEY_ENABLE_DEBUG_MSG
-			_DBG("\n\r3. Under Power Off, only POWER_ON_KEY is valid key !!!");
-#endif
-			HAL_GPIO_EXTI_ClearPin(PA, status);
-
-			return;
-		}
-	}
-
 	if (status & ((3UL<<(6<<1)) | (3UL<<(7<<1)))) //Just check PA0 / PA1 / PA4 / PA6 / PA7 (1111 0011 0000 1111)	
 	{
 		shift_bit = 0xffffffff;
@@ -724,7 +705,7 @@ void GPIOAB_IRQHandler_IT(void)
 #ifdef KEY_CHATTERING_ENABLE
 		delay_ms(KEY_CHATTERING_DELAY_MS+60); //2023-05-04_2 : Under BAP-01, key chattering delay is increased from 20ms to 80ms.
 #endif
-    if(status & (3UL<<(6<<1))) //0x00003000 PA6 : POWER_Off(short)/POWER_ON(Long) //Implemented Power Key Feature //2022-10-07_3
+		if(status & (3UL<<(6<<1))) //0x00003000 PA6 : POWER_Off(short)/POWER_ON(Long) //Implemented Power Key Feature //2022-10-07_3
 		{
 			shift_bit = 12;
 			key = POWER_KEY;
@@ -833,6 +814,33 @@ void GPIOAB_IRQHandler_IT(void)
 					}
 				}
 			}
+		}
+	}
+
+	status = HAL_GPIO_EXTI_GetState(PB);
+	if(Power_State() && (status & (3UL<<(2<<1)))) //GPIO0 : PB2 OTP
+	{
+#ifdef KEY_CHATTERING_ENABLE
+		delay_ms(KEY_CHATTERING_DELAY_MS);
+#endif
+		clear_bit = status & (3UL<<(2<<1));
+		HAL_GPIO_EXTI_ClearPin(PB, status&clear_bit);
+
+		if(HAL_GPIO_ReadPin(PB) & (1<<2)) //PB2 - High
+		{
+#ifdef SWITCH_BUTTON_KEY_ENABLE_DEBUG_MSG
+			_DBG("\n\rDAMP_OTP - CLEAR");
+#endif
+		}
+		else
+		{
+#ifdef SWITCH_BUTTON_KEY_ENABLE_DEBUG_MSG
+			_DBG("\n\rDAMP_OTP - ERROR");
+#endif
+#ifdef SOC_ERROR_ALARM_DEBUG_MSG
+			_DBG("\n\rSOC_ERROR - 6");
+#endif
+			AD85050_SetStatus(AD85050_ERROR_STATUS);
 		}
 	}
 }
@@ -1320,22 +1328,7 @@ void GPIOF_IRQHandler_IT(void)
 #ifdef SOC_ERROR_ALARM_DEBUG_MSG
 				_DBG("\n\rSOC_ERROR - 6");
 #endif
-				if(!Is_BAmp_Init())
-				{
-					if(AD85050_Amp_Detect_Fault(FALSE) == 0xFF)
-					{
-#ifdef AD85050_DEBUG_MSG
-						_DBG("\n\rDAMP_ERROR - Recovery");
-#endif
-						TIMER20_Amp_access_error_flag_Start();
-					}
-				}
-#ifdef AD85050_DEBUG_MSG
-				else
-				{
-					_DBG("\n\r+++ Is_BAmp_Init is TRUE - 1");
-				}
-#endif
+				AD85050_SetStatus(AD85050_ERROR_STATUS);
 			}
 		}
 	}

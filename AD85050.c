@@ -233,10 +233,15 @@ void AD85050_Process(void)
 			break;
 
 		case AD85050_POWER_UP_COMPLETE:
-			ad85050_status = AD85050_CHECK_STAUS;
+			ad85050_status = AD85050_CHECK_STATUS;
 			break;
 
-		case AD85050_CHECK_STAUS:
+		case AD85050_CHECK_STATUS:
+			break;
+
+		case AD85050_ERROR_STATUS:
+			AD85050_ErrorProcess();
+			ad85050_status = AD85050_CHECK_STATUS;
 			break;
 
 	    case AD85050_POWER_DOWN:
@@ -247,9 +252,28 @@ void AD85050_Process(void)
 	}
 }
 
+void AD85050_SetStatus(AD85050_Status status)
+{
+	ad85050_status = status;
+}
+
 AD85050_Status AD85050_GetStatus(void)
 {
 	return ad85050_status;
+}
+
+void AD85050_ErrorProcess(void)
+{
+	HAL_GPIO_ClearPin(PF, _BIT(4)); //DAMP_PDN
+	HAL_GPIO_ClearPin(PD, _BIT(4)); //+24V DAMP Power
+	HAL_GPIO_ClearPin(PA, _BIT(5)); //+3.3V DAMP Power
+	
+	Set_Is_Mute(TRUE);
+	
+	if(Get_Cur_Status_LED_Mode() != STATUS_AMP_ERROR_MODE)
+		Set_Status_LED_Mode(STATUS_AMP_ERROR_MODE);
+	
+	TIMER20_Amp_error_flag_Start();
 }
 
 void AD85050_PowerUp(void)

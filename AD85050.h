@@ -57,7 +57,8 @@ typedef enum {
 	AD85050_POWER_UP_RESET_OFF,
 	AD85050_POWER_UP_INIT,
 	AD85050_POWER_UP_COMPLETE,
-    AD85050_CHECK_STAUS,
+    AD85050_CHECK_STATUS,
+    AD85050_ERROR_STATUS,
 }AD85050_Status;
 
 #define AD85050_I2C_ADDR						(0x30)
@@ -65,7 +66,10 @@ typedef enum {
 void AD85050_10ms_timer(void);
 void AD85050_Process(void);
 
+void AD85050_SetStatus(AD85050_Status status);
 AD85050_Status AD85050_GetStatus(void);
+
+void AD85050_ErrorProcess(void);
 void AD85050_PowerUp(void);
 void AD85050_PowerDown(void);
 

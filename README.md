@@ -592,3 +592,6 @@
 
 ## 2024-03-19 (BAP-02)
   - protection
+
+## 2024-03-20 (BAP-02)
+  - AMP error (DC detection, Short-circuit protection, Over temperature protection) Ã³¸®
