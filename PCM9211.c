@@ -14,8 +14,10 @@
 #ifdef PCM9211_ENABLE
 #include "AD85050.h"
 #include "pcm9211.h"
+#include "timer20.h"
 
 static PCM92211_Status pcm9211_status;
+static PCM92211_PathStatus pcm9211_path_status;
 
 uint16_t pcm9211_timer;
 
@@ -41,13 +43,11 @@ void PCM9211_Process(void)
 			break;
 
 		case PCM9211_CHANGE_PATH_TO_AUXIN0:
-			PCM9211_Set_Path_BT();
-			pcm9211_status = PCM9211_RUN;
+			PCM9211_Set_Path_BT(TRUE);
 			break;
 
 		case PCM9211_CHANGE_PATH_TO_ADC:
-			PCM9211_Set_Path_AUX();
-			pcm9211_status = PCM9211_RUN;
+			PCM9211_Set_Path_ADC(TRUE);
 			break;
 
 		case PCM9211_MUTE_WAITING:
@@ -89,18 +89,19 @@ void PCM9211_Init(void)
 
 	/* Reset On */
 	uData = PCM9211_RESET_CTL_REG_ON_VAL;
-	I2C_Interrupt_Write_Data(PCM9211_DEVICE_ADDR, PCM9211_RESET_CTL_REG,&uData,1);
+	I2C1_Interrupt_Write_Data(PCM9211_DEVICE_ADDR, PCM9211_RESET_CTL_REG,&uData,1);
 	/* Reset Off : 0xC0 -> 0xC2 */
 	uData = PCM9211_RESET_CTL_REG_OFF_VAL;
-	I2C_Interrupt_Write_Data(PCM9211_DEVICE_ADDR, PCM9211_RESET_CTL_REG,&uData,1);
+	I2C1_Interrupt_Write_Data(PCM9211_DEVICE_ADDR, PCM9211_RESET_CTL_REG,&uData,1);
 	
 	/* xti clock source : 12.288M 3.072Mhz, 48KHz (0x1A) */
 	uData = PCM9211_XTI_SOURCE_CLOCK_12D288_48K;
-	I2C_Interrupt_Write_Data(PCM9211_DEVICE_ADDR, PCM9211_XTI_SOURCE_CLOCK,&uData,1);
+	I2C1_Interrupt_Write_Data(PCM9211_DEVICE_ADDR, PCM9211_XTI_SOURCE_CLOCK,&uData,1);
 
     PCM9211_Set_Output(PCM9211_OUTPORT_PORT_CTL_REG_AUXIN1); //dummy
 #endif
 	pcm9211_status = PCM9211_POWER_UP_COMPLTE;
+	pcm9211_path_status = PCM9211_PATH_NULL;
 }
 
 void PCM9211_Set_Output(uint8_t Port)
@@ -109,43 +110,122 @@ void PCM9211_Set_Output(uint8_t Port)
 	uint8_t output;
 
 	output = Port;
-	I2C_Interrupt_Write_Data(PCM9211_DEVICE_ADDR, PCM9211_OUTPORT_PORT_CTL_REG,&output,1);
+	I2C1_Interrupt_Write_Data(PCM9211_DEVICE_ADDR, PCM9211_OUTPORT_PORT_CTL_REG,&output,1);
 #endif
 }
 
-void PCM9211_Set_Path_Init(void)
+void PCM9211_Set_Path_Init(Bool mute_needed)
 {
-	if(HAL_GPIO_ReadPin(PE) & (1<<0))
+	if(HAL_GPIO_ReadPin(PE) & (1<<0)) //BT_OUT ON
 	{
-		PCM9211_Set_Path_BT();
-    }
-	else
-	{
-		PCM9211_Set_Path_AUX();
+		if(!(HAL_GPIO_ReadPin(PF) & (1<<1))) //area1
+		{
+			HAL_GPIO_ClearPin(PE, _BIT(6)); //BT_OUT1
+			HAL_GPIO_SetPin(PE, _BIT(5)); //BT_OUT2
+			HAL_GPIO_SetPin(PE, _BIT(4)); //BT_OUT3
+			HAL_GPIO_ClearPin(PE, _BIT(3)); //BT_OUT4
+		}
+		
+		if(!(HAL_GPIO_ReadPin(PF) & (1<<2))) //area2
+		{
+			HAL_GPIO_SetPin(PE, _BIT(6)); //BT_OUT1
+			HAL_GPIO_ClearPin(PE, _BIT(5)); //BT_OUT2
+			HAL_GPIO_ClearPin(PE, _BIT(4)); //BT_OUT3
+			HAL_GPIO_SetPin(PE, _BIT(3)); //BT_OUT4
+		}
+		
+		if(!(HAL_GPIO_ReadPin(PF) & (1<<3))) //area1 + area2
+		{
+			HAL_GPIO_ClearPin(PE, _BIT(6)); //BT_OUT1
+			HAL_GPIO_ClearPin(PE, _BIT(5)); //BT_OUT2
+			HAL_GPIO_SetPin(PE, _BIT(4)); //BT_OUT3
+			HAL_GPIO_SetPin(PE, _BIT(3)); //BT_OUT4
+		}
+		
+		PCM9211_Set_Path_BT(mute_needed);
 	}
-}
-
-void PCM9211_Set_Path_BT(void)
-{
-	if(!Get_Is_Mute())
+	else //BT_OUT OFF
 	{
-		AD85050_Amp_Mute(TRUE, FALSE);
-		pcm9211_status = PCM9211_MUTE_WAITING;
-		pcm9211_timer = PCM9211_UNMUTE_TIMER;
+		HAL_GPIO_SetPin(PE, _BIT(6)); //BT_OUT1
+		HAL_GPIO_SetPin(PE, _BIT(5)); //BT_OUT2
+		HAL_GPIO_SetPin(PE, _BIT(4)); //BT_OUT3
+		HAL_GPIO_SetPin(PE, _BIT(3)); //BT_OUT4
+		
+		if(!(HAL_GPIO_ReadPin(PC) & (1<<3)))
+			PCM9211_Set_Path_BT(mute_needed);
+		else
+			PCM9211_Set_Path_ADC(mute_needed);
   }
-
-	PCM9211_Set_Output(PCM9211_OUTPORT_PORT_CTL_REG_AUXIN0);	
 }
 
-void PCM9211_Set_Path_AUX(void)
+void PCM9211_Set_Path_BT(Bool mute_needed)
 {
-	if(!Get_Is_Mute())
+	uint32_t uCurVolLevel = 0;
+
+	if(pcm9211_path_status == PCM9211_PATH_BT)
+	{
+		pcm9211_status = PCM9211_RUN;
+		return;
+	}
+
+	if(mute_needed && !Get_Is_Mute())
 	{
 		AD85050_Amp_Mute(TRUE, FALSE);
+
 		pcm9211_status = PCM9211_MUTE_WAITING;
-		pcm9211_timer = PCM9211_UNMUTE_TIMER;
+		pcm9211_timer  = df10msTimer400ms;
 	}
+	else
+		pcm9211_status = PCM9211_RUN;
+
+	PCM9211_Set_Output(PCM9211_OUTPORT_PORT_CTL_REG_AUXIN0);
+
+	uCurVolLevel = AD85050_Amp_Get_Cur_Volume_Level();
+    uCurVolLevel = uCurVolLevel >> 8;
+	AD85050_Amp_Volume_Register_Writing((uint16_t)uCurVolLevel);
+
+	pcm9211_path_status = PCM9211_PATH_BT;
+}
+
+void PCM9211_Set_Path_ADC(Bool mute_needed)
+{
+	uint8_t uData = 0;
+	uint32_t uCurVolLevel = 0;
+
+	if(!(HAL_GPIO_ReadPin(PC) & (1<<3)))
+	{
+		pcm9211_status = PCM9211_RUN;
+		return;
+	}
+
+	if(pcm9211_path_status == PCM9211_PATH_ADC)
+	{
+		pcm9211_status = PCM9211_RUN;
+		return;
+	}
+
+	if(mute_needed && !Get_Is_Mute())
+	{
+		AD85050_Amp_Mute(TRUE, FALSE);
+
+		pcm9211_status = PCM9211_MUTE_WAITING;
+		pcm9211_timer  = df10msTimer400ms;
+	}
+	else
+		pcm9211_status = PCM9211_RUN;
+
+	uData = PCM9211_ADC_CH_CTL_REG_GAIN_7DB;
+	I2C1_Interrupt_Write_Data(PCM9211_DEVICE_ADDR, PCM9211_ADC_L_CH_CTL_REG,&uData,1);
+	
+	uData = PCM9211_ADC_CH_CTL_REG_GAIN_7DB;
+	I2C1_Interrupt_Write_Data(PCM9211_DEVICE_ADDR, PCM9211_ADC_R_CH_CTL_REG,&uData,1);
 
 	PCM9211_Set_Output(PCM9211_OUTPORT_PORT_CTL_REG_ADC);
+
+	uCurVolLevel = AD85050_Amp_Get_Cur_Volume_Level();
+    uCurVolLevel = uCurVolLevel >> 8;
+	AD85050_Amp_Volume_Register_Writing((uint16_t)uCurVolLevel);
+
+	pcm9211_path_status = PCM9211_PATH_ADC;
 }
 #endif

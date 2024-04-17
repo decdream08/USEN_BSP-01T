@@ -92,7 +92,7 @@ extern "C"
 #ifdef USEN_BAP2
 #define PCM9211_ENABLE
 #ifdef PCM9211_ENABLE
-//#define I2C_1_ENABLE
+#define I2C_1_ENABLE
 #endif
 #endif
 

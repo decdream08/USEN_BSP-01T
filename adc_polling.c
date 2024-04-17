@@ -48,269 +48,306 @@ void ADC_Polling_Process(void)
 	switch (adc_polling_step) {
 		case 0:
 		{
-			ADC3_Value = ADC_PollingRun(3);
-
-			if(ADC3_Value_bk != ADC3_Value)
+			if(adc_polling_timer == df10msTimer0ms)
 			{
-				for(i=1;i<52;i++)
+				ADC3_Value = ADC_PollingRun(3);
+
+				if(ADC3_Value_bk != ADC3_Value)
 				{
-					B_Update = FALSE; //2023-02-06_3    
+#ifdef ADC3_INPUT_DEBUG_MSG
+					_DBG("\n\r === Master Volume ADC = 0x");
+					_DBH32(ADC3_Value);
+#endif
 
-					if(i==1)
-						ADC_Level_Min = 0;
-					else
-						ADC_Level_Min = (i-1)*5+1; //0 6 11 16 ... 241 246 // On case of 51 step, 251
-
-					if(i==51)
-						ADC_Level_Max = 255; //On case of 51 step, 255
-					else
-						ADC_Level_Max = (i*5); //5 10 15 20 ... 245 250~253 // On case of 51 step, 250
-
-					if((ADC3_Value >= ADC_Level_Min) && (ADC_Level_Max >= ADC3_Value))
+					for(i=1;i<52;i++)
 					{
+						B_Update = FALSE; //2023-02-06_3    
+
 						if(i==1)
 							ADC_Level_Min = 0;
 						else
-							ADC_Level_Min = (i-1)*5+1; //0 6 11 16 ... 241 246
+							ADC_Level_Min = (i-1)*5+1; //0 6 11 16 ... 241 246 // On case of 51 step, 251
 
 						if(i==51)
-							ADC_Level_Max = 255;
+							ADC_Level_Max = 255; //On case of 51 step, 255
 						else
-							ADC_Level_Max = (i*5)-1; //4 9 14 19 ... 244 249~253
+							ADC_Level_Max = (i*5); //5 10 15 20 ... 245 250~253 // On case of 51 step, 250
 
-						if((ADC3_Value >= ADC_Level_Min) && (ADC_Level_Max >= ADC3_Value)) //2023-02-08_3 : Added additional code for Volume GAP
+						if((ADC3_Value >= ADC_Level_Min) && (ADC_Level_Max >= ADC3_Value))
 						{
-							uCurVolLevel = 51 - i;
-							B_Update = TRUE; //2023-02-06_3 
-						}
-						else //2023-02-06_3 : Do not update cur volume level and current ADC value is not valid
-						{
-							if(uCurVolLevel > uCurVolLevel_ADC3_bk)
-							{
-								if((uCurVolLevel - uCurVolLevel_ADC3_bk) > 1)
-									B_Update = TRUE;
-								else
-									B_Update = FALSE;
-							}
+							if(i==1)
+								ADC_Level_Min = 0;
 							else
+								ADC_Level_Min = (i-1)*5+1; //0 6 11 16 ... 241 246
+
+							if(i==51)
+								ADC_Level_Max = 255;
+							else
+								ADC_Level_Max = (i*5)-1; //4 9 14 19 ... 244 249~253
+
+							if((ADC3_Value >= ADC_Level_Min) && (ADC_Level_Max >= ADC3_Value)) //2023-02-08_3 : Added additional code for Volume GAP
 							{
-								if((uCurVolLevel_ADC3_bk - uCurVolLevel) > 1)
-									B_Update = TRUE;
-								else
-									B_Update = FALSE;
+								uCurVolLevel = 51 - i;
+								B_Update = TRUE; //2023-02-06_3 
 							}
+							else //2023-02-06_3 : Do not update cur volume level and current ADC value is not valid
+							{
+								if(uCurVolLevel > uCurVolLevel_ADC3_bk)
+								{
+									if((uCurVolLevel - uCurVolLevel_ADC3_bk) > 1)
+										B_Update = TRUE;
+									else
+										B_Update = FALSE;
+								}
+								else
+								{
+									if((uCurVolLevel_ADC3_bk - uCurVolLevel) > 1)
+										B_Update = TRUE;
+									else
+										B_Update = FALSE;
+								}
+							}
+
+							break;
+						}
+					}
+
+					if(B_Update) //2023-02-06_3
+					{
+						uint32_t l_CurVolLevel = 0;
+
+						uCurVolLevel = 51 - i;
+
+						if(uCurVolLevel_ADC3_bk != uCurVolLevel)
+						{
+							uCurVolLevel_ADC3_bk = uCurVolLevel;
+
+							l_CurVolLevel = INVALID_VOLUME;
+							l_CurVolLevel <<= 8;
+
+							l_CurVolLevel |= uCurVolLevel;
+							l_CurVolLevel <<= 8;
+
+							l_CurVolLevel |= INVALID_VOLUME;
+
+							AD85050_Amp_Volume_Set_with_Index(l_CurVolLevel, FALSE, TRUE);
 						}
 
-						break;
+						B_Update = FALSE;
 					}
+					ADC3_Value_bk = ADC3_Value;
 				}
 
-				if(B_Update) //2023-02-06_3
-				{
-					uint32_t l_CurVolLevel = 0;
-
-					uCurVolLevel = 51 - i;
-
-					if(uCurVolLevel_ADC3_bk != uCurVolLevel)
-					{
-						uCurVolLevel_ADC3_bk = uCurVolLevel;
-
-						l_CurVolLevel = INVALID_VOLUME;
-						l_CurVolLevel <<= 8;
-
-						l_CurVolLevel |= uCurVolLevel;
-						l_CurVolLevel <<= 8;
-
-						l_CurVolLevel |= INVALID_VOLUME;
-
-						AD85050_Amp_Volume_Set_with_Index(l_CurVolLevel, FALSE, TRUE);
-					}
-
-					B_Update = FALSE;
-				}
-				ADC3_Value_bk = ADC3_Value;
+			adc_polling_timer = df10msTimer50ms;
+			++adc_polling_step;
 			}
 		}
-		++adc_polling_step;
 		break;
 
 		case 1:
 		{
-			ADC4_Value = ADC_PollingRun(4);
-
-			if(ADC4_Value_bk != ADC4_Value)
+			if(adc_polling_timer == df10msTimer0ms)
 			{
-				for(i=1;i<52;i++)
+				ADC4_Value = ADC_PollingRun(4);
+
+				if(ADC4_Value_bk != ADC4_Value)
 				{
-					B_Update = FALSE; //2023-02-06_3    
+#ifdef ADC4_INPUT_DEBUG_MSG
+					_DBG("\n\r === Master Volume ADC = 0x");
+					_DBD32(ADC4_Value);
+#endif
 
-					if(i==1)
-						ADC_Level_Min = 0;
-					else
-						ADC_Level_Min = (i-1)*5+1; //0 6 11 16 ... 241 246 // On case of 51 step, 251
-
-					if(i==51)
-						ADC_Level_Max = 255; //On case of 51 step, 255
-					else
-						ADC_Level_Max = (i*5); //5 10 15 20 ... 245 250~253 // On case of 51 step, 250
-
-					if((ADC4_Value >= ADC_Level_Min) && (ADC_Level_Max >= ADC4_Value))
+					for(i=1;i<52;i++)
 					{
+						B_Update = FALSE; //2023-02-06_3    
+
 						if(i==1)
 							ADC_Level_Min = 0;
 						else
-							ADC_Level_Min = (i-1)*5+1; //0 6 11 16 ... 241 246
+							ADC_Level_Min = (i-1)*5+1; //0 6 11 16 ... 241 246 // On case of 51 step, 251
 
 						if(i==51)
-							ADC_Level_Max = 255;
+							ADC_Level_Max = 255; //On case of 51 step, 255
 						else
-							ADC_Level_Max = (i*5)-1; //4 9 14 19 ... 244 249~253
+							ADC_Level_Max = (i*5); //5 10 15 20 ... 245 250~253 // On case of 51 step, 250
 
-						if((ADC4_Value >= ADC_Level_Min) && (ADC_Level_Max >= ADC4_Value)) //2023-02-08_3 : Added additional code for Volume GAP
+						if((ADC4_Value >= ADC_Level_Min) && (ADC_Level_Max >= ADC4_Value))
 						{
-							uCurVolLevel = 51 - i;
-							B_Update = TRUE; //2023-02-06_3 
-						}
-						else //2023-02-06_3 : Do not update cur volume level and current ADC value is not valid
-						{
-							if(uCurVolLevel > uCurVolLevel_ADC4_bk)
-							{
-								if((uCurVolLevel - uCurVolLevel_ADC4_bk) > 1)
-									B_Update = TRUE;
-								else
-									B_Update = FALSE;
-							}
+							if(i==1)
+								ADC_Level_Min = 0;
 							else
+								ADC_Level_Min = (i-1)*5+1; //0 6 11 16 ... 241 246
+
+							if(i==51)
+								ADC_Level_Max = 255;
+							else
+								ADC_Level_Max = (i*5)-1; //4 9 14 19 ... 244 249~253
+
+							if((ADC4_Value >= ADC_Level_Min) && (ADC_Level_Max >= ADC4_Value)) //2023-02-08_3 : Added additional code for Volume GAP
 							{
-								if((uCurVolLevel_ADC4_bk - uCurVolLevel) > 1)
-									B_Update = TRUE;
-								else
-									B_Update = FALSE;
+								uCurVolLevel = 51 - i;
+								B_Update = TRUE; //2023-02-06_3 
 							}
+							else //2023-02-06_3 : Do not update cur volume level and current ADC value is not valid
+							{
+								if(uCurVolLevel > uCurVolLevel_ADC4_bk)
+								{
+									if((uCurVolLevel - uCurVolLevel_ADC4_bk) > 1)
+										B_Update = TRUE;
+									else
+										B_Update = FALSE;
+								}
+								else
+								{
+									if((uCurVolLevel_ADC4_bk - uCurVolLevel) > 1)
+										B_Update = TRUE;
+									else
+										B_Update = FALSE;
+								}
+							}
+
+							break;
+						}
+					}
+
+					if(B_Update) //2023-02-06_3
+					{
+						uint32_t l_CurVolLevel = 0;
+
+						uCurVolLevel = 51 - i;
+
+						if(uCurVolLevel_ADC4_bk != uCurVolLevel)
+						{
+#ifdef ADC4_INPUT_DEBUG_MSG
+							_DBG("\n\r === update Volume = 0x");
+							_DBH32(uCurVolLevel);
+#endif
+
+							uCurVolLevel_ADC4_bk = uCurVolLevel;
+
+							l_CurVolLevel = uCurVolLevel;
+							l_CurVolLevel <<= 8;
+
+							l_CurVolLevel |= INVALID_VOLUME;
+							l_CurVolLevel <<= 8;
+
+							l_CurVolLevel |= INVALID_VOLUME;
+
+#ifdef ADC4_INPUT_DEBUG_MSG
+							_DBG("\n\r === Set Volume = 0x");
+							_DBH32(l_CurVolLevel);
+#endif
+							AD85050_Amp_Volume_Set_with_Index(l_CurVolLevel, FALSE, TRUE);
 						}
 
-						break;
+						B_Update = FALSE;
 					}
+					ADC4_Value_bk = ADC4_Value;
 				}
-
-				if(B_Update) //2023-02-06_3
-				{
-					uint32_t l_CurVolLevel = 0;
-
-					uCurVolLevel = 51 - i;
-
-					if(uCurVolLevel_ADC4_bk != uCurVolLevel)
-					{
-						uCurVolLevel_ADC4_bk = uCurVolLevel;
-
-						l_CurVolLevel = INVALID_VOLUME;
-						l_CurVolLevel <<= 8;
-
-						l_CurVolLevel |= uCurVolLevel;
-						l_CurVolLevel <<= 8;
-
-						l_CurVolLevel |= INVALID_VOLUME;
-
-						AD85050_Amp_Volume_Set_with_Index(l_CurVolLevel, FALSE, TRUE);
-					}
-
-					B_Update = FALSE;
-				}
-				ADC4_Value_bk = ADC4_Value;
+			adc_polling_timer = df10msTimer50ms;
+			++adc_polling_step;
 			}
-		}
 
-		++adc_polling_step;
+
+		}
 		break;
 
 		case 2:
 		{
-			ADC2_Value = ADC_PollingRun(2);
-
-			if(ADC2_Value_bk != ADC2_Value)
+			if(adc_polling_timer == df10msTimer0ms)
 			{
-				for(i=1;i<52;i++)
+				ADC2_Value = ADC_PollingRun(2);
+
+				if(ADC2_Value_bk != ADC2_Value)
 				{
-					B_Update = FALSE; //2023-02-06_3    
+#ifdef ADC2_INPUT_DEBUG_MSG
+					_DBG("\n\r === Master Volume ADC = 0x");
+					_DBH32(ADC2_Value);
+#endif
 
-					if(i==1)
-						ADC_Level_Min = 0;
-					else
-						ADC_Level_Min = (i-1)*5+1; //0 6 11 16 ... 241 246 // On case of 51 step, 251
-
-					if(i==51)
-						ADC_Level_Max = 255; //On case of 51 step, 255
-					else
-						ADC_Level_Max = (i*5); //5 10 15 20 ... 245 250~253 // On case of 51 step, 250
-
-					if((ADC2_Value >= ADC_Level_Min) && (ADC_Level_Max >= ADC2_Value))
+					for(i=1;i<52;i++)
 					{
+						B_Update = FALSE; //2023-02-06_3    
+
 						if(i==1)
 							ADC_Level_Min = 0;
 						else
-							ADC_Level_Min = (i-1)*5+1; //0 6 11 16 ... 241 246
+							ADC_Level_Min = (i-1)*5+1; //0 6 11 16 ... 241 246 // On case of 51 step, 251
 
 						if(i==51)
-							ADC_Level_Max = 255;
+							ADC_Level_Max = 255; //On case of 51 step, 255
 						else
-							ADC_Level_Max = (i*5)-1; //4 9 14 19 ... 244 249~253
+							ADC_Level_Max = (i*5); //5 10 15 20 ... 245 250~253 // On case of 51 step, 250
 
-						if((ADC2_Value >= ADC_Level_Min) && (ADC_Level_Max >= ADC2_Value)) //2023-02-08_3 : Added additional code for Volume GAP
+						if((ADC2_Value >= ADC_Level_Min) && (ADC_Level_Max >= ADC2_Value))
 						{
-							uCurVolLevel = 51 - i;
-							B_Update = TRUE; //2023-02-06_3 
-						}
-						else //2023-02-06_3 : Do not update cur volume level and current ADC value is not valid
-						{
-							if(uCurVolLevel > uCurVolLevel_ADC2_bk)
-							{
-								if((uCurVolLevel - uCurVolLevel_ADC2_bk) > 1)
-									B_Update = TRUE;
-								else
-									B_Update = FALSE;
-							}
+							if(i==1)
+								ADC_Level_Min = 0;
 							else
+								ADC_Level_Min = (i-1)*5+1; //0 6 11 16 ... 241 246
+
+							if(i==51)
+								ADC_Level_Max = 255;
+							else
+								ADC_Level_Max = (i*5)-1; //4 9 14 19 ... 244 249~253
+
+							if((ADC2_Value >= ADC_Level_Min) && (ADC_Level_Max >= ADC2_Value)) //2023-02-08_3 : Added additional code for Volume GAP
 							{
-								if((uCurVolLevel_ADC2_bk - uCurVolLevel) > 1)
-									B_Update = TRUE;
-								else
-									B_Update = FALSE;
+								uCurVolLevel = 51 - i;
+								B_Update = TRUE; //2023-02-06_3 
 							}
+							else //2023-02-06_3 : Do not update cur volume level and current ADC value is not valid
+							{
+								if(uCurVolLevel > uCurVolLevel_ADC2_bk)
+								{
+									if((uCurVolLevel - uCurVolLevel_ADC2_bk) > 1)
+										B_Update = TRUE;
+									else
+										B_Update = FALSE;
+								}
+								else
+								{
+									if((uCurVolLevel_ADC2_bk - uCurVolLevel) > 1)
+										B_Update = TRUE;
+									else
+										B_Update = FALSE;
+								}
+							}
+
+							break;
+						}
+					}
+
+					if(B_Update) //2023-02-06_3
+					{
+						uint32_t l_CurVolLevel = 0;
+
+						uCurVolLevel = 51 - i;
+
+						if(uCurVolLevel_ADC2_bk != uCurVolLevel)
+						{
+							uCurVolLevel_ADC2_bk = uCurVolLevel;
+
+							l_CurVolLevel = INVALID_VOLUME;
+							l_CurVolLevel <<= 8;
+
+							l_CurVolLevel |= INVALID_VOLUME;
+							l_CurVolLevel <<= 8;
+
+							l_CurVolLevel |= uCurVolLevel;
+
+							AD85050_Amp_Volume_Set_with_Index(l_CurVolLevel, FALSE, TRUE);
 						}
 
-						break;
+						B_Update = FALSE;
 					}
+					ADC2_Value_bk = ADC2_Value;
 				}
 
-				if(B_Update) //2023-02-06_3
-				{
-					uint32_t l_CurVolLevel = 0;
-
-					uCurVolLevel = 51 - i;
-
-					if(uCurVolLevel_ADC2_bk != uCurVolLevel)
-					{
-						uCurVolLevel_ADC2_bk = uCurVolLevel;
-
-						l_CurVolLevel = INVALID_VOLUME;
-						l_CurVolLevel <<= 8;
-
-						l_CurVolLevel |= uCurVolLevel;
-						l_CurVolLevel <<= 8;
-
-						l_CurVolLevel |= INVALID_VOLUME;
-
-						AD85050_Amp_Volume_Set_with_Index(l_CurVolLevel, FALSE, TRUE);
-					}
-
-					B_Update = FALSE;
-				}
-				ADC2_Value_bk = ADC2_Value;
+			adc_polling_timer = df10msTimer50ms;
+			adc_polling_step = 0;
 			}
 		}
-
-		adc_polling_step = 0;;
-
 		break;	
 
 		default:

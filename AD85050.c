@@ -25,6 +25,10 @@
 
 /* Private typedef ---------------------------------------------------*/
 /* Private define ----------------------------------------------------*/
+#define AD85050_STATE_CTL5_REG						(0x19)
+#define AD85050_DRC_LINK_ENABLE						(0x18)
+#define AD85050_DRC_LINK_DISABLE					(0x10)
+
 #define AD85050_STATE_CTL6_REG						(0x1A)
 #define AD85050_RESET_ON								(~(0x20))
 #define AD85050_RESET_OFF								(0x20)
@@ -32,9 +36,15 @@
 #define AD85050_DAC_GAIN_REG						(0x36)
 #define AD85050_DAC_GAIN_MINUS_4DB					(0xC0)
 
+#define AD85050_STATE_CTL2_REG						(0x01)
+#define AD85050_M12D2_SAMPLE_FREQ_48K						(0x91)
+
 #define AD85050_STATE_CTL3_REG						(0x02)
 #define AD85050_MASTER_MUTE_ON						(0x40)
 #define AD85050_MASTER_MUTE_OFF						(0x00)
+
+#define AD85050_STATE_CTL4_REG						(0x0C)
+#define AD85050_CHANNEL2_USE_CHANNEL1_EQ				(0x98)
 
 //RAM Access Register
 #define AD85050_COEFFICIENT_RAM_BASE_ADDR_REG		(0x1D)
@@ -56,7 +66,8 @@
 #define AD85050_RAM_SETTING_REG						(0x2D)
 
 #define VOLUME_DEFAULT_LEVEL		(0x32)
-#define MASTER_VOLUME_LEVEL		(0x32)
+#define ADC_MASTER_VOLUME_LEVEL		(0x08)
+#define BT_MASTER_VOLUME_LEVEL		(0x19)
 
 #define AD85050_VOL_CONTROL_REG1					(0x03)
 #define AD85050_CHANNEL1_VOL_CONTROL_REG1					(0x04)
@@ -64,58 +75,112 @@
 
 #define AD85050_ERROR_REG								(0x84)
 
-uint8_t AD85050_Volume_Table[] = {
-  0x18  , //0db
-  0x19  , //-0.5db
-  0x1A  , //-1db
-  0x1C  , //-2db
-  0x1E  , //-3db
-  0x20  , //-4db
-  0x22  , //-5db
-  0x24  , //-6db
-  0x26  , //-7db
-  0x28  , //-8db
-  0x2A  , //-9db
-  0x2C  , //-10db
-  0x2E  , //-11db
-  0x30  , //-12db
-  0x32  , //-13db
-  0x34  , //-14db
-  0x36  , //-15db
-  0x38  , //-16db
-  0x3A  , //-17db
-  0x3C  , //-18db
-  0x3E  , //-19db
-  0x40  , //-20db
-  0x42  , //-21db
-  0x44  , //-22db
-  0x46  , //-23db
-  0x48  , //-24db
-  0x4C  , //-26db
-  0x50  , //-28db
-  0x54  , //-30db
-  0x58  , //-32db
-  0x5C  , //-34db
-  0x60  , //-36db
-  0x64  , //-38db
-  0x68  , //-40db
-  0x6C  , //-42db
-  0x70  , //-44db
-  0x74  , //-46db
-  0x78  , //-48db
-  0x7C  , //-50db
-  0x80  , //-52db
-  0x84  , //-54db
-  0x88  , //-56db
-  0x8C  , //-58db
-  0x90  , //-60db
-  0x94  , //-62db
-  0x98  , //-64db
-  0x9C  , //-66db
-  0xA0  , //-68db
-  0xA4  , //-70db
-  0xA8  , //-72db
-  0xff  , //Min
+uint8_t AD85050_BT_Volume_Table[] = {
+  0xff    , //min
+  0x64	  , //-38db
+  0x62	  , //-37db
+  0x60	  , //-36db
+  0x5E	  , //-35db
+  0x5C	  , //-34db
+  0x5A	  , //-33db
+  0x58	  , //-32db
+  0x56	  , //-31db
+  0x54	  , //-30db
+  0x52	  , //-29db
+  0x50	  , //-28db
+  0x4E	  , //-27db
+  0x4C	  , //-26db
+  0x4A	  , //-25db
+  0x48	  , //-24db
+  0x46	  , //-23db
+  0x44	  , //-22db
+  0x42	  , //-21db
+  0x40	  , //-20db
+  0x3E	  , //-19db
+  0x3C	  , //-18db
+  0x3A	  , //-17db
+  0x38	  , //-16db
+  0x36	  , //-15db
+  0x34	  , //-14db
+  0x32	  , //-13db
+  0x2E	  , //-11db
+  0x2C	  , //-10db
+  0x2A	  , //-9db
+  0x28	  , //-8db
+  0x26	  , //-7db
+  0x24	  , //-6db
+  0x22	  , //-5db
+  0x20	  , //-4db
+  0x1E	  , //-3db
+  0x1C	  , //-2db
+  0x1A	  , //-1db
+  0x18	  , //0db
+  0x16	  , //1db
+  0x14	  , //2db
+  0x12	  , //3db
+  0x10	  , //4db
+  0x0E	  , //5db
+  0x0C	  , //6db
+  0x0A	  , //7db
+  0x08	  , //8db
+  0x06	  , //9db
+  0x04	  , //10db
+  0x02	  , //11db
+  0x00	  , //12db
+};
+
+uint8_t AD85050_ADC_Volume_Table[] = {
+  0xff    , //min
+  0x64	  , //-38db
+  0x62	  , //-37db
+  0x60	  , //-36db
+  0x5E	  , //-35db
+  0x5C	  , //-34db
+  0x5A	  , //-33db
+  0x58	  , //-32db
+  0x56	  , //-31db
+  0x54	  , //-30db
+  0x52	  , //-29db
+  0x50	  , //-28db
+  0x4E	  , //-27db
+  0x4C	  , //-26db
+  0x4A	  , //-25db
+  0x48	  , //-24db
+  0x46	  , //-23db
+  0x44	  , //-22db
+  0x42	  , //-21db
+  0x40	  , //-20db
+  0x3E	  , //-19db
+  0x3C	  , //-18db
+  0x3A	  , //-17db
+  0x38	  , //-16db
+  0x36	  , //-15db
+  0x34	  , //-14db
+  0x32	  , //-13db
+  0x2E	  , //-11db
+  0x2C	  , //-10db
+  0x2A	  , //-9db
+  0x28	  , //-8db
+  0x26	  , //-7db
+  0x24	  , //-6db
+  0x22	  , //-5db
+  0x20	  , //-4db
+  0x1E	  , //-3db
+  0x1C	  , //-2db
+  0x1A	  , //-1db
+  0x18	  , //0db
+  0x16	  , //1db
+  0x14	  , //2db
+  0x12	  , //3db
+  0x10	  , //4db
+  0x0E	  , //5db
+  0x0C	  , //6db
+  0x0A	  , //7db
+  0x08	  , //8db
+  0x06	  , //9db
+  0x04	  , //10db
+  0x02	  , //11db
+  0x00	  , //12db
 };
 
 #define AD85050_RAM_SINGLE_SIZE	5
@@ -159,8 +224,132 @@ const uint8_t AD85050_Set_Ch2_Mixer2[AD85050_RAM_SINGLE_SIZE][2] = {
     {0x2D, 0x41},	/* CfRW : bank1, writing set coefficient to RAM */
 };
 
+const uint8_t AD85050_Set_EQ1_90Hz_24dB_Oct_HPF[][2] = {
+	{0x1d, 0x00},//##Coefficient_RAM_Base_Address
+	{0x1e, 0xc2},//##Top_8-bits_of_coefficients_A1
+	{0x1f, 0x4e},//##Middle_8-bits_of_coefficients_A1
+	{0x20, 0xe2},//##Bottom_8-bits_of_coefficients_A1
+	{0x21, 0x1e},//##Top_8-bits_of_coefficients_A2
+	{0x22, 0xd7},//##Middle_8-bits_of_coefficients_A2
+	{0x23, 0xa8},//##Bottom_8-bits_of_coefficients_A2
+	{0x24, 0x3d},//##Top_8-bits_of_coefficients_B1
+	{0x25, 0xb1},//##Middle_8-bits_of_coefficients_B1
+	{0x26, 0x1e},//##Bottom_8-bits_of_coefficients_B1
+	{0x27, 0xe2},//##Top_8-bits_of_coefficients_B2
+	{0x28, 0x4e},//##Middle_8-bits_of_coefficients_B2
+	{0x29, 0xd0},//##Bottom_8-bits_of_coefficients_B2
+	{0x2a, 0x1e},//##Top_8-bits_of_coefficients_A0
+	{0x2b, 0xd9},//##Middle_8-bits_of_coefficients_A0
+	{0x2c, 0x87},//##Bottom_8-bits_of_coefficients_A0
+
+	
+	{0x2D, 0x02},	/* CfRW : bank0, writing set coefficient to RAM */
+};
+
+const uint8_t AD85050_Set_EQ2_90Hz_24dB_Oct_HPF[][2] = {
+	{0x1d, 0x05},//##Coefficient_RAM_Base_Address
+	{0x1e, 0xc0},//##Top_8-bits_of_coefficients_A1
+	{0x1f, 0x2d},//##Middle_8-bits_of_coefficients_A1
+	{0x20, 0x7e},//##Bottom_8-bits_of_coefficients_A1
+	{0x21, 0x1e},//##Top_8-bits_of_coefficients_A2
+	{0x22, 0xcc},//##Middle_8-bits_of_coefficients_A2
+	{0x23, 0xd6},//##Bottom_8-bits_of_coefficients_A2
+	{0x24, 0x3f},//##Top_8-bits_of_coefficients_B1
+	{0x25, 0xd2},//##Middle_8-bits_of_coefficients_B1
+	{0x26, 0x82},//##Bottom_8-bits_of_coefficients_B1
+	{0x27, 0xe0},//##Top_8-bits_of_coefficients_B2
+	{0x28, 0x2d},//##Middle_8-bits_of_coefficients_B2
+	{0x29, 0x35},//##Bottom_8-bits_of_coefficients_B2
+	{0x2a, 0x21},//##Top_8-bits_of_coefficients_A0
+	{0x2b, 0x05},//##Middle_8-bits_of_coefficients_A0
+	{0x2c, 0xf4},//##Bottom_8-bits_of_coefficients_A0
+
+
+	{0x2D, 0x02},	/* CfRW : bank0, writing set coefficient to RAM */
+};
+
+const uint8_t AD85050_Set_Power_Clipping[AD85050_RAM_SINGLE_SIZE][2] = {
+	{0x1D, 0x55},	/* Coefficient RAM base address */
+		
+	{0x1E, 0x1B},	/* Top 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x1F, 0x20},	/* Middle 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x20, 0x00},	/* Bottom 8-bits of coefficient A1 */		/* Power Clipping */
+	
+	{0x2D, 0x01},	/* CfRW : bank0, writing set coefficient to RAM */
+};
+
+const uint8_t AD85050_Set_DRC1_Attack_Threshold[AD85050_RAM_SINGLE_SIZE][2] = {
+	{0x1D, 0x56},	/* Coefficient RAM base address */
+		
+	{0x1E, 0x09},	/* Top 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x1F, 0x04},	/* Middle 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x20, 0xd1},	/* Bottom 8-bits of coefficient A1 */		/* Power Clipping */
+	
+	{0x2D, 0x01},	/* CfRW : bank0, writing set coefficient to RAM */
+};
+
+const uint8_t AD85050_Set_DRC1_Release_Threshold[AD85050_RAM_SINGLE_SIZE][2] = {
+	{0x1D, 0x57},	/* Coefficient RAM base address */
+		
+	{0x1E, 0x07},	/* Top 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x1F, 0x5F},	/* Middle 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x20, 0x83},	/* Bottom 8-bits of coefficient A1 */		/* Power Clipping */
+	
+	{0x2D, 0x01},	/* CfRW : bank0, writing set coefficient to RAM */
+};
+
+const uint8_t AD85050_Set_DRC1_Energy_Coefficient[AD85050_RAM_SINGLE_SIZE][2] = {
+	{0x1D, 0x60},	/* Coefficient RAM base address */
+		
+	{0x1E, 0x08},	/* Top 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x1F, 0x00},	/* Middle 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x20, 0x00},	/* Bottom 8-bits of coefficient A1 */		/* Power Clipping */
+	
+	{0x2D, 0x01},	/* CfRW : bank0, writing set coefficient to RAM */
+};
+
+const uint8_t AD85050_Disable_Power_Clipping[AD85050_RAM_SINGLE_SIZE][2] = {
+	{0x1D, 0x55},	/* Coefficient RAM base address */
+		
+	{0x1E, 0x20},	/* Top 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x1F, 0x00},	/* Middle 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x20, 0x00},	/* Bottom 8-bits of coefficient A1 */		/* Power Clipping */
+	
+	{0x2D, 0x01},	/* CfRW : bank0, writing set coefficient to RAM */
+};
+
+const uint8_t AD85050_Disable_DRC1_Attack_Threshold[AD85050_RAM_SINGLE_SIZE][2] = {
+	{0x1D, 0x56},	/* Coefficient RAM base address */
+		
+	{0x1E, 0x20},	/* Top 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x1F, 0x00},	/* Middle 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x20, 0x00},	/* Bottom 8-bits of coefficient A1 */		/* Power Clipping */
+	
+	{0x2D, 0x01},	/* CfRW : bank0, writing set coefficient to RAM */
+};
+
+const uint8_t AD85050_Disable_DRC1_Release_Threshold[AD85050_RAM_SINGLE_SIZE][2] = {
+	{0x1D, 0x57},	/* Coefficient RAM base address */
+		
+	{0x1E, 0x08},	/* Top 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x1F, 0x00},	/* Middle 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x20, 0x00},	/* Bottom 8-bits of coefficient A1 */		/* Power Clipping */
+	
+	{0x2D, 0x01},	/* CfRW : bank0, writing set coefficient to RAM */
+};
+
+const uint8_t AD85050_Disable_DRC1_Energy_Coefficient[AD85050_RAM_SINGLE_SIZE][2] = {
+	{0x1D, 0x60},	/* Coefficient RAM base address */
+		
+	{0x1E, 0x00},	/* Top 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x1F, 0x80},	/* Middle 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x20, 0x00},	/* Bottom 8-bits of coefficient A1 */		/* Power Clipping */
+	
+	{0x2D, 0x01},	/* CfRW : bank0, writing set coefficient to RAM */
+};
+
 #define MAX_VOLUME_LEVEL		(0)
-#define VOLUME_LEVEL_NUMER	(sizeof(AD85050_Volume_Table))
+#define VOLUME_LEVEL_NUMER	(sizeof(AD85050_BT_Volume_Table))
 #define MIN_VOLUME_LEVEL		(VOLUME_LEVEL_NUMER - 1)
 
 /* Private macro -----------------------------------------------------*/
@@ -176,8 +365,8 @@ Bool volatile BAmp_COM = FALSE; //2023-02-27_3 : To check whether AMP is busy(ca
 static EQ_Mode_Setting Cur_EQ_Mode = EQ_NORMAL_MODE;
 
 uint16_t ad85050_timer;
-static AD85050_Status ad85050_status;
-static Bool BNeed_Mute_Off_Delay = FALSE;
+static AD85050_Status ad85050_status = AD85050_POWER_DOWN;
+//static Bool BNeed_Mute_Off_Delay = FALSE;
 
 void AD85050_10ms_timer(void)
 {
@@ -196,6 +385,7 @@ void AD85050_Process(void)
 			{
 				AD85050_Amp_Reset(TRUE);
 				ad85050_status = AD85050_POWER_UP_RESET_ON;
+				ad85050_timer = df10msTimer10ms;
 			}
 			break;
 
@@ -212,22 +402,15 @@ void AD85050_Process(void)
 			if(ad85050_timer == df10msTimer0ms)
 			{
 				AD85050_Amp_Init(TRUE);
-				PCM9211_Set_Path_Init();
+				PCM9211_Set_Path_Init(FALSE);
 				ad85050_timer = df10msTimer10ms; /* Spec : t9 = 10ms */
 				ad85050_status = AD85050_POWER_UP_INIT;
 			}
 			break;
 
 		case AD85050_POWER_UP_INIT:
-			if(!BNeed_Mute_Off_Delay)
-			{
-				HAL_GPIO_SetPin(PF, _BIT(4)); //DAMP_PDN
-				Set_Is_Mute(FALSE);
-		    }
-			else
-			{
-				TIMER20_mute_flag_Start(); //Mute off delay when Aux is connected under power bootin on.
-			}
+			if(BT_Is_Routed())
+				TIMER20_mute_flag_Start();
 
 			ad85050_status = AD85050_POWER_UP_COMPLETE;
 			break;
@@ -278,19 +461,12 @@ void AD85050_ErrorProcess(void)
 
 void AD85050_PowerUp(void)
 {
-	BNeed_Mute_Off_Delay =  FALSE;
 	BAmp_Init = TRUE;
 
-    HAL_GPIO_SetPin(PD, _BIT(4)); //+24V DAMP Power
     HAL_GPIO_SetPin(PA, _BIT(5)); //+3.3V DAMP Power
-
-	if(HAL_GPIO_ReadPin(PC) & (1<<3)) //Input(Aux Detec Pin) : High -Aux Out / Low -Aux In
-		BNeed_Mute_Off_Delay = FALSE;
-	else
-		BNeed_Mute_Off_Delay = TRUE;
-
-	if((BNeed_Mute_Off_Delay == FALSE) && (BT_Is_Routed() ==TRUE)) //When Aux is none and BT has Audio Stream, it need to use mute off delay
-		BNeed_Mute_Off_Delay = TRUE;
+    HAL_GPIO_SetPin(PD, _BIT(4)); //+24V DAMP Power
+    delay_ms(10);
+	HAL_GPIO_SetPin(PF, _BIT(4));
 
 	ad85050_status = AD85050_POWER_UP;
 	ad85050_timer = df10msTimer20ms;
@@ -395,80 +571,165 @@ Bool Get_Is_Mute(void)
 
 void AD85050_Amp_Init(Bool Power_On_Init)
 {
-    uint8_t uArea1_Vol_Level = 0;
-    uint8_t uArea2_Vol_Level = 0;
-    uint8_t uSlaveBT_Vol_Level = 0;
+	uint8_t uArea1_Vol_Level = 0;
+	uint8_t uArea2_Vol_Level = 0;
+	uint8_t uSlaveBT_Vol_Level = 0;
 
-    uint32_t uVol_Level = 0;
-    uint8_t uRead = 0;
-    uint8_t i = 0;    
+	uint32_t uVol_Level = 0;
+	uint8_t uRead = 0;
+	uint8_t i = 0;
+	uint8_t size = 0;
 
 #ifdef AD85050_DEBUG_MSG
 	_DBG("\n\rAD85050_Amp_Init");
 #endif    
 
-   	//BAmp_Init = TRUE;
+	//BAmp_Init = TRUE;
 
-    //delay_ms(20); //t7(20ms)
-    //AD85050_Amp_Reset(TRUE);
-    //delay_ms(20); //t8(20ms)
-    //AD85050_Amp_Reset(FALSE);  
+	BAmp_Init = FALSE;
 
-    BAmp_Init = FALSE;
+	//mute
+	uRead = AD85050_MASTER_MUTE_ON;
+	I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_STATE_CTL3_REG, &uRead,1);
 
-    for(i =0;i<AD85050_RAM_SINGLE_SIZE;i++)
-    {
-    	uRead = AD85050_Set_Ch1_Mixer1[i][1];
-        I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_Set_Ch1_Mixer1[i][0],&uRead,1);        
-    }
+	//sample rate 48k
+	uRead = AD85050_M12D2_SAMPLE_FREQ_48K;
+	I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_STATE_CTL2_REG,&uRead,1);
 
-    for(i =0;i<AD85050_RAM_SINGLE_SIZE;i++)
-    {
-    	uRead = AD85050_Set_Ch1_Mixer2[i][1];
-        I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_Set_Ch1_Mixer2[i][0],&uRead,1);        
-    }
+	/* Channel-2 uses channel-1 EQ */
+	uRead = AD85050_CHANNEL2_USE_CHANNEL1_EQ;
+	I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_STATE_CTL4_REG,&uRead,1);
 
-    for(i =0;i<AD85050_RAM_SINGLE_SIZE;i++)
-    {
-    	uRead = AD85050_Set_Ch2_Mixer1[i][1];
-        I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_Set_Ch2_Mixer1[i][0],&uRead,1);        
-    }
+	AD85050_OutputLimit(TRUE);
 
-    for(i =0;i<AD85050_RAM_SINGLE_SIZE;i++)
-    {
-    	uRead = AD85050_Set_Ch2_Mixer2[i][1];
-        I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_Set_Ch2_Mixer2[i][0],&uRead,1);        
-    }    
+	for(i =0;i<AD85050_RAM_SINGLE_SIZE;i++)
+	{
+		uRead = AD85050_Set_Ch1_Mixer1[i][1];
+		I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_Set_Ch1_Mixer1[i][0],&uRead,1);        
+	}
 
-    //Master Volume Control
-    //Data = 0x1f; //0x13; //1dB
-    //I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, 0x03,&Data,1);
+	for(i =0;i<AD85050_RAM_SINGLE_SIZE;i++)
+	{
+		uRead = AD85050_Set_Ch1_Mixer2[i][1];
+		I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_Set_Ch1_Mixer2[i][0],&uRead,1);        
+	}
 
-    uArea1_Vol_Level = ADC_Volume_Attenuator_Value_Init(AREA1_VOLUME);
-    uArea2_Vol_Level = ADC_Volume_Attenuator_Value_Init(AREA2_VOLUME);
-    uSlaveBT_Vol_Level = ADC_Volume_Attenuator_Value_Init(SLAVE_BT_VOLUME);
+	for(i =0;i<AD85050_RAM_SINGLE_SIZE;i++)
+	{
+		uRead = AD85050_Set_Ch2_Mixer1[i][1];
+		I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_Set_Ch2_Mixer1[i][0],&uRead,1);        
+	}
 
-    AD85050_Dac_Volume_Set(FALSE);
+	for(i =0;i<AD85050_RAM_SINGLE_SIZE;i++)
+	{
+		uRead = AD85050_Set_Ch2_Mixer2[i][1];
+		I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_Set_Ch2_Mixer2[i][0],&uRead,1);        
+	}
 
-    if(uArea1_Vol_Level == 0xff)
-    uArea1_Vol_Level = 50;
+	//90Hz 24dB/Oct HPF CHANNEL 1
+	size = sizeof(AD85050_Set_EQ1_90Hz_24dB_Oct_HPF);
+	for(i =0; i<size; i++)
+	{
+		uRead = AD85050_Set_EQ1_90Hz_24dB_Oct_HPF[i][1];
+		I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_Set_EQ1_90Hz_24dB_Oct_HPF[i][0],&uRead,1);
+	}
 
-    if(uArea2_Vol_Level == 0xff)
-    uArea2_Vol_Level = 50;
+	size = sizeof(AD85050_Set_EQ2_90Hz_24dB_Oct_HPF);
+	for(i =0;i<AD85050_RAM_SINGLE_SIZE;i++)
+	{
+		uRead = AD85050_Set_EQ2_90Hz_24dB_Oct_HPF[i][1];
+		I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_Set_EQ2_90Hz_24dB_Oct_HPF[i][0],&uRead,1);        
+	}
 
-    if(uSlaveBT_Vol_Level == 0xff)
-    uSlaveBT_Vol_Level = 50;
+	uArea1_Vol_Level = ADC_Volume_Attenuator_Value_Init(AREA1_VOLUME);
+	uArea2_Vol_Level = ADC_Volume_Attenuator_Value_Init(AREA2_VOLUME);
+	uSlaveBT_Vol_Level = ADC_Volume_Attenuator_Value_Init(SLAVE_BT_VOLUME);
 
-    uVol_Level = uArea2_Vol_Level;
-    uVol_Level <<= 8;
-    uVol_Level |= uArea1_Vol_Level;
-    uVol_Level <<= 8;
-    uVol_Level |= uSlaveBT_Vol_Level;
+	AD85050_Dac_Volume_Set(FALSE);
 
-    AD85050_Amp_EQ_DRC_Control(Cur_EQ_Mode);
+	if(uArea1_Vol_Level == 0xff)
+		uArea1_Vol_Level = 50;
 
-    AD85050_Amp_Volume_Set_with_Index(uVol_Level, FALSE, TRUE);
-    //MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Volume, (VOLUME_LEVEL_NUMER-1) - uSlaveBT_Vol_Level);
+	if(uArea2_Vol_Level == 0xff)
+		uArea2_Vol_Level = 50;
+
+	if(uSlaveBT_Vol_Level == 0xff)
+		uSlaveBT_Vol_Level = 50;
+
+	uVol_Level = uArea2_Vol_Level;
+	uVol_Level <<= 8;
+	uVol_Level |= uArea1_Vol_Level;
+	uVol_Level <<= 8;
+	uVol_Level |= uSlaveBT_Vol_Level;
+
+	AD85050_Amp_EQ_DRC_Control(Cur_EQ_Mode);
+	AD85050_Amp_Volume_Set_with_Index(uVol_Level, FALSE, TRUE);
+}
+
+void AD85050_OutputLimit(Bool enable)
+{
+	uint8_t uData = 0;
+	uint8_t i = 0;
+
+	if(enable)
+	{
+	    uData = AD85050_DRC_LINK_ENABLE;
+	    I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_STATE_CTL5_REG,&uData,1);
+
+		for(i =0;i<AD85050_RAM_SINGLE_SIZE;i++)
+		{
+			uData = AD85050_Set_DRC1_Energy_Coefficient[i][1];
+			I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_Set_DRC1_Energy_Coefficient[i][0],&uData,1);        
+		}
+
+		for(i =0;i<AD85050_RAM_SINGLE_SIZE;i++)
+		{
+			uData = AD85050_Set_DRC1_Attack_Threshold[i][1];
+			I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_Set_DRC1_Attack_Threshold[i][0],&uData,1);        
+		}
+
+		for(i =0;i<AD85050_RAM_SINGLE_SIZE;i++)
+		{
+			uData = AD85050_Set_DRC1_Release_Threshold[i][1];
+			I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_Set_DRC1_Release_Threshold[i][0],&uData,1);        
+		}		
+
+		for(i =0;i<AD85050_RAM_SINGLE_SIZE;i++)
+		{
+			uData = AD85050_Set_Power_Clipping[i][1];
+			I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_Set_Power_Clipping[i][0],&uData,1);        
+		}
+		
+	}
+	else
+	{
+		uData = AD85050_DRC_LINK_DISABLE;
+		I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_STATE_CTL5_REG,&uData,1);
+
+		for(i =0;i<AD85050_RAM_SINGLE_SIZE;i++)
+		{
+			uData = AD85050_Disable_Power_Clipping[i][1];
+			I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_Disable_Power_Clipping[i][0],&uData,1);        
+		}
+
+		for(i =0;i<AD85050_RAM_SINGLE_SIZE;i++)
+		{
+			uData = AD85050_Disable_DRC1_Attack_Threshold[i][1];
+			I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_Disable_DRC1_Attack_Threshold[i][0],&uData,1);        
+		}
+
+		for(i =0;i<AD85050_RAM_SINGLE_SIZE;i++)
+		{
+			uData = AD85050_Disable_DRC1_Release_Threshold[i][1];
+			I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_Disable_DRC1_Release_Threshold[i][0],&uData,1);        
+		}
+
+		for(i =0;i<AD85050_RAM_SINGLE_SIZE;i++)
+		{
+			uData = AD85050_Disable_DRC1_Energy_Coefficient[i][1];
+			I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_Disable_DRC1_Energy_Coefficient[i][0],&uData,1);        
+		}		
+	}
 }
 
 void AD85050_Amp_Reset(Bool Reset_On)
@@ -690,7 +951,7 @@ uint32_t AD85050_Amp_Volume_Set_with_Index(uint32_t Vol_Level, Bool Inverse, Boo
 
     if(slaveBT_Vol_Level != INVALID_VOLUME && Actual_Key)
     {
-        MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Volume, (VOLUME_LEVEL_NUMER-1) - slaveBT_Vol_Level);
+        MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Volume, slaveBT_Vol_Level);
     }  
 
     return uCurVolLevel;
@@ -1014,7 +1275,7 @@ uint32_t AD85050_Amp_Get_Cur_Volume_Level(void) //Start count from Max(15)
 	return uCurrent_Vol_Level;
 }
 
-uint8_t AD85050_Amp_Get_Cur_BT_Volume_Level_Inverse(void) //Start count from Min(0)
+uint8_t AD85050_Amp_Get_Cur_BT_Volume_Level_Inverse(void)
 {
 	uint8_t uInverse_Vol;
 #ifdef AD85050_DEBUG_MSG
@@ -1024,6 +1285,18 @@ uint8_t AD85050_Amp_Get_Cur_BT_Volume_Level_Inverse(void) //Start count from Min
 	uInverse_Vol = (VOLUME_LEVEL_NUMER-1) -(uint8_t)(uCurrent_Vol_Level & 0x0000ff);
 
 	return uInverse_Vol;
+}
+
+uint8_t AD85050_Amp_Get_Cur_BT_Volume_Level(void)
+{
+	uint8_t u_Vol;
+#ifdef AD85050_DEBUG_MSG
+    _DBG("\n\AD85050_Amp_Get_Cur_BT_Volume_Level_Inverse() : volume =");
+    _DBD32(uCurrent_Vol_Level);
+#endif
+	u_Vol = (uint8_t)(uCurrent_Vol_Level & 0x0000ff);
+
+	return u_Vol;
 }
 
 Bool AD85050_Amp_Get_Cur_CLK_Status(void) //TRUE : Clock Exist / FALSE : Clock absence
@@ -1483,28 +1756,52 @@ void AD85050_Amp_Volume_Register_Writing(uint16_t uVolumeLevel)
     }
     } 
 
-    uReg_Value = MASTER_VOLUME_LEVEL;
-    I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_VOL_CONTROL_REG1,&uReg_Value,1);  
+	if(HAL_GPIO_ReadPin(PE) & (1<<0)) //BT_OUT ON
+	{
+	    uReg_Value = BT_MASTER_VOLUME_LEVEL;
+	    I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_VOL_CONTROL_REG1,&uReg_Value,1);
+	}
+	else
+	{
+		uReg_Value = ADC_MASTER_VOLUME_LEVEL;
+		I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_VOL_CONTROL_REG1,&uReg_Value,1);
+	}
 
-    if(uArea1_Level != INVALID_VOLUME)
-    {
-      uReg_Value = AD85050_Volume_Table[uArea1_Level];
-      I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_CHANNEL1_VOL_CONTROL_REG1,&uReg_Value,1);  
-    }
+	if(uArea1_Level != INVALID_VOLUME)
+	{
+		if(HAL_GPIO_ReadPin(PE) & (1<<0)) //BT_OUT ON
+			uReg_Value = AD85050_BT_Volume_Table[uArea1_Level];
+		else
+			uReg_Value = AD85050_ADC_Volume_Table[uArea1_Level];
+		
+		I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_CHANNEL1_VOL_CONTROL_REG1,&uReg_Value,1);  
+	}
 
-    if(uArea2_Level != INVALID_VOLUME)
-    {
-      uReg_Value = AD85050_Volume_Table[uArea2_Level];
-      I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_CHANNEL2_VOL_CONTROL_REG1,&uReg_Value,1);  
-    }
+	if(uArea2_Level != INVALID_VOLUME)
+	{
+		if(HAL_GPIO_ReadPin(PE) & (1<<0)) //BT_OUT ON
+			uReg_Value = AD85050_BT_Volume_Table[uArea2_Level];
+		else
+			uReg_Value = AD85050_ADC_Volume_Table[uArea2_Level];
+
+		I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_CHANNEL2_VOL_CONTROL_REG1,&uReg_Value,1);  
+	}
+
 }
 
 void AD85050_Dac_Volume_Set(Bool Aux_Mode) //2023-06-13_1 : Added parameter "Aux_Mode" and changed this function
 {
-  uint8_t Data = 0;
+	//uint8_t Data = 0;
 
-	Data = AD85050_DAC_GAIN_MINUS_4DB;
-	I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_DAC_GAIN_REG,&Data,1);
+	if(Aux_Mode)
+	{
+
+	}
+	else
+	{
+		//Data = AD85050_DAC_GAIN_MINUS_4DB;
+		//I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_DAC_GAIN_REG,&Data,1);
+	}
 }
 
 #endif //AD85050_ENABLE

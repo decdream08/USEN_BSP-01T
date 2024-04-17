@@ -78,6 +78,7 @@ void Key_Process(void)
 			case INPUT_AUX_KEY:
 				MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x02);
 				AD85050_Amp_Mute(TRUE, FALSE); //MUTE ON
+				PCM9211_Set_Path_Init(FALSE);
 				Set_MB3021_BT_Module_Source_Change();				
 				break;
 
@@ -109,10 +110,37 @@ void Key_Process(void)
 				HAL_GPIO_SetPin(PE, _BIT(4)); //BT_OUT3
 				HAL_GPIO_SetPin(PE, _BIT(3)); //BT_OUT4
 
-				PCM9211_Set_Status(PCM9211_CHANGE_PATH_TO_ADC);
+			  if((HAL_GPIO_ReadPin(PC) & (1<<3)))
+					PCM9211_Set_Status(PCM9211_CHANGE_PATH_TO_ADC);
+				else
+					PCM9211_Set_Status(PCM9211_CHANGE_PATH_TO_AUXIN0);
 				break;
 
 			case BT_OUT_ON_KEY:
+				if(!(HAL_GPIO_ReadPin(PF) & (1<<1))) //area1
+				{
+					HAL_GPIO_ClearPin(PE, _BIT(6)); //BT_OUT1
+					HAL_GPIO_SetPin(PE, _BIT(5)); //BT_OUT2
+					HAL_GPIO_SetPin(PE, _BIT(4)); //BT_OUT3
+					HAL_GPIO_ClearPin(PE, _BIT(3)); //BT_OUT4
+				}
+				
+				if(!(HAL_GPIO_ReadPin(PF) & (1<<2))) //area2
+				{
+					HAL_GPIO_SetPin(PE, _BIT(6)); //BT_OUT1
+					HAL_GPIO_ClearPin(PE, _BIT(5)); //BT_OUT2
+					HAL_GPIO_ClearPin(PE, _BIT(4)); //BT_OUT3
+					HAL_GPIO_SetPin(PE, _BIT(3)); //BT_OUT4
+				}
+				
+				if(!(HAL_GPIO_ReadPin(PF) & (1<<3))) //area1 + area2
+				{
+					HAL_GPIO_ClearPin(PE, _BIT(6)); //BT_OUT1
+					HAL_GPIO_ClearPin(PE, _BIT(5)); //BT_OUT2
+					HAL_GPIO_SetPin(PE, _BIT(4)); //BT_OUT3
+					HAL_GPIO_SetPin(PE, _BIT(3)); //BT_OUT4
+				}
+
 				PCM9211_Set_Status(PCM9211_CHANGE_PATH_TO_AUXIN0);
 				break;
 

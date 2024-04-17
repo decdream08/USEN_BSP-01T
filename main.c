@@ -282,11 +282,18 @@ void Init_Value_Setting(Bool B_boot)
 #ifdef COMMON_DEBUG_MSG
 	_DBG("\n\rInit_Value_Setting(void)");
 #endif
-	if(!B_boot)
+	if(B_boot)
+	{
+		PCM9211_Set_Status(PCM9211_POWER_DOWN);
+		AD85050_SetStatus(AD85050_POWER_DOWN);
+	}
+	else
+	{
 		TIMER20_Amp_error_flag_Stop();
+	}
 
 	B_AUX_DET = FALSE; //FALSE - Aux Out //2023-04-12_1 : We need to make FALSE because HW make 5sec delay to keep Aux In(Low) even though there is no Aux In after DC In.
-	TIMER20_aux_detection_flag_start();
+	Set_MB3021_BT_Module_Source_Change();
 }
 
 void main_10ms_timer(void)
@@ -304,6 +311,7 @@ void main_10ms_timer(void)
 		AD85050_10ms_timer();
 		ADC_Polling_10ms_timer();
 		Key_10ms_timer();
+		ADC_Polling_10ms_timer();
 	}
 }
 

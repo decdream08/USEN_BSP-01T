@@ -94,7 +94,7 @@ void I2C0_IRQHandler_IT(void)
 void I2C_Configure(void)
 {
 	 /*Initialize Slave I2C peripheral*/
-	if(HAL_I2C_Init(I2C0, 400000) != HAL_OK) //400kbps - Fast mode
+	if(HAL_I2C_Init(I2C0, /*50000*//*400000*/110000) != HAL_OK) //400kbps - Fast mode
 	{
 		 /* Initialization Error */
      		I2C_Error_Handler();

@@ -34,11 +34,7 @@
 #define PCM9211_ADC_L_CH_CTL_REG						(0x46)
 #define PCM9211_ADC_R_CH_CTL_REG						(0x47)
 
-//#define PCM9211_ADC_CH_CTL_REG_GAIN						(0xDB)  /* +2db */
-#define PCM9211_ADC_CH_CTL_REG_GAIN						(0xD5)  /* -1db */
-
-#define PCM9211_ADC_CH_CTL_REG_GAIN_9DB					(0xE8)  /* +8.5db */
-#define PCM9211_ADC_CH_CTL_REG_GAIN_6D5DB				(0xE4)  /* +6.5db */
+#define PCM9211_ADC_CH_CTL_REG_GAIN_7DB				(0xE5) //7db
 
 #define PCM9211_DIR_RECOVERED_CLOCK					(0x30)
 #define PCM9211_DIR_RECOVERED_CLOCK_AUTO				(0x12)
@@ -119,6 +115,12 @@ typedef enum {
 	PCM9211_RUN,
 }PCM92211_Status;
 
+typedef enum {
+    PCM9211_PATH_NULL,  
+    PCM9211_PATH_BT,
+    PCM9211_PATH_ADC,
+}PCM92211_PathStatus;
+
 #define PCM9211_UNMUTE_TIMER	df10msTimer400ms
 
 void PCM9211_10ms_timer(void);
@@ -129,9 +131,9 @@ void PCM9211_Set_Status(PCM92211_Status op);
 void PCM9211_Init(void);
 void PCM9211_Set_Output(uint8_t Port);
 
-void PCM9211_Set_Path_Init(void);
-void PCM9211_Set_Path_BT(void);
-void PCM9211_Set_Path_AUX(void);
+void PCM9211_Set_Path_Init(Bool mute_needed);
+void PCM9211_Set_Path_BT(Bool mute_needed);
+void PCM9211_Set_Path_ADC(Bool mute_needed);
 #endif //AD85050_H
 
 

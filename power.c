@@ -74,15 +74,17 @@ static void Power_On_Start_Process(void)
 		case 0:
 			Power_state = TRUE;
 
-			if(Get_Cur_Status_LED_Mode() == STATUS_PROTECTION_MODE)
-			{
-				TIMER20_Amp_error_flag_Stop();
-			}
+			TIMER20_Amp_error_flag_Stop();
 
 			PCM9211_PowerUp();
 			++mainPowerStep;
 			break;
 		case 1:
+			Set_Status_LED_Mode(STATUS_POWER_ON_MODE);
+			HAL_GPIO_SetPin(PD, _BIT(5)); //LED POWER CONTROL - ON
+			++mainPowerStep;
+			break;
+		case 2:
 			{
 			uint8_t uFlash_Read_Buf3[FLASH_SAVE_DATA_END];
 			Flash_Read(FLASH_SAVE_START_ADDR, uFlash_Read_Buf3, FLASH_SAVE_DATA_END);
@@ -100,25 +102,24 @@ static void Power_On_Start_Process(void)
 			if(uFlash_Read_Buf3[FLASH_SAVE_DATA_MUTE])
 				Set_Status_LED_Mode(STATUS_MUTE_ON_MODE);
 
-			HAL_GPIO_SetPin(PD, _BIT(5)); //LED POWER CONTROL - ON
 			power_timer = df10msTimer30ms;
 
 			++mainPowerStep;
 			}
 			break;
-		case 2:
+		case 3:
 			if(power_timer == df10msTimer0ms )
 			{
 				EXIT_PortE_Configure();
 				++mainPowerStep;
 			}
 			break;
-		case 3:
+		case 4:
 			Init_Value_Setting(FALSE);
 			FlashSaveData(FLASH_SAVE_DATA_POWER, 1);
 			++mainPowerStep;
 			break;
-		case 4:
+		case 5:
 			MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Power, 0x01);
 			++mainPowerStep;
 			break;
@@ -154,6 +155,7 @@ static void Power_Off_Start_Process(void)
 			++mainPowerStep;
 			break;
 		case 3:
+			LED_Diplay_All_Off();
 			HAL_GPIO_ClearPin(PD, _BIT(5));
 			++mainPowerStep;
 			break;

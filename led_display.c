@@ -31,16 +31,26 @@
 
 //STATUS LED
 //L1 LED  //Need to change name to STATUS_LED_W(MUTE_LED_WHITE) //2022-01-09_4
+#if 1
+#define STATUS_LED_W_ON						(Make_LED_ON(PD,3)) 
+#define STATUS_LED_W_OFF					(Make_LED_OFF(PD,3))
+#else
 #define STATUS_LED_W_ON						(Make_LED_ON(PC,1)) 
 #define STATUS_LED_W_OFF					(Make_LED_OFF(PC,1))
+#endif
 
 //SLAVE BT IND.
 #define BT_PAIRING_LED_BLUE_ON				(Make_LED_ON(PD,2))
 #define BT_PAIRING_LED_BLUE_OFF				(Make_LED_OFF(PD,2))
 
 //Master BT IND.
+#if 1
+#define BT_PAIRING_LED_WHITE_ON				(Make_LED_ON(PC,1)) 
+#define BT_PAIRING_LED_WHITE_OFF			(Make_LED_OFF(PC,1))
+#else
 #define BT_PAIRING_LED_WHITE_ON				(Make_LED_ON(PD,3))
 #define BT_PAIRING_LED_WHITE_OFF			(Make_LED_OFF(PD,3))
+#endif
 
 //#define LED_DISPLAY_DEBUG					(1)
 
