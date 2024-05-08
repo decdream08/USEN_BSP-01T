@@ -602,3 +602,6 @@
   
 ## 2024-05-08 (BAP-02)
   - update - audio path, 90Hz 24dB/Oct HPF, 18khz gain
+  
+## 2024-05-08 (BAP-02)
+  - Aux Max volume gain, limit ¼öÁ¤

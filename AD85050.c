@@ -66,7 +66,7 @@
 #define AD85050_RAM_SETTING_REG						(0x2D)
 
 #define VOLUME_DEFAULT_LEVEL		(0x32)
-#define AUX_MASTER_VOLUME_LEVEL		(0x05)
+#define AUX_MASTER_VOLUME_LEVEL		(0x04)//(0x05)
 #define BT_MASTER_VOLUME_LEVEL		(0x19)
 
 #define AD85050_VOL_CONTROL_REG1					(0x03)
@@ -317,8 +317,8 @@ const uint8_t AD85050_Set_EQ1_18000Hz_G5_Q0_7[][2] = {
 const uint8_t AD85050_Set_Power_Clipping[AD85050_RAM_SINGLE_SIZE][2] = {
 	{0x1D, 0x55},	/* Coefficient RAM base address */
 		
-	{0x1E, 0x16},	/* Top 8-bits of coefficient A1 */		/* Power Clipping */
-	{0x1F, 0x60},	/* Middle 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x1E, 0x17},	/* Top 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x1F, 0xc0},	/* Middle 8-bits of coefficient A1 */		/* Power Clipping */
 	{0x20, 0x00},	/* Bottom 8-bits of coefficient A1 */		/* Power Clipping */
 	
 	{0x2D, 0x01},	/* CfRW : bank0, writing set coefficient to RAM */
@@ -328,8 +328,8 @@ const uint8_t AD85050_Set_DRC1_Attack_Threshold[AD85050_RAM_SINGLE_SIZE][2] = {
 	{0x1D, 0x56},	/* Coefficient RAM base address */
 		
 	{0x1E, 0x08},	/* Top 8-bits of coefficient A1 */		/* Power Clipping */
-	{0x1F, 0x09},	/* Middle 8-bits of coefficient A1 */		/* Power Clipping */
-	{0x20, 0xbc},	/* Bottom 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x1F, 0x83},	/* Middle 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x20, 0xaa},	/* Bottom 8-bits of coefficient A1 */		/* Power Clipping */
 	
 	{0x2D, 0x01},	/* CfRW : bank0, writing set coefficient to RAM */
 };
@@ -337,9 +337,9 @@ const uint8_t AD85050_Set_DRC1_Attack_Threshold[AD85050_RAM_SINGLE_SIZE][2] = {
 const uint8_t AD85050_Set_DRC1_Release_Threshold[AD85050_RAM_SINGLE_SIZE][2] = {
 	{0x1D, 0x57},	/* Coefficient RAM base address */
 		
-	{0x1E, 0x06},	/* Top 8-bits of coefficient A1 */		/* Power Clipping */
-	{0x1F, 0xf5},	/* Middle 8-bits of coefficient A1 */		/* Power Clipping */
-	{0x20, 0xed},	/* Bottom 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x1E, 0x05},	/* Top 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x1F, 0xdb},	/* Middle 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x20, 0x4e},	/* Bottom 8-bits of coefficient A1 */		/* Power Clipping */
 	
 	{0x2D, 0x01},	/* CfRW : bank0, writing set coefficient to RAM */
 };
