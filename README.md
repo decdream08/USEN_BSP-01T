@@ -599,3 +599,6 @@
 
 ## 2024-04-17 (BAP-02)
   - ES PBA bring up
+  
+## 2024-05-08 (BAP-02)
+  - update - audio path, 90Hz 24dB/Oct HPF, 18khz gain

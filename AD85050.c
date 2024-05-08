@@ -66,7 +66,7 @@
 #define AD85050_RAM_SETTING_REG						(0x2D)
 
 #define VOLUME_DEFAULT_LEVEL		(0x32)
-#define ADC_MASTER_VOLUME_LEVEL		(0x08)
+#define AUX_MASTER_VOLUME_LEVEL		(0x05)
 #define BT_MASTER_VOLUME_LEVEL		(0x19)
 
 #define AD85050_VOL_CONTROL_REG1					(0x03)
@@ -129,7 +129,7 @@ uint8_t AD85050_BT_Volume_Table[] = {
   0x00	  , //12db
 };
 
-uint8_t AD85050_ADC_Volume_Table[] = {
+uint8_t AD85050_AUX_Volume_Table[] = {
   0xff    , //min
   0x64	  , //-38db
   0x62	  , //-37db
@@ -184,6 +184,8 @@ uint8_t AD85050_ADC_Volume_Table[] = {
 };
 
 #define AD85050_RAM_SINGLE_SIZE	5
+#define AD85050_RAM_SET_SIZE	17
+
 const uint8_t AD85050_Set_Ch1_Mixer1[AD85050_RAM_SINGLE_SIZE][2] = {
     {0x1D, 0x4B},	/* Coefficient RAM base address */
     	
@@ -224,7 +226,7 @@ const uint8_t AD85050_Set_Ch2_Mixer2[AD85050_RAM_SINGLE_SIZE][2] = {
     {0x2D, 0x41},	/* CfRW : bank1, writing set coefficient to RAM */
 };
 
-const uint8_t AD85050_Set_EQ1_90Hz_24dB_Oct_HPF[][2] = {
+const uint8_t AD85050_Set_EQ1_90Hz_24dB_Oct_HPF[AD85050_RAM_SET_SIZE][2] = {
 	{0x1d, 0x00},//##Coefficient_RAM_Base_Address
 	{0x1e, 0xc2},//##Top_8-bits_of_coefficients_A1
 	{0x1f, 0x4e},//##Middle_8-bits_of_coefficients_A1
@@ -246,7 +248,7 @@ const uint8_t AD85050_Set_EQ1_90Hz_24dB_Oct_HPF[][2] = {
 	{0x2D, 0x02},	/* CfRW : bank0, writing set coefficient to RAM */
 };
 
-const uint8_t AD85050_Set_EQ2_90Hz_24dB_Oct_HPF[][2] = {
+const uint8_t AD85050_Set_EQ2_90Hz_24dB_Oct_HPF[AD85050_RAM_SET_SIZE][2] = {
 	{0x1d, 0x05},//##Coefficient_RAM_Base_Address
 	{0x1e, 0xc0},//##Top_8-bits_of_coefficients_A1
 	{0x1f, 0x2d},//##Middle_8-bits_of_coefficients_A1
@@ -268,11 +270,55 @@ const uint8_t AD85050_Set_EQ2_90Hz_24dB_Oct_HPF[][2] = {
 	{0x2D, 0x02},	/* CfRW : bank0, writing set coefficient to RAM */
 };
 
+const uint8_t AD85050_Set_EQ3_18000Hz_G5_Q0_7[AD85050_RAM_SET_SIZE][2] = {
+	{0x1d, 0x0a},//##Coefficient_RAM_Base_Address
+	{0x1e, 0xef},//##Top_8-bits_of_coefficients_A1
+	{0x1f, 0x9d},//##Middle_8-bits_of_coefficients_A1
+	{0x20, 0x5a},//##Bottom_8-bits_of_coefficients_A1
+	{0x21, 0x02},//##Top_8-bits_of_coefficients_A2
+	{0x22, 0x91},//##Middle_8-bits_of_coefficients_A2
+	{0x23, 0xa1},//##Bottom_8-bits_of_coefficients_A2
+	{0x24, 0x10},//##Top_8-bits_of_coefficients_B1
+	{0x25, 0x62},//##Middle_8-bits_of_coefficients_B1
+	{0x26, 0xa6},//##Bottom_8-bits_of_coefficients_B1
+	{0x27, 0xf5},//##Top_8-bits_of_coefficients_B2
+	{0x28, 0x2f},//##Middle_8-bits_of_coefficients_B2
+	{0x29, 0xc4},//##Bottom_8-bits_of_coefficients_B2
+	{0x2a, 0x28},//##Top_8-bits_of_coefficients_A0
+	{0x2b, 0x3e},//##Middle_8-bits_of_coefficients_A0
+	{0x2c, 0x9a},//##Bottom_8-bits_of_coefficients_A0
+
+	
+	{0x2D, 0x02},	/* CfRW : bank0, writing set coefficient to RAM */
+};
+
+const uint8_t AD85050_Set_EQ1_18000Hz_G5_Q0_7[][2] = {
+	{0x1d, 0x00},//##Coefficient_RAM_Base_Address
+	{0x1e, 0xef},//##Top_8-bits_of_coefficients_A1
+	{0x1f, 0x9d},//##Middle_8-bits_of_coefficients_A1
+	{0x20, 0x5a},//##Bottom_8-bits_of_coefficients_A1
+	{0x21, 0x02},//##Top_8-bits_of_coefficients_A2
+	{0x22, 0x91},//##Middle_8-bits_of_coefficients_A2
+	{0x23, 0xa1},//##Bottom_8-bits_of_coefficients_A2
+	{0x24, 0x10},//##Top_8-bits_of_coefficients_B1
+	{0x25, 0x62},//##Middle_8-bits_of_coefficients_B1
+	{0x26, 0xa6},//##Bottom_8-bits_of_coefficients_B1
+	{0x27, 0xf5},//##Top_8-bits_of_coefficients_B2
+	{0x28, 0x2f},//##Middle_8-bits_of_coefficients_B2
+	{0x29, 0xc4},//##Bottom_8-bits_of_coefficients_B2
+	{0x2a, 0x28},//##Top_8-bits_of_coefficients_A0
+	{0x2b, 0x3e},//##Middle_8-bits_of_coefficients_A0
+	{0x2c, 0x9a},//##Bottom_8-bits_of_coefficients_A0
+
+	
+	{0x2D, 0x02},	/* CfRW : bank0, writing set coefficient to RAM */
+};
+
 const uint8_t AD85050_Set_Power_Clipping[AD85050_RAM_SINGLE_SIZE][2] = {
 	{0x1D, 0x55},	/* Coefficient RAM base address */
 		
-	{0x1E, 0x1B},	/* Top 8-bits of coefficient A1 */		/* Power Clipping */
-	{0x1F, 0x20},	/* Middle 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x1E, 0x16},	/* Top 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x1F, 0x60},	/* Middle 8-bits of coefficient A1 */		/* Power Clipping */
 	{0x20, 0x00},	/* Bottom 8-bits of coefficient A1 */		/* Power Clipping */
 	
 	{0x2D, 0x01},	/* CfRW : bank0, writing set coefficient to RAM */
@@ -281,9 +327,9 @@ const uint8_t AD85050_Set_Power_Clipping[AD85050_RAM_SINGLE_SIZE][2] = {
 const uint8_t AD85050_Set_DRC1_Attack_Threshold[AD85050_RAM_SINGLE_SIZE][2] = {
 	{0x1D, 0x56},	/* Coefficient RAM base address */
 		
-	{0x1E, 0x09},	/* Top 8-bits of coefficient A1 */		/* Power Clipping */
-	{0x1F, 0x04},	/* Middle 8-bits of coefficient A1 */		/* Power Clipping */
-	{0x20, 0xd1},	/* Bottom 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x1E, 0x08},	/* Top 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x1F, 0x09},	/* Middle 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x20, 0xbc},	/* Bottom 8-bits of coefficient A1 */		/* Power Clipping */
 	
 	{0x2D, 0x01},	/* CfRW : bank0, writing set coefficient to RAM */
 };
@@ -291,9 +337,9 @@ const uint8_t AD85050_Set_DRC1_Attack_Threshold[AD85050_RAM_SINGLE_SIZE][2] = {
 const uint8_t AD85050_Set_DRC1_Release_Threshold[AD85050_RAM_SINGLE_SIZE][2] = {
 	{0x1D, 0x57},	/* Coefficient RAM base address */
 		
-	{0x1E, 0x07},	/* Top 8-bits of coefficient A1 */		/* Power Clipping */
-	{0x1F, 0x5F},	/* Middle 8-bits of coefficient A1 */		/* Power Clipping */
-	{0x20, 0x83},	/* Bottom 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x1E, 0x06},	/* Top 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x1F, 0xf5},	/* Middle 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x20, 0xed},	/* Bottom 8-bits of coefficient A1 */		/* Power Clipping */
 	
 	{0x2D, 0x01},	/* CfRW : bank0, writing set coefficient to RAM */
 };
@@ -578,7 +624,6 @@ void AD85050_Amp_Init(Bool Power_On_Init)
 	uint32_t uVol_Level = 0;
 	uint8_t uRead = 0;
 	uint8_t i = 0;
-	uint8_t size = 0;
 
 #ifdef AD85050_DEBUG_MSG
 	_DBG("\n\rAD85050_Amp_Init");
@@ -627,19 +672,24 @@ void AD85050_Amp_Init(Bool Power_On_Init)
 	}
 
 	//90Hz 24dB/Oct HPF CHANNEL 1
-	size = sizeof(AD85050_Set_EQ1_90Hz_24dB_Oct_HPF);
-	for(i =0; i<size; i++)
+	for(i =0; i<AD85050_RAM_SET_SIZE; i++)
 	{
 		uRead = AD85050_Set_EQ1_90Hz_24dB_Oct_HPF[i][1];
 		I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_Set_EQ1_90Hz_24dB_Oct_HPF[i][0],&uRead,1);
 	}
 
-	size = sizeof(AD85050_Set_EQ2_90Hz_24dB_Oct_HPF);
-	for(i =0;i<AD85050_RAM_SINGLE_SIZE;i++)
+	for(i =0;i<AD85050_RAM_SET_SIZE;i++)
 	{
 		uRead = AD85050_Set_EQ2_90Hz_24dB_Oct_HPF[i][1];
 		I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_Set_EQ2_90Hz_24dB_Oct_HPF[i][0],&uRead,1);        
 	}
+
+	//PEAK 18000hz, GAIN:5, Q:0.7
+	for(i =0;i<AD85050_RAM_SET_SIZE;i++)
+	{
+		uRead = AD85050_Set_EQ3_18000Hz_G5_Q0_7[i][1];
+		I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_Set_EQ3_18000Hz_G5_Q0_7[i][0],&uRead,1);        
+	}	
 
 	uArea1_Vol_Level = ADC_Volume_Attenuator_Value_Init(AREA1_VOLUME);
 	uArea2_Vol_Level = ADC_Volume_Attenuator_Value_Init(AREA2_VOLUME);
@@ -678,8 +728,8 @@ void AD85050_OutputLimit(Bool enable)
 
 		for(i =0;i<AD85050_RAM_SINGLE_SIZE;i++)
 		{
-			uData = AD85050_Set_DRC1_Energy_Coefficient[i][1];
-			I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_Set_DRC1_Energy_Coefficient[i][0],&uData,1);        
+			uData = AD85050_Set_Power_Clipping[i][1];
+			I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_Set_Power_Clipping[i][0],&uData,1);        
 		}
 
 		for(i =0;i<AD85050_RAM_SINGLE_SIZE;i++)
@@ -692,14 +742,13 @@ void AD85050_OutputLimit(Bool enable)
 		{
 			uData = AD85050_Set_DRC1_Release_Threshold[i][1];
 			I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_Set_DRC1_Release_Threshold[i][0],&uData,1);        
-		}		
+		}
 
 		for(i =0;i<AD85050_RAM_SINGLE_SIZE;i++)
 		{
-			uData = AD85050_Set_Power_Clipping[i][1];
-			I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_Set_Power_Clipping[i][0],&uData,1);        
+			uData = AD85050_Set_DRC1_Energy_Coefficient[i][1];
+			I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_Set_DRC1_Energy_Coefficient[i][0],&uData,1);        
 		}
-		
 	}
 	else
 	{
@@ -1756,35 +1805,35 @@ void AD85050_Amp_Volume_Register_Writing(uint16_t uVolumeLevel)
     }
     } 
 
-	if(HAL_GPIO_ReadPin(PE) & (1<<0)) //BT_OUT ON
+	if((HAL_GPIO_ReadPin(PC) & (1<<3)))
 	{
-	    uReg_Value = BT_MASTER_VOLUME_LEVEL;
-	    I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_VOL_CONTROL_REG1,&uReg_Value,1);
+		uReg_Value = AUX_MASTER_VOLUME_LEVEL;
+		I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_VOL_CONTROL_REG1,&uReg_Value,1);
 	}
 	else
 	{
-		uReg_Value = ADC_MASTER_VOLUME_LEVEL;
+		uReg_Value = BT_MASTER_VOLUME_LEVEL;
 		I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_VOL_CONTROL_REG1,&uReg_Value,1);
 	}
 
 	if(uArea1_Level != INVALID_VOLUME)
 	{
-		if(HAL_GPIO_ReadPin(PE) & (1<<0)) //BT_OUT ON
-			uReg_Value = AD85050_BT_Volume_Table[uArea1_Level];
+		if((HAL_GPIO_ReadPin(PC) & (1<<3)))
+			uReg_Value = AD85050_AUX_Volume_Table[uArea1_Level];
 		else
-			uReg_Value = AD85050_ADC_Volume_Table[uArea1_Level];
+			uReg_Value = AD85050_BT_Volume_Table[uArea1_Level];
 		
-		I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_CHANNEL1_VOL_CONTROL_REG1,&uReg_Value,1);  
+		I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_CHANNEL2_VOL_CONTROL_REG1,&uReg_Value,1);  
 	}
 
 	if(uArea2_Level != INVALID_VOLUME)
 	{
-		if(HAL_GPIO_ReadPin(PE) & (1<<0)) //BT_OUT ON
-			uReg_Value = AD85050_BT_Volume_Table[uArea2_Level];
+		if((HAL_GPIO_ReadPin(PC) & (1<<3)))
+			uReg_Value = AD85050_AUX_Volume_Table[uArea2_Level];
 		else
-			uReg_Value = AD85050_ADC_Volume_Table[uArea2_Level];
+			uReg_Value = AD85050_BT_Volume_Table[uArea2_Level];
 
-		I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_CHANNEL2_VOL_CONTROL_REG1,&uReg_Value,1);  
+		I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_CHANNEL1_VOL_CONTROL_REG1,&uReg_Value,1);  
 	}
 
 }
