@@ -770,7 +770,7 @@ void TIMER20_IRQHandler_IT(void)
 			if(!Power_State())
 				power_on_volume_sync_flag = 0;
 			
-			if((power_on_volume_sync_flag == df100msTimer500ms) || (power_on_volume_sync_flag == df100msTimer1d5s) || (power_on_volume_sync_flag == df100msTimer2s)) //After 1.5sec
+			if((power_on_volume_sync_flag == df100msTimer500ms) || (power_on_volume_sync_flag == df100msTimer1d5s) || (power_on_volume_sync_flag == df100msTimer2s) || (power_on_volume_sync_flag == df100msTimer2d5s)) //After 1.5sec
 			{	
 #ifdef TIMER20_DEBUG_MSG
 				_DBG("\n\r##### power_on_volume_sync_flag meets condition to resend volume data!!! ");
@@ -781,10 +781,21 @@ void TIMER20_IRQHandler_IT(void)
 				if((power_on_volume_sync_flag == df100msTimer500ms) || (power_on_volume_sync_flag == df100msTimer2s)) //After 3sec
 				{
 					MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x03);
+#if 0
 					if(power_on_volume_sync_flag == df100msTimer2s)
 						power_on_volume_sync_flag = 0;
 					else
+#endif
 						power_on_volume_sync_flag++;
+				}
+				else if(power_on_volume_sync_flag == df100msTimer2d5s)
+				{
+					if(HAL_GPIO_ReadPin(PC) & (1<<3))
+						MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x01);
+					else if(BT_Is_Routed())
+						MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x01);
+
+					power_on_volume_sync_flag = 0;
 				}
 				else
 				{

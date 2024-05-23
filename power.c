@@ -63,6 +63,11 @@ void Power_Process(void)
 
 void Power_Mode_Set(unsigned char mode)
 {
+#ifdef AD85050_DEBUG_MSG
+	  _DBG("\n\rPower_Mode_Set = ");
+      _DBD(mode);
+#endif
+
   mainPowerMode = (PowerModeDef)mode;
   mainPowerStep = 0;
   power_timer = df10msTimer0ms;
@@ -123,12 +128,11 @@ static void Power_On_Start_Process(void)
 			MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Power, 0x01);
 			++mainPowerStep;
 			break;
-
 		default:
 			mainPowerStep = 0;
 			HAL_GPIO_SetPin(PC, _BIT(2)); //Outlet On
 
-			protection_check_flag = TRUE;
+			protection_check_flag = ETC_PROTECTION_MONITOR | AMP_PROTECTION_MONITOR | LED_PROTECTION_MONITOR;
 			Power_Mode_Set(PWR_ON_NORMAL);
 			break;
 	}
@@ -180,7 +184,7 @@ static void Power_Off_Start_Process(void)
 			mainPowerStep = 0;
 			HAL_GPIO_ClearPin(PC, _BIT(2)); //Outlet Off
 
-			protection_check_flag = FALSE;
+			protection_check_flag = OFF;
 
 			if(mainPowerMode == PWR_OFF_PROTECTION_START)
 			{

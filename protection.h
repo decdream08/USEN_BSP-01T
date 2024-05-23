@@ -32,6 +32,10 @@ ProtectionMode protection_check(void);
 uint8_t protection_status(void);
 void init_protect_values(void);
 
+#define ETC_PROTECTION_MONITOR 0x1
+#define AMP_PROTECTION_MONITOR 0x2
+#define LED_PROTECTION_MONITOR 0x4
+
 extern uint8_t protection_check_flag;
 extern ProtectionMode protection_mode;
 

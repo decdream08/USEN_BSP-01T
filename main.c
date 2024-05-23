@@ -826,7 +826,7 @@ void GPIOAB_IRQHandler_IT(void)
 	}
 
 	status = HAL_GPIO_EXTI_GetState(PB);
-	if(Power_State() && (status & (3UL<<(2<<1)))) //GPIO0 : PB2 OTP
+	if(status & (3UL<<(2<<1))) //GPIO0 : PB2 OTP
 	{
 #ifdef KEY_CHATTERING_ENABLE
 		delay_ms(KEY_CHATTERING_DELAY_MS);
@@ -834,21 +834,24 @@ void GPIOAB_IRQHandler_IT(void)
 		clear_bit = status & (3UL<<(2<<1));
 		HAL_GPIO_EXTI_ClearPin(PB, status&clear_bit);
 
-		if(HAL_GPIO_ReadPin(PB) & (1<<2)) //PB2 - High
+		if(Power_State())
 		{
+			if(HAL_GPIO_ReadPin(PB) & (1<<2)) //PB2 - High
+			{
 #ifdef SWITCH_BUTTON_KEY_ENABLE_DEBUG_MSG
-			_DBG("\n\rDAMP_OTP - CLEAR");
+				_DBG("\n\rDAMP_OTP - CLEAR");
 #endif
-		}
-		else
-		{
+			}
+			else
+			{
 #ifdef SWITCH_BUTTON_KEY_ENABLE_DEBUG_MSG
-			_DBG("\n\rDAMP_OTP - ERROR");
+				_DBG("\n\rDAMP_OTP - ERROR");
 #endif
 #ifdef SOC_ERROR_ALARM_DEBUG_MSG
-			_DBG("\n\rSOC_ERROR - 6");
+				_DBG("\n\rSOC_ERROR - 6");
 #endif
-			AD85050_SetStatus(AD85050_ERROR_STATUS);
+				AD85050_SetStatus(AD85050_ERROR_STATUS);
+			}
 		}
 	}
 }
@@ -865,6 +868,8 @@ void EXTI_PortA_Configure(void)
 
 	HAL_GPIO_EXTI_Config(PA, 6, IER_EDGE, ICR_BOTH_EDGE_INT);
 	HAL_GPIO_EXTI_Config(PA, 7, IER_EDGE, ICR_BOTH_EDGE_INT);
+
+	HAL_GPIO_EXTI_Config(PB, 2, IER_EDGE, ICR_BOTH_EDGE_INT);
 
 	NVIC_SetPriority(GPIOAB_IRQn, 3);	
 	NVIC_EnableIRQ(GPIOAB_IRQn);
@@ -903,7 +908,7 @@ void GPIOE_IRQHandler_IT(void) // PE7 : Button Switch Input
 		shift_bit = 0xffffffff;
 
 #ifdef KEY_CHATTERING_ENABLE
-		delay_ms(KEY_CHATTERING_DELAY_MS);
+		delay_ms(KEY_CHATTERING_DELAY_MS+60);
 #endif
 
 		if(status1 & (3UL<<(0<<1))) //0x00000003 PE0 : BT OUT OFF / BT OUT ON
@@ -1170,6 +1175,7 @@ void GPIOF_IRQHandler_IT(void)
 		}
 		else if(status & (3UL<<(1<<1))) //0x0000000C PF1 : BT_OUT_AREA1
 		{
+#if 0
 			shift_bit = 1;
 
 			status_buf = status & 0x0000000C;
@@ -1204,13 +1210,14 @@ void GPIOF_IRQHandler_IT(void)
 					cur_button_status = button_release; //Low -> High
 				}
 			}
-
+#endif
 			clear_bit = status & (3UL<<(1<<1));
 
 			HAL_GPIO_EXTI_ClearPin(PF, status&clear_bit);
 		}
 		else if(status & (3UL<<(2<<1))) //0x00000030 PF2 : BT_OUT_AREA2
 		{
+#if 0
 			shift_bit = 2;
 
 			status_buf = status & 0x00000030;
@@ -1245,13 +1252,14 @@ void GPIOF_IRQHandler_IT(void)
 					cur_button_status = button_release; //Low -> High
 				}
 			}
-
+#endif
 			clear_bit = status & (3UL<<(2<<1));
 
 			HAL_GPIO_EXTI_ClearPin(PF, status&clear_bit);
 		}
 		else if(status & (3UL<<(3<<1))) //0x00000030 PF3 : BT_OUT_AREA1+2
 		{
+#if 0
 			shift_bit = 3;
 
 			status_buf = status & 0x000000C0;
@@ -1286,7 +1294,7 @@ void GPIOF_IRQHandler_IT(void)
 					cur_button_status = button_release; //Low -> High
 				}
 			}
-
+#endif
 			clear_bit = status & (3UL<<(3<<1));
 
 			HAL_GPIO_EXTI_ClearPin(PF, status&clear_bit);

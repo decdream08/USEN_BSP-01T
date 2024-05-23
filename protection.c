@@ -32,7 +32,7 @@ void Protection_10ms_timer(void)
 
 void Protection_Process(void)
 {
-	if(protection_check_flag == ON)
+	if(protection_check_flag != OFF)
 	{
 		if ( protection_data.mode == ProtectionNone )
 		{
@@ -51,48 +51,56 @@ ProtectionMode protection_check(void)
 {
 	if ( protection_data.mode == ProtectionNone )
 	{
-		if ( (HAL_GPIO_ReadPin(PC) & (1<<4)) ) // etc
+		if(protection_check_flag & ETC_PROTECTION_MONITOR)
 		{
-			protection_data.etc_count = 0;
-		}
-		else
-		{
-			++protection_data.etc_count;
-			if ( protection_data.etc_count > PROTECTION_COUNT )
+			if ( (HAL_GPIO_ReadPin(PC) & (1<<4)) ) // etc
 			{
-				protection_data.mode = ProtectionETC;
-				return protection_data.mode;;
+				protection_data.etc_count = 0;
+			}
+			else
+			{
+				++protection_data.etc_count;
+				if ( protection_data.etc_count > PROTECTION_COUNT )
+				{
+					protection_data.mode = ProtectionETC;
+					return protection_data.mode;;
+				}
 			}
 		}
 
-		if ( (HAL_GPIO_ReadPin(PD) & (1<<0)) ) // amp
+		if(protection_check_flag & AMP_PROTECTION_MONITOR)
 		{
-			protection_data.amp_count = 0;
-		}
-		else
-		{
-			++protection_data.amp_count;
-			if ( protection_data.amp_count > PROTECTION_COUNT )
+			if ( (HAL_GPIO_ReadPin(PD) & (1<<0)) ) // amp
 			{
-				protection_data.mode = ProtectionAMP;
-				return protection_data.mode;;
+				protection_data.amp_count = 0;
 			}
-
-		}
-
-		if ( (HAL_GPIO_ReadPin(PD) & (1<<1)) ) // led
-		{
-			protection_data.led_count = 0;
-		}
-		else
-		{
-			++protection_data.led_count;
-			if ( protection_data.led_count > PROTECTION_COUNT )
+			else
 			{
-				protection_data.mode = ProtectionLED;
-				return protection_data.mode;
-			}
+				++protection_data.amp_count;
+				if ( protection_data.amp_count > PROTECTION_COUNT )
+				{
+					protection_data.mode = ProtectionAMP;
+					return protection_data.mode;;
+				}
 
+			}
+		}
+
+		if(protection_check_flag & LED_PROTECTION_MONITOR)
+		{
+			if ( (HAL_GPIO_ReadPin(PD) & (1<<1)) ) // led
+			{
+				protection_data.led_count = 0;
+			}
+			else
+			{
+				++protection_data.led_count;
+				if ( protection_data.led_count > PROTECTION_COUNT )
+				{
+					protection_data.mode = ProtectionLED;
+					return protection_data.mode;
+				}
+			}
 		}
 	}
 

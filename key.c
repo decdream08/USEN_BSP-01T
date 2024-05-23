@@ -48,14 +48,23 @@ void Key_Process(void)
 		{
 			case BT_PAIRING_KEY:
 				Remocon_BT_Long_Key_Action();
+#ifdef KEY_CHECK_DEBUG_MSG
+				_DBG("\n\rBT_PAIRING_KEY");
+#endif
 				break;
 
 			case BT_KEY:
 				Remocon_BT_Short_Key_Action();
+#ifdef KEY_CHECK_DEBUG_MSG
+				_DBG("\n\rBT_KEY");
+#endif
 				break;
 
 			case POWER_KEY:
 				Remocon_Power_Key_Action_Toggle();
+#ifdef KEY_CHECK_DEBUG_MSG
+				_DBG("\n\rPOWER_KEY");
+#endif
 				break;
 
 			case FACTORY_RESET_KEY:
@@ -68,10 +77,17 @@ void Key_Process(void)
 					bFactory_Reset_Mode = TRUE;
 					Factory_Reset_Value_Setting();
 				}
+
+#ifdef KEY_CHECK_DEBUG_MSG
+				_DBG("\n\rFACTORY_RESET_KEY");
+#endif
 				break;
 
 			case BT_UPDATE_KEY:
 				Factory_Mode_Setting();
+#ifdef KEY_CHECK_DEBUG_MSG
+				_DBG("\n\rBT_UPDATE_KEY");
+#endif
 				break;
 
 			case INPUT_BT_KEY:
@@ -79,14 +95,24 @@ void Key_Process(void)
 				MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x02);
 				AD85050_Amp_Mute(TRUE, FALSE); //MUTE ON
 				PCM9211_Set_Path_Init(FALSE);
-				Set_MB3021_BT_Module_Source_Change();				
+				Set_MB3021_BT_Module_Source_Change();
+#ifdef KEY_CHECK_DEBUG_MSG
+				if(keyCode == INPUT_BT_KEY)
+					_DBG("\n\rINPUT_BT_KEY");
+				else
+					_DBG("\n\rINPUT_AUX_KEY");
+#endif
 				break;
-
+#if 0
 			case BT_OUT_AREA_1_KEY:
 				HAL_GPIO_ClearPin(PE, _BIT(6)); //BT_OUT1
 				HAL_GPIO_SetPin(PE, _BIT(5)); //BT_OUT2
 				HAL_GPIO_SetPin(PE, _BIT(4)); //BT_OUT3
 				HAL_GPIO_ClearPin(PE, _BIT(3)); //BT_OUT4
+
+#ifdef KEY_CHECK_DEBUG_MSG
+				_DBG("\n\rBT_OUT_AREA_1_KEY");
+#endif
 				break;
 
 			case BT_OUT_AREA_2_KEY:
@@ -94,6 +120,10 @@ void Key_Process(void)
 				HAL_GPIO_ClearPin(PE, _BIT(5)); //BT_OUT2
 				HAL_GPIO_ClearPin(PE, _BIT(4)); //BT_OUT3
 				HAL_GPIO_SetPin(PE, _BIT(3)); //BT_OUT4
+
+#ifdef KEY_CHECK_DEBUG_MSG
+				_DBG("\n\rBT_OUT_AREA_2_KEY");
+#endif
 				break;
 
 			case BT_OUT_AREA_1_2_KEY:
@@ -101,8 +131,12 @@ void Key_Process(void)
 				HAL_GPIO_ClearPin(PE, _BIT(5)); //BT_OUT2
 				HAL_GPIO_SetPin(PE, _BIT(4)); //BT_OUT3
 				HAL_GPIO_SetPin(PE, _BIT(3)); //BT_OUT4
-				break;
 
+#ifdef KEY_CHECK_DEBUG_MSG
+				_DBG("\n\rBT_OUT_AREA_1_2_KEY");
+#endif
+				break;
+#endif
 			case BT_OUT_OFF_KEY:
 				//BT OUT MUTE
 				HAL_GPIO_SetPin(PE, _BIT(6)); //BT_OUT1
@@ -114,9 +148,19 @@ void Key_Process(void)
 					PCM9211_Set_Status(PCM9211_CHANGE_PATH_TO_ADC);
 				else
 					PCM9211_Set_Status(PCM9211_CHANGE_PATH_TO_AUXIN0);
+
+#ifdef KEY_CHECK_DEBUG_MSG
+				_DBG("\n\rBT_OUT_OFF_KEY");
+#endif
 				break;
 
 			case BT_OUT_ON_KEY:
+#if 1
+				HAL_GPIO_ClearPin(PE, _BIT(6)); //BT_OUT1
+				HAL_GPIO_ClearPin(PE, _BIT(5)); //BT_OUT2
+				HAL_GPIO_SetPin(PE, _BIT(4)); //BT_OUT3
+				HAL_GPIO_SetPin(PE, _BIT(3)); //BT_OUT4
+#else
 				if(!(HAL_GPIO_ReadPin(PF) & (1<<1))) //area1
 				{
 					HAL_GPIO_ClearPin(PE, _BIT(6)); //BT_OUT1
@@ -140,8 +184,13 @@ void Key_Process(void)
 					HAL_GPIO_SetPin(PE, _BIT(4)); //BT_OUT3
 					HAL_GPIO_SetPin(PE, _BIT(3)); //BT_OUT4
 				}
+#endif
 
 				PCM9211_Set_Status(PCM9211_CHANGE_PATH_TO_AUXIN0);
+
+#ifdef KEY_CHECK_DEBUG_MSG
+				_DBG("\n\rBT_OUT_ON_KEY");
+#endif
 				break;
 
 			case MUTE_KEY:

@@ -2843,11 +2843,17 @@ Bool MB3021_BT_Module_CMD_Execute(uint8_t major_id, uint8_t minor_id, uint8_t *d
 
 					case MINOR_ID_INFORM_HOST_MODE: //0x00 : 0x17
 					bPolling_Get_Data_backup &= (~BCRF_INFORM_HOST_MODE); //Clear flag
-#if 0//def BT_DEBUG_MSG	
+#ifdef BT_DEBUG_MSG	
 					_DBG("\n\rRes: MINOR_ID_INFORM_HOST_MODE");
 #endif
 					if(do_recovery)
+					{
+#ifdef BT_DEBUG_MSG	
+						_DBG("\n\rRes: MINOR_ID_INFORM_HOST_MODE recovery");
+#endif
+
 						bPolling_Get_Data |= BCRF_INFORM_HOST_MODE; //Set flag to send same data again
+					}
 					else //Set EQ Setting after Power On
 					{
 						TIMER20_Forced_Input_Audio_Path_Setting_flag_stop();
@@ -3690,10 +3696,10 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 
 	if(bPolling_Get_Data & BCRF_SET_IO_CAPABILITY_MODE)
 	{
+		int i;
 #ifdef BT_DEBUG_MSG
 		_DBG("\n\rDo : BCRF_SET_IO_CAPABILITY_MODE");
 #endif
-		int i;
 
 		if(strncmp(strUSEN_Device_Name_1, uBT_Remote_Device_Name, 17)) //check wheter "USEN MUSIC DEVICE" or not
 		{//Current Peer Device is NOT "USEN MUSIC DEVICE"
@@ -3733,10 +3739,10 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 
 	if(bPolling_Get_Data & BCRF_SEND_SPP_DATA_RESP) //0x20000
 	{
+		int i;
 #ifdef BT_DEBUG_MSG	
 		_DBG("\n\rDo : BCRF_SEND_SPP_DATA_RESP");
 #endif
-		int i;
 
 		uBuf[0] = SYNC_BYTE;
 		uBuf[1] = PACKET_DATA;
@@ -3807,7 +3813,7 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 	
 	if(bPolling_Get_Data & BCRF_INFORM_HOST_MODE) //For init sequence (Init Sequnece : Broadcaster -6)
 	{
-#if 0//def BT_DEBUG_MSG	
+#ifdef BT_DEBUG_MSG	
 		_DBG("\n\rDo : BCRF_INFORM_HOST_MODE =");
 #endif
 		if(BBT_Init_OK) //The Source change is only available when BT Init is finished
@@ -3816,7 +3822,7 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 			{
 				uBuf[0] = 0x50; //Aux Mode
 				Set_Status_LED_Mode(STATUS_AUX_MODE);
-#if 0//def BT_DEBUG_MSG	
+#ifdef BT_DEBUG_MSG	
 				_DBG("AUX Mode");
 #endif
 			}
@@ -3824,7 +3830,7 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 			{
 				Set_Status_LED_Mode(Get_Return_Status_LED_Mode());
 				uBuf[0] = 0x07; //Bluetooth Mode
-#if 0//def BT_DEBUG_MSG	
+#ifdef BT_DEBUG_MSG	
 				_DBG("BT Mode");
 #endif
 			}
@@ -3838,7 +3844,7 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 #ifdef BT_DEBUG_MSG	
 							_DBG("\n\r Mute Off : To avoid, BT has no output sometime when user alternates Aux mode / BT mode repeately");
 #endif
-		        TIMER20_mute_flag_Start();
+		        //TIMER20_mute_flag_Start();
 					}
 				}
 			}

@@ -401,7 +401,9 @@ extern "C"
 #endif
 //#define MUTE_CHECK_DEBUG_MSG					(1)
 #ifdef ADC_INPUT_ENABLE
-//#define ADC_INPUT_DEBUG_MSG						(1)
+//#define ADC2_INPUT_DEBUG_MSG						(1)
+//#define ADC3_INPUT_DEBUG_MSG						(1)
+//#define ADC4_INPUT_DEBUG_MSG						(1)
 #endif
 #ifdef ADC_INTERRUPT_INPUT_ENABLE
 //#define ADC_INTERRUPT_INPUT_ENABLE_DEBUG_MSG		(1)
@@ -418,6 +420,9 @@ extern "C"
 #ifdef ESD_ERROR_RECOVERY
 //#define ESD_ERROR_RECOVERY_DEBUG_MSG				(1)
 #endif
+
+//#define KEY_CHECK_DEBUG_MSG					(1)
+//#define PCM9211_DEBUG_MSG					(1)
 #endif //_DEBUG_MSG
 
 // End Define *************************************************/
