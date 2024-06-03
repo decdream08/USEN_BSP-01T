@@ -79,17 +79,27 @@ static void Power_On_Start_Process(void)
 		case 0:
 			Power_state = TRUE;
 
+			/* external interrupt pin PC4 : 8.5V short Protection - Low : short detection */
+			HAL_GPIO_ConfigOutput(PC, 4, INPUT);
+			HAL_GPIO_ConfigPullup(PC, 4, ENPU); 
+			HAL_GPIO_ClearPin(PC, _BIT(4));
+
+			/* external interrupt pin PD0 : AMP short Protection - Low : short detection */
+			HAL_GPIO_ConfigOutput(PD, 0, INPUT);
+			HAL_GPIO_ConfigPullup(PD, 0, ENPU); 
+			HAL_GPIO_ClearPin(PD, _BIT(0));
+
+			/* external interrupt pin PD1 : LED 3.3V short Protection - Low : short detection */
+			HAL_GPIO_ConfigOutput(PD, 1, INPUT);
+			HAL_GPIO_ConfigPullup(PD, 1, ENPU); 
+			HAL_GPIO_ClearPin(PD, _BIT(1));
+
 			TIMER20_Amp_error_flag_Stop();
 
 			PCM9211_PowerUp();
 			++mainPowerStep;
 			break;
 		case 1:
-			Set_Status_LED_Mode(STATUS_POWER_ON_MODE);
-			HAL_GPIO_SetPin(PD, _BIT(5)); //LED POWER CONTROL - ON
-			++mainPowerStep;
-			break;
-		case 2:
 			{
 			uint8_t uFlash_Read_Buf3[FLASH_SAVE_DATA_END];
 			Flash_Read(FLASH_SAVE_START_ADDR, uFlash_Read_Buf3, FLASH_SAVE_DATA_END);
@@ -107,6 +117,10 @@ static void Power_On_Start_Process(void)
 			if(uFlash_Read_Buf3[FLASH_SAVE_DATA_MUTE])
 				Set_Status_LED_Mode(STATUS_MUTE_ON_MODE);
 
+			++mainPowerStep;
+			break;
+		case 2:
+			HAL_GPIO_SetPin(PD, _BIT(5)); //LED POWER CONTROL - ON
 			power_timer = df10msTimer30ms;
 
 			++mainPowerStep;
@@ -183,6 +197,26 @@ static void Power_Off_Start_Process(void)
 		default:
 			mainPowerStep = 0;
 			HAL_GPIO_ClearPin(PC, _BIT(2)); //Outlet Off
+
+			/* DAMP_GPIO0 */
+			HAL_GPIO_ConfigOutput(PB, 2, PUSH_PULL_OUTPUT);
+			HAL_GPIO_ConfigPullup(PB, 2, ENPU); 
+			HAL_GPIO_ClearPin(PB, _BIT(2));
+
+			/* external interrupt pin PC4 : 8.5V short Protection - Low : short detection */
+			HAL_GPIO_ConfigOutput(PC, 4, PUSH_PULL_OUTPUT);
+			HAL_GPIO_ConfigPullup(PC, 4, ENPU); 
+			HAL_GPIO_ClearPin(PC, _BIT(4));
+
+			/* external interrupt pin PD0 : AMP short Protection - Low : short detection */
+			HAL_GPIO_ConfigOutput(PD, 0, PUSH_PULL_OUTPUT);
+			HAL_GPIO_ConfigPullup(PD, 0, ENPU); 
+			HAL_GPIO_ClearPin(PD, _BIT(0));
+
+			/* external interrupt pin PD1 : LED 3.3V short Protection - Low : short detection */
+			HAL_GPIO_ConfigOutput(PD, 1, PUSH_PULL_OUTPUT);
+			HAL_GPIO_ConfigPullup(PD, 1, ENPU); 
+			HAL_GPIO_ClearPin(PD, _BIT(1));			
 
 			protection_check_flag = OFF;
 

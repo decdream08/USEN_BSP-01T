@@ -66,10 +66,14 @@ typedef struct
 /**
  * @brief II2C driver data for I2C0, I2C1
  */
-static I2C_CFG_T i2cdat[2];
+//static I2C_CFG_T i2cdat[2];
 
-static Bool I2C_MasterComplete[2];
-static Bool I2C_SlaveComplete[2];
+//static Bool I2C_MasterComplete[2];
+//static Bool I2C_SlaveComplete[2];
+static I2C_CFG_T i2cdat[3];
+
+static Bool I2C_MasterComplete[3];
+static Bool I2C_SlaveComplete[3];
 
 /********************************************************************//**
  * @brief		Convert from I2C peripheral to number

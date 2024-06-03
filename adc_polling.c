@@ -42,8 +42,11 @@ void ADC_Polling_Process(void)
 	Bool B_Update;
 	int i;
 
-	if(AD85050_GetStatus() < AD85050_POWER_UP_INIT)
+	if(AD85050_GetStatus() < /*AD85050_POWER_UP_INIT*/AD85050_POWER_UP_COMPLETE)
+	{
+		adc_polling_timer = df10msTimer500ms;
 		return;
+	}
 
 	switch (adc_polling_step) {
 		case 0:

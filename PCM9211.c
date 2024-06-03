@@ -68,7 +68,7 @@ void PCM9211_Process(void)
 				AD85050_Amp_Mute(FALSE, FALSE);
 
 				if(pcm9211_status == PCM9211_MUTE_WAITING_WITH_SLAVE)
-					MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Mute, 0x00);
+					MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x01); //MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Mute, 0x00);
 
 				pcm9211_status = PCM9211_RUN;
 		    }
@@ -111,6 +111,9 @@ void PCM9211_Process(void)
 
 void PCM9211_Set_Status(PCM92211_Status status)
 {
+	if((pcm9211_status == PCM9211_MUTE_WAITING_WITH_SLAVE || pcm9211_status == PCM9211_MUTE_WAITING) && Get_Is_Mute())
+		Set_Is_Mute(FALSE);
+
 	pcm9211_status = status;
 }
 
@@ -238,7 +241,7 @@ void PCM9211_Set_Path_Init(Bool mute_needed)
 
 void PCM9211_Set_Path_BT(Bool mute_needed)
 {
-	uint32_t uCurVolLevel = 0;
+	//uint32_t uCurVolLevel = 0;
 
 #ifdef PCM9211_DEBUG_MSG
 	_DBG("\n\rPCM9211_Set_Path_BT start");
@@ -257,7 +260,8 @@ void PCM9211_Set_Path_BT(Bool mute_needed)
 	if(mute_needed && !Get_Is_Mute())
 	{
 		AD85050_Amp_Mute(TRUE, FALSE);
-		MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Mute, 0x01);
+		//MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Mute, 0x01);
+		MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x02);
 
 		pcm9211_status = PCM9211_MUTE_WAITING_WITH_SLAVE;
 		pcm9211_timer  = df10msTimer600ms;
@@ -266,11 +270,11 @@ void PCM9211_Set_Path_BT(Bool mute_needed)
 		pcm9211_status = PCM9211_RUN;
 
 	PCM9211_Set_Output(PCM9211_OUTPORT_PORT_CTL_REG_AUXIN0);
-
+/*
 	uCurVolLevel = AD85050_Amp_Get_Cur_Volume_Level();
     uCurVolLevel = uCurVolLevel >> 8;
 	AD85050_Amp_Volume_Register_Writing((uint16_t)uCurVolLevel);
-
+*/
 	pcm9211_path_status = PCM9211_PATH_BT;
 
 #ifdef PCM9211_DEBUG_MSG
@@ -281,7 +285,7 @@ void PCM9211_Set_Path_BT(Bool mute_needed)
 void PCM9211_Set_Path_ADC(Bool mute_needed)
 {
 	uint8_t uData = 0;
-	uint32_t uCurVolLevel = 0;
+	//uint32_t uCurVolLevel = 0;
 
 #ifdef PCM9211_DEBUG_MSG
 	_DBG("\n\rPCM9211_Set_Path_ADC start");
@@ -319,11 +323,11 @@ void PCM9211_Set_Path_ADC(Bool mute_needed)
 	I2C1_Interrupt_Write_Data(PCM9211_DEVICE_ADDR, PCM9211_ADC_R_CH_CTL_REG,&uData,1);
 
 	PCM9211_Set_Output(PCM9211_OUTPORT_PORT_CTL_REG_ADC);
-
+/*
 	uCurVolLevel = AD85050_Amp_Get_Cur_Volume_Level();
     uCurVolLevel = uCurVolLevel >> 8;
 	AD85050_Amp_Volume_Register_Writing((uint16_t)uCurVolLevel);
-
+*/
 	pcm9211_path_status = PCM9211_PATH_ADC;
 
 #ifdef PCM9211_DEBUG_MSG

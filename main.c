@@ -1330,21 +1330,24 @@ void GPIOF_IRQHandler_IT(void)
 			clear_bit = status & (3UL<<(5<<1));//0x00000c00;
 			HAL_GPIO_EXTI_ClearPin(PF, status&clear_bit);
 
-			if(HAL_GPIO_ReadPin(PF) & (1<<5)) //PF5 - High
+			if(Power_State())
 			{
+				if(HAL_GPIO_ReadPin(PF) & (1<<5)) //PF5 - High
+				{
 #ifdef SWITCH_BUTTON_KEY_ENABLE_DEBUG_MSG
-				_DBG("\n\rDAMP_ERROR - CLEAR");
+					_DBG("\n\rDAMP_ERROR - CLEAR");
 #endif
-			}
-			else
-			{
+				}
+				else
+				{
 #ifdef SWITCH_BUTTON_KEY_ENABLE_DEBUG_MSG
-				_DBG("\n\rDAMP_ERROR - ERROR");
+					_DBG("\n\rDAMP_ERROR - ERROR");
 #endif
 #ifdef SOC_ERROR_ALARM_DEBUG_MSG
-				_DBG("\n\rSOC_ERROR - 6");
+					_DBG("\n\rSOC_ERROR - 6");
 #endif
-				AD85050_SetStatus(AD85050_ERROR_STATUS);
+					AD85050_SetStatus(AD85050_ERROR_STATUS);
+				}
 			}
 		}
 	}

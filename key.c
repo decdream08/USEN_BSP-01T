@@ -93,7 +93,7 @@ void Key_Process(void)
 			case INPUT_BT_KEY:
 			case INPUT_AUX_KEY:
 				MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x02);
-				AD85050_Amp_Mute(TRUE, FALSE); //MUTE ON
+				AD85050_SetStatus(AD85050_CHANGE_SOURCE);
 				PCM9211_Set_Path_Init(FALSE);
 				Set_MB3021_BT_Module_Source_Change();
 #ifdef KEY_CHECK_DEBUG_MSG

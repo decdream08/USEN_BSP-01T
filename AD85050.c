@@ -393,6 +393,8 @@ uint16_t ad85050_timer;
 static AD85050_Status ad85050_status = AD85050_POWER_DOWN;
 //static Bool BNeed_Mute_Off_Delay = FALSE;
 
+Bool already_initialized = FALSE;
+
 void AD85050_10ms_timer(void)
 {
 	if(ad85050_timer > df10msTimer0ms )
@@ -408,6 +410,11 @@ void AD85050_Process(void)
 		case AD85050_POWER_UP:
 			if(ad85050_timer == df10msTimer0ms)
 			{
+				/* DAMP_GPIO0 */
+				HAL_GPIO_ConfigOutput(PB, 2, INPUT);
+				HAL_GPIO_ConfigPullup(PB, 2, ENPU); 
+				HAL_GPIO_ClearPin(PB, _BIT(2));
+
 				AD85050_Amp_Reset(TRUE);
 				ad85050_status = AD85050_POWER_UP_RESET_ON;
 				ad85050_timer = df10msTimer10ms;
@@ -436,7 +443,12 @@ void AD85050_Process(void)
 		case AD85050_POWER_UP_INIT:
 			if(HAL_GPIO_ReadPin(PC) & (1<<3))
 			{
-				TIMER20_mute_flag_Start();
+				if(already_initialized)
+				{
+					TIMER20_mute_flag_Start();
+				}
+				else
+					MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x02);
 			}
 			else
 			{
@@ -448,11 +460,36 @@ void AD85050_Process(void)
 			break;
 
 		case AD85050_POWER_UP_COMPLETE:
-			TIMER20_power_on_volume_sync_flag_start();
+			if(already_initialized)
+				TIMER20_power_on_volume_sync_flag_start();
+
+			already_initialized = TRUE;
 			ad85050_status = AD85050_CHECK_STATUS;
+
 			break;
 
 		case AD85050_CHECK_STATUS:
+			break;
+
+		case AD85050_CHANGE_SOURCE:
+			{
+				uint8_t uReg_Value = 0;
+
+				AD85050_Amp_Mute(TRUE, FALSE);
+
+				if((HAL_GPIO_ReadPin(PC) & (1<<3)))
+				{
+					uReg_Value = AUX_MASTER_VOLUME_LEVEL;
+					I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_VOL_CONTROL_REG1,&uReg_Value,1);
+				}
+				else
+				{
+					uReg_Value = BT_MASTER_VOLUME_LEVEL;
+					I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_VOL_CONTROL_REG1,&uReg_Value,1);
+				}
+
+				ad85050_status = AD85050_CHECK_STATUS;
+			}
 			break;
 
 		case AD85050_ERROR_STATUS:

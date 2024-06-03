@@ -397,6 +397,7 @@ static uint8_t uNext_Grouping_State = 0;
 static uint8_t uPrev_Grouping_State = 0;
 
 Bool B_Delete_PDL_by_Factory_Reset = FALSE;
+Bool bAuxRouting = FALSE;
 
 #ifdef PRODUCT_LINE_TEST_MASTER_ID2_FIXED //2023-04-03_1 : For master mode checking of BAP-01 on factory line, we need to make BSP-01 Slave and it should be worked auto factory reset on disconnection with Master.
 static Bool B_Auto_FactoryRST_On = FALSE;
@@ -2348,12 +2349,15 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 							switch(data[1])
 							{
 								case 0x02: //0x00 : 0x22 : 0x01 : 0x02 //Analog
+								bAuxRouting = TRUE;
+
 								if(!IS_Display_Mute()) //When Mute On status, we don't need to mute off. This function is for LED Display
 								TIMER20_mute_flag_Start();
 
 								break;
 
 								case 0x06: //0x00 : 0x22 : 0x01 : 0x06 //A2DP
+								bAuxRouting = FALSE;
 								break;
 
 								case 0x09: //0x00 : 0x22 : 0x01 : 0x09 //Broadcaster
@@ -2544,6 +2548,7 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 						case 0x0: //0x10 : 0x02 //UnRouted
 						{							
 							BBT_Is_Routed = FALSE;
+							bAuxRouting = FALSE;
 
 							if(uNext_Grouping_State > GROUPING_NONE_MODE) //To get MINOR_ID_BA_MODE_CONTROL response under master slave grouping mode //To avoid missing interrupt
 								bPolling_Set_Action |= A2DP_STREAM_ROUTING_CHANGED_IND_UNROUTE;
@@ -2560,6 +2565,7 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 						
 						case 0x1: //0x10 : 0x02 //Routed
 						BBT_Is_Routed = TRUE;
+						bAuxRouting = FALSE;
 
 						if(!IS_Display_Mute()) //When Mute On status, we don't need to mute off. This function is for LED Display
 							TIMER20_mute_flag_Start();
@@ -3825,6 +3831,8 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 #ifdef BT_DEBUG_MSG	
 				_DBG("AUX Mode");
 #endif
+				if(!bAuxRouting)
+					MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x02);
 			}
 			else
 			{
