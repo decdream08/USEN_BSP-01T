@@ -1126,6 +1126,9 @@ void MB3021_BT_Module_Init(Bool Factory_Reset) //No need BT module Init. Just ch
 
 #if 1 //need to check
     Set_Display_Mute(FALSE);
+
+	if(Factory_Reset)
+		AD85050_Amp_Mute(TRUE, FALSE);
 #else
     AD85050_Amp_Mute(FALSE, TRUE); //Mute release after init
     AD85050_Amp_Mute(TRUE, FALSE); //Mute release after init
@@ -1823,7 +1826,7 @@ static void MB3021_BT_Module_Remote_Data_Receive(uint8_t source_type, uint8_t da
 
 							if(Is_BAmp_Init() == TRUE || Is_I2C_Access_OK() == FALSE) //2023-02-27_2 //2023-02-22_1 : TWS Slave BT SPK executes Amp init again. Sometimes, BT SPK get this interrupt during Amp Init and Amp Init has wrong data.
 							{
-#ifdef AD85050_DEBUG_MSG
+#ifdef BT_DEBUG_MSG
 								_DBG("\n\r+++ Is_BAmp_Init is TRUE - 22");
 #endif
 								uSPP_RECEIVE_DATA_ERROR = SPP_ERROR_BT_SPK_BUSY; //Temparary
@@ -2352,7 +2355,7 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 								bAuxRouting = TRUE;
 
 								if(!IS_Display_Mute()) //When Mute On status, we don't need to mute off. This function is for LED Display
-								TIMER20_mute_flag_Start();
+								TIMER20_mute_flag_Start(TRUE);
 
 								break;
 
@@ -2362,7 +2365,7 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 
 								case 0x09: //0x00 : 0x22 : 0x01 : 0x09 //Broadcaster
 								if(!IS_Display_Mute()) //When Mute On status, we don't need to mute off. This function is for LED Display
-								TIMER20_mute_flag_Start();
+								TIMER20_mute_flag_Start(TRUE);
 
 								break;
 
@@ -2568,7 +2571,7 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 						bAuxRouting = FALSE;
 
 						if(!IS_Display_Mute()) //When Mute On status, we don't need to mute off. This function is for LED Display
-							TIMER20_mute_flag_Start();
+							TIMER20_mute_flag_Start(TRUE);
 
 						break;
 						
@@ -2633,6 +2636,8 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 #endif
 					if(uNext_Grouping_State > GROUPING_NONE_MODE) //Groping mode don't need next step here !!!
 						break;
+
+					delay_ms(50); //scpark
 
 					bPolling_Get_Data |= BCRF_SET_BLE_MANUFACTURE_DATA; //For init sequence (Init Sequnece : Broadcaster -4) //For init sequence (Init Sequnece : Receiver -2)
 					TIMER20_Forced_Input_Audio_Path_Setting_flag_start(); //To avoid, Audio audio output NG
@@ -3554,7 +3559,8 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 		&& !IS_Display_Mute()//This is mute off delay and that's means this action should be worked in mute off. //if(Is_Mute())
 		)
 		{
-			AD85050_Amp_Mute(FALSE, FALSE); //MUTE OFF
+			//AD85050_Amp_Mute(FALSE, FALSE); //MUTE OFF
+			TIMER20_mute_flag_Start(FALSE);
 			MB3021_BT_Module_Forced_Input_Audio_Path_Setting();
 		}
 
@@ -3831,8 +3837,8 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 #ifdef BT_DEBUG_MSG	
 				_DBG("AUX Mode");
 #endif
-				if(!bAuxRouting)
-					MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x02);
+				//if(!bAuxRouting)
+				//	MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x02);
 			}
 			else
 			{
@@ -3847,12 +3853,12 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 			{
 				if(AD85050_Amp_Get_Cur_CLK_Status())
 				{
-					if(uMode_Change == 0x50) //Aux Mode
+					if(/*uMode_Change == 0x07 || */uMode_Change == 0x50)
 					{
 #ifdef BT_DEBUG_MSG	
-							_DBG("\n\r Mute Off : To avoid, BT has no output sometime when user alternates Aux mode / BT mode repeately");
+						_DBG("\n\r Mute Off : To avoid, BT has no output sometime when user alternates Aux mode / BT mode repeately");
 #endif
-		        //TIMER20_mute_flag_Start();
+						//TIMER20_mute_flag_Start();
 					}
 				}
 			}
@@ -3875,7 +3881,7 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 
 	if(bPolling_Get_Data & BCRF_ADVERTISING_CONTROL) //For init sequence (Init Sequnece : Broadcaster -5)
 	{
-#if 0//def BT_DEBUG_MSG	
+#ifdef BT_DEBUG_MSG	
 		_DBG("\n\rDo : BCRF_ADVERTISING_CONTROL");
 #endif
 		uBuf[0] = 0x01; //Advertising On
@@ -3887,6 +3893,9 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 	
 	if(bPolling_Get_Data & BCRF_BA_MODE_CONTROL)
 	{
+#ifdef BT_DEBUG_MSG	
+		_DBG("\n\rDo : BCRF_BA_MODE_CONTROL");
+#endif
 		uBuf[0] = 0x01; //Broadcaster Mode
 		MB3021_BT_Module_Send_cmd_param(CMD_BA_MODE_CONTROL_32, uBuf);
 				

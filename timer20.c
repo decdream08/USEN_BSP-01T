@@ -410,12 +410,14 @@ void TIMER20_Amp_error_flag_Stop(void)
 	amp_error_flag = 0;
 }
 
-void TIMER20_mute_flag_Start(void) //1.5sec delay of mute off to avoid pop-up noise
+void TIMER20_mute_flag_Start(Bool sync) //1.5sec delay of mute off to avoid pop-up noise
 {
 #ifdef TIMER20_DEBUG_MSG
 	_DBG("\n\rTIMER20_mute_flag_Start() !!! ");
 #endif
-	MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x01);
+	if(sync)
+		MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x01);
+
 	mute_flag = 1;
 }
 
@@ -770,7 +772,44 @@ void TIMER20_IRQHandler_IT(void)
 			if(!Power_State())
 				power_on_volume_sync_flag = 0;
 			
-			if((power_on_volume_sync_flag == df100msTimer500ms) || (power_on_volume_sync_flag == df100msTimer1d5s) || (power_on_volume_sync_flag == df100msTimer2s) || (power_on_volume_sync_flag == df100msTimer2d5s)) //After 1.5sec
+#if 1
+			if((power_on_volume_sync_flag == df100msTimer1d5s) || (power_on_volume_sync_flag == df100msTimer2d5s) || (power_on_volume_sync_flag == df100msTimer3s) || (power_on_volume_sync_flag == df100msTimer3d5s/*df100msTimer2d5s*/)) //After 1.5sec
+			{	
+#ifdef TIMER20_DEBUG_MSG
+				_DBG("\n\r##### power_on_volume_sync_flag meets condition to resend volume data!!! ");
+				_DBD(power_on_volume_sync_flag);
+#endif
+				ADC_Value_Update_to_send_Slave(); //2023-07-20_1
+								
+				if((power_on_volume_sync_flag == df100msTimer1d5s) || (power_on_volume_sync_flag == df100msTimer3s)) //After 3sec
+				{
+					MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x03);
+#if 0
+					if(power_on_volume_sync_flag == df100msTimer2s)
+						power_on_volume_sync_flag = 0;
+					else
+#endif
+						power_on_volume_sync_flag++;
+				}
+#if 1
+				else if(power_on_volume_sync_flag == df100msTimer3d5s/*df100msTimer2d5s*/)
+				{
+					if(HAL_GPIO_ReadPin(PC) & (1<<3))
+						MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x01);
+					else if(BT_Is_Routed())
+						MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x01);
+
+					power_on_volume_sync_flag = 0;
+				}
+#endif
+				else
+				{
+					MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x04);
+					power_on_volume_sync_flag++;
+				}
+			}
+#else
+			if((power_on_volume_sync_flag == df100msTimer500ms) || (power_on_volume_sync_flag == df100msTimer1d5s) || (power_on_volume_sync_flag == df100msTimer2s) || (power_on_volume_sync_flag == df100msTimer3s/*df100msTimer2d5s*/)) //After 1.5sec
 			{	
 #ifdef TIMER20_DEBUG_MSG
 				_DBG("\n\r##### power_on_volume_sync_flag meets condition to resend volume data!!! ");
@@ -788,7 +827,8 @@ void TIMER20_IRQHandler_IT(void)
 #endif
 						power_on_volume_sync_flag++;
 				}
-				else if(power_on_volume_sync_flag == df100msTimer2d5s)
+#if 1
+				else if(power_on_volume_sync_flag == df100msTimer3s/*df100msTimer2d5s*/)
 				{
 					if(HAL_GPIO_ReadPin(PC) & (1<<3))
 						MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x01);
@@ -797,12 +837,14 @@ void TIMER20_IRQHandler_IT(void)
 
 					power_on_volume_sync_flag = 0;
 				}
+#endif
 				else
 				{
 					MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x04);
 					power_on_volume_sync_flag++;
 				}
 			}
+#endif
 			else
 				power_on_volume_sync_flag++;
 		}

@@ -128,7 +128,11 @@ void I2C_Interrupt_Write_Data(uint8_t uDeviceId, uint8_t uAddr, uint8_t *uData, 
 #ifdef ESD_ERROR_RECOVERY
 	do {
 		if(B_Error)
+		{
+#ifdef _I2C_DEBUG_MSG
 			_DBG("\n\rI2C_Interrupt_Write_Data !!! = ");
+#endif
+		}
 
 		B_Error = FALSE;
 #endif //ESD_ERROR_RECOVERY

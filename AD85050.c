@@ -68,7 +68,7 @@
 
 #define VOLUME_DEFAULT_LEVEL		(0x32)
 #define AUX_MASTER_VOLUME_LEVEL		(0x04)//(0x05)
-#define BT_MASTER_VOLUME_LEVEL		(0x19)
+#define BT_MASTER_VOLUME_LEVEL		(0x33)//(0x19)
 
 #define AD85050_VOL_CONTROL_REG1					(0x03)
 #define AD85050_CHANNEL1_VOL_CONTROL_REG1					(0x04)
@@ -297,7 +297,7 @@ const uint8_t AD85050_Set_Power_Clipping[AD85050_RAM_SINGLE_SIZE][2] = {
 	{0x1D, 0x55},	/* Coefficient RAM base address */
 		
 	{0x1E, 0x17},	/* Top 8-bits of coefficient A1 */		/* Power Clipping */
-	{0x1F, 0xc0},	/* Middle 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x1F, 0x00},	/* Middle 8-bits of coefficient A1 */		/* Power Clipping */
 	{0x20, 0x00},	/* Bottom 8-bits of coefficient A1 */		/* Power Clipping */
 	
 	{0x2D, 0x01},	/* CfRW : bank0, writing set coefficient to RAM */
@@ -306,9 +306,9 @@ const uint8_t AD85050_Set_Power_Clipping[AD85050_RAM_SINGLE_SIZE][2] = {
 const uint8_t AD85050_Set_DRC1_Attack_Threshold[AD85050_RAM_SINGLE_SIZE][2] = {
 	{0x1D, 0x56},	/* Coefficient RAM base address */
 		
-	{0x1E, 0x08},	/* Top 8-bits of coefficient A1 */		/* Power Clipping */
-	{0x1F, 0x83},	/* Middle 8-bits of coefficient A1 */		/* Power Clipping */
-	{0x20, 0xaa},	/* Bottom 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x1E, 0x09},	/* Top 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x1F, 0xd5},	/* Middle 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x20, 0x09},	/* Bottom 8-bits of coefficient A1 */		/* Power Clipping */
 	
 	{0x2D, 0x01},	/* CfRW : bank0, writing set coefficient to RAM */
 };
@@ -316,9 +316,9 @@ const uint8_t AD85050_Set_DRC1_Attack_Threshold[AD85050_RAM_SINGLE_SIZE][2] = {
 const uint8_t AD85050_Set_DRC1_Release_Threshold[AD85050_RAM_SINGLE_SIZE][2] = {
 	{0x1D, 0x57},	/* Coefficient RAM base address */
 		
-	{0x1E, 0x05},	/* Top 8-bits of coefficient A1 */		/* Power Clipping */
-	{0x1F, 0xdb},	/* Middle 8-bits of coefficient A1 */		/* Power Clipping */
-	{0x20, 0x4e},	/* Bottom 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x1E, 0x09},	/* Top 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x1F, 0x8d},	/* Middle 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x20, 0xa0},	/* Bottom 8-bits of coefficient A1 */		/* Power Clipping */
 	
 	{0x2D, 0x01},	/* CfRW : bank0, writing set coefficient to RAM */
 };
@@ -384,7 +384,7 @@ static Bool IS_Mute = FALSE;
 #ifdef AD82584F_USE_POWER_DOWN_MUTE
 static Bool Display_Mute = FALSE;
 #endif
-Bool volatile BAmp_Init = TRUE; //2023-02-21_5 : To aovid AMP access after boot on
+Bool volatile BAmp_Init = FALSE; //TRUE; //2023-02-21_5 : To aovid AMP access after boot on
 Bool volatile BAmp_COM = FALSE; //2023-02-27_3 : To check whether AMP is busy(can't access - TRUE) or not(FALSE)
 
 static EQ_Mode_Setting Cur_EQ_Mode = EQ_NORMAL_MODE;
@@ -415,9 +415,11 @@ void AD85050_Process(void)
 				HAL_GPIO_ConfigPullup(PB, 2, ENPU); 
 				HAL_GPIO_ClearPin(PB, _BIT(2));
 
+				delay_ms(50);
+
 				AD85050_Amp_Reset(TRUE);
 				ad85050_status = AD85050_POWER_UP_RESET_ON;
-				ad85050_timer = df10msTimer10ms;
+				ad85050_timer = df10msTimer20ms;
 			}
 			break;
 
@@ -426,45 +428,89 @@ void AD85050_Process(void)
 			{
 				AD85050_Amp_Reset(FALSE);
 				ad85050_status = AD85050_POWER_UP_RESET_OFF;
-				ad85050_timer = df10msTimer20ms; /* Spec : t8 = 20ms */
+				ad85050_timer = df10msTimer20ms;
 			}
 			break;
 
 		case AD85050_POWER_UP_RESET_OFF:
 			if(ad85050_timer == df10msTimer0ms)
 			{
+				ad85050_timer = df10msTimer20ms;
+				ad85050_status = AD85050_POWER_UP_INIT;
+
 				AD85050_Amp_Init(TRUE);
 				PCM9211_Set_Path_Init(FALSE);
-				ad85050_timer = df10msTimer10ms; /* Spec : t9 = 10ms */
-				ad85050_status = AD85050_POWER_UP_INIT;
 			}
 			break;
 
 		case AD85050_POWER_UP_INIT:
-			if(HAL_GPIO_ReadPin(PC) & (1<<3))
+			if(ad85050_timer == df10msTimer0ms)
 			{
-				if(already_initialized)
+/*
+				if(HAL_GPIO_ReadPin(PC) & (1<<3))
 				{
-					TIMER20_mute_flag_Start();
+					if(already_initialized)
+					{
+						TIMER20_mute_flag_Start();
+					}
+					else
+						MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x02);
 				}
 				else
-					MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x02);
+				{
+					if(BT_Is_Routed())
+						TIMER20_mute_flag_Start();
+				}
+*/
+				ad85050_status = AD85050_WAIT_CLK_STABLE; //AD85050_POWER_UP_COMPLETE;
+				ad85050_timer = df10msTimer150ms;
 			}
-			else
-			{
-				if(BT_Is_Routed())
-					TIMER20_mute_flag_Start();
-			}
+			break;
 
-			ad85050_status = AD85050_POWER_UP_COMPLETE;
+		case AD85050_WAIT_CLK_STABLE:
+			if(ad85050_timer == df10msTimer0ms)
+			{
+				//if(AD85050_Amp_Get_Cur_CLK_Status())
+				{
+					MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x02);
+					Set_MB3021_BT_Module_Source_Change();
+#ifdef AD85050_DEBUG_MSG
+					_DBG("\n\rAD85050 CLK STABLE");
+#endif
+					//ad85050_timer = df10msTimer5s;
+					ad85050_status = AD85050_POWER_UP_COMPLETE;
+				}
+				//else
+				//	ad85050_timer = df10msTimer200ms;
+			}
 			break;
 
 		case AD85050_POWER_UP_COMPLETE:
-			if(already_initialized)
-				TIMER20_power_on_volume_sync_flag_start();
+			//if(AD85050_Amp_Get_Cur_CLK_Status())
+			if(ad85050_timer == df10msTimer0ms)
+			{
+				//Set_MB3021_BT_Module_Source_Change();
+				if(HAL_GPIO_ReadPin(PC) & (1<<3))
+				{
+					//if(already_initialized)
+					if(bAuxRouting)
+						TIMER20_mute_flag_Start(TRUE);
+					else
+						MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x02);
+				}
+				else
+				{
+					if(BT_Is_Routed())
+						TIMER20_mute_flag_Start(TRUE);
+				}
 
-			already_initialized = TRUE;
-			ad85050_status = AD85050_CHECK_STATUS;
+				if(already_initialized)
+					TIMER20_power_on_volume_sync_flag_start();
+
+				already_initialized = TRUE;
+
+				ad85050_status = AD85050_CHECK_STATUS;
+			}
 
 			break;
 
@@ -488,6 +534,8 @@ void AD85050_Process(void)
 					I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_VOL_CONTROL_REG1,&uReg_Value,1);
 				}
 
+				PCM9211_Set_Status(PCM9211_INPUT_CHANGE);
+
 				ad85050_status = AD85050_CHECK_STATUS;
 			}
 			break;
@@ -508,6 +556,10 @@ void AD85050_Process(void)
 void AD85050_SetStatus(AD85050_Status status)
 {
 	ad85050_status = status;
+#ifdef AD85050_DEBUG_MSG
+	_DBG("\n\rAD85050_SetStatus =");
+	_DBD(status);
+#endif
 }
 
 AD85050_Status AD85050_GetStatus(void)
@@ -535,7 +587,7 @@ void AD85050_ErrorProcess(void)
 
 void AD85050_PowerUp(void)
 {
-	BAmp_Init = TRUE;
+	//BAmp_Init = TRUE;
 
     HAL_GPIO_SetPin(PA, _BIT(5)); //+3.3V DAMP Power
     HAL_GPIO_SetPin(PD, _BIT(4)); //+24V DAMP Power
@@ -548,11 +600,19 @@ void AD85050_PowerUp(void)
 
 void AD85050_PowerDown(void)
 {
+	uint8_t uRead = AD85050_MASTER_MUTE_ON;
+	I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_STATE_CTL3_REG, &uRead,1);
+
+	delay_ms(10);
+
 	HAL_GPIO_ClearPin(PF, _BIT(4)); //DAMP_PDN
-	HAL_GPIO_ClearPin(PD, _BIT(4)); //+24V DAMP Power
+	//HAL_GPIO_ClearPin(PD, _BIT(4)); //+24V DAMP Power
 	HAL_GPIO_ClearPin(PA, _BIT(5)); //+3.3V DAMP Power
 
 	Set_Is_Mute(TRUE);
+
+	if(already_initialized)
+		MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Volume, 0x00);
 
 	ad85050_status = AD85050_POWER_DOWN;
 }
@@ -740,8 +800,11 @@ void AD85050_Amp_Init(Bool Power_On_Init)
 	uVol_Level <<= 8;
 	uVol_Level |= uSlaveBT_Vol_Level;
 
-	AD85050_Amp_EQ_DRC_Control(Cur_EQ_Mode);
-	AD85050_Amp_Volume_Set_with_Index(uVol_Level, FALSE, TRUE);
+	//AD85050_Amp_EQ_DRC_Control(Cur_EQ_Mode);
+	if(already_initialized)
+		AD85050_Amp_Volume_Set_with_Index(uVol_Level, FALSE, FALSE);
+	else
+		AD85050_Amp_Volume_Set_with_Index(uVol_Level, FALSE, TRUE);
 }
 
 void AD85050_OutputLimit(Bool enable)
@@ -975,8 +1038,13 @@ uint32_t AD85050_Amp_Volume_Set_with_Index(uint32_t Vol_Level, Bool Inverse, Boo
 
     uint32_t uCurVolLevel = 0;
 
+	if(ad85050_status < AD85050_POWER_UP_INIT)
+		return 0;	
+
 #ifdef AD85050_DEBUG_MSG
 	_DBG("\n\rAD85050_Amp_Volume_Set_with_Index() !!!");
+	_DBG("\n\rAMP Status = ");
+	_DBD(ad85050_status);
 #endif
 
     slaveBT_Vol_Level = (uint8_t)(Vol_Level & BT_VOLUME_MASK);

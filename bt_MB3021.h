@@ -137,6 +137,8 @@ void MB3021_BT_Disconnect_All_ACL(void);
 void MB3021_BT_Disconnect_ACL(uint8_t *Addr); //2023-03-09_2
 
 void Send_Cur_Master_Info_To_Tablet(void);
+
+extern Bool bAuxRouting;
 #endif //MB3021_ENABLE
 
 #endif //BT_MB3021_H

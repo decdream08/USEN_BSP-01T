@@ -423,6 +423,7 @@ extern "C"
 
 //#define KEY_CHECK_DEBUG_MSG					(1)
 //#define PCM9211_DEBUG_MSG					(1)
+//#define POWER_DEBUG_MSG (1)
 #endif //_DEBUG_MSG
 
 // End Define *************************************************/
@@ -541,6 +542,8 @@ enum enTimer10msStatus {
 	df10msTimer200ms	= 20,
 	df10msTimer210ms	= 21,
 	df10msTimer250ms   = 25,
+	df10msTimer270ms   = 27,
+	df10msTimer280ms   = 28,
 	df10msTimer300ms	= 30,
 	df10msTimer400ms	= 40,
 	df10msTimer450ms	= 45,
@@ -614,6 +617,7 @@ enum enTimer100msStatus {
 	df100msTimer700ms	= 7,	
 	df100msTimer1s		= 10,
 	df100msTimer1d1s	= 11,
+	df100msTimer1d3s	= 13,
 	df100msTimer1d5s	= 15,
 	df100msTimer1d6s	= 16,
 	df100msTimer1d9s	= 19,	

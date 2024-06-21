@@ -29,6 +29,8 @@ static Bool Power_state = FALSE;
 uint16_t power_timer;
 uint8_t  mainPowerStep;
 
+extern Bool already_initialized;
+
 void Power_10ms_timer(void)
 {
 	if(power_timer > df10msTimer0ms )
@@ -63,7 +65,7 @@ void Power_Process(void)
 
 void Power_Mode_Set(unsigned char mode)
 {
-#ifdef AD85050_DEBUG_MSG
+#ifdef POWER_DEBUG_MSG
 	  _DBG("\n\rPower_Mode_Set = ");
       _DBD(mode);
 #endif
@@ -97,6 +99,8 @@ static void Power_On_Start_Process(void)
 			TIMER20_Amp_error_flag_Stop();
 
 			PCM9211_PowerUp();
+
+			MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Power, 0x01);
 			++mainPowerStep;
 			break;
 		case 1:
@@ -139,7 +143,7 @@ static void Power_On_Start_Process(void)
 			++mainPowerStep;
 			break;
 		case 5:
-			MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Power, 0x01);
+			//MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Power, 0x01);
 			++mainPowerStep;
 			break;
 		default:
@@ -160,6 +164,10 @@ static void Power_Off_Start_Process(void)
 
 			PCM9211_PowerDown();
 			AD85050_PowerDown();
+
+			if(already_initialized)
+				MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Power, 0x00);
+
 			++mainPowerStep;
 			break;
 		case 1:
@@ -190,7 +198,7 @@ static void Power_Off_Start_Process(void)
 			++mainPowerStep;
 			break;
 		case 6:
-			MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Power, 0x00);
+			//MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Power, 0x00);
 			++mainPowerStep;
 			break;
 

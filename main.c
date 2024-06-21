@@ -293,7 +293,7 @@ void Init_Value_Setting(Bool B_boot)
 	}
 
 	B_AUX_DET = FALSE; //FALSE - Aux Out //2023-04-12_1 : We need to make FALSE because HW make 5sec delay to keep Aux In(Low) even though there is no Aux In after DC In.
-	Set_MB3021_BT_Module_Source_Change();
+	//Set_MB3021_BT_Module_Source_Change();
 }
 
 void main_10ms_timer(void)
@@ -1488,7 +1488,8 @@ void GPIO_Configure(void)
 	/* GPIO Output setting PD4 - +24V_DAMP_SW */
 	HAL_GPIO_ConfigOutput(PD, 4, PUSH_PULL_OUTPUT);
 	HAL_GPIO_ConfigPullup(PD, 4, DISPUPD);
-	HAL_GPIO_ClearPin(PD, _BIT(4));
+	//HAL_GPIO_ClearPin(PD, _BIT(4));
+	HAL_GPIO_SetPin(PD, _BIT(4));
 
 	/* GPIO Output setting PD5 - SW_+3.3V_SW(LED Power Control) */
 	HAL_GPIO_ConfigOutput(PD, 5, PUSH_PULL_OUTPUT);

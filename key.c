@@ -94,7 +94,7 @@ void Key_Process(void)
 			case INPUT_AUX_KEY:
 				MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x02);
 				AD85050_SetStatus(AD85050_CHANGE_SOURCE);
-				PCM9211_Set_Path_Init(FALSE);
+				//PCM9211_Set_Path_Init(FALSE);
 				Set_MB3021_BT_Module_Source_Change();
 #ifdef KEY_CHECK_DEBUG_MSG
 				if(keyCode == INPUT_BT_KEY)
@@ -139,10 +139,12 @@ void Key_Process(void)
 #endif
 			case BT_OUT_OFF_KEY:
 				//BT OUT MUTE
+/*
 				HAL_GPIO_SetPin(PE, _BIT(6)); //BT_OUT1
 				HAL_GPIO_SetPin(PE, _BIT(5)); //BT_OUT2
 				HAL_GPIO_SetPin(PE, _BIT(4)); //BT_OUT3
 				HAL_GPIO_SetPin(PE, _BIT(3)); //BT_OUT4
+*/
 
 			  if((HAL_GPIO_ReadPin(PC) & (1<<3)))
 					PCM9211_Set_Status(PCM9211_CHANGE_PATH_TO_ADC);
@@ -156,10 +158,12 @@ void Key_Process(void)
 
 			case BT_OUT_ON_KEY:
 #if 1
+/*
 				HAL_GPIO_ClearPin(PE, _BIT(6)); //BT_OUT1
 				HAL_GPIO_ClearPin(PE, _BIT(5)); //BT_OUT2
 				HAL_GPIO_SetPin(PE, _BIT(4)); //BT_OUT3
 				HAL_GPIO_SetPin(PE, _BIT(3)); //BT_OUT4
+*/
 #else
 				if(!(HAL_GPIO_ReadPin(PF) & (1<<1))) //area1
 				{

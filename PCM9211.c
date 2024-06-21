@@ -23,6 +23,7 @@ static PCM92211_PathStatus pcm9211_path_status;
 uint16_t pcm9211_timer;
 uint16_t pcm9211_path_check_timer;
 
+extern Bool already_initialized;
 
 void PCM9211_10ms_timer(void)
 {
@@ -74,6 +75,10 @@ void PCM9211_Process(void)
 		    }
 			break;
 
+		case PCM9211_INPUT_CHANGE:
+			PCM9211_Set_Path_Init(FALSE);
+			break;
+
 		case PCM9211_RUN:
 #if 0
 			if(pcm9211_path_check_timer == df10msTimer0ms)
@@ -121,6 +126,9 @@ void PCM9211_PowerUp(void)
 {
 	pcm9211_status = PCM9211_POWER_UP;
 	HAL_GPIO_SetPin(PE, _BIT(2)); //reset
+
+	if(already_initialized)
+		;//MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Volume, 0x00);
 
 	pcm9211_timer = df10msTimer20ms;
 }
@@ -269,6 +277,13 @@ void PCM9211_Set_Path_BT(Bool mute_needed)
 	else
 		pcm9211_status = PCM9211_RUN;
 
+	delay_ms(10);
+
+	HAL_GPIO_ClearPin(PE, _BIT(6)); //BT_OUT1
+	HAL_GPIO_ClearPin(PE, _BIT(5)); //BT_OUT2
+	HAL_GPIO_SetPin(PE, _BIT(4)); //BT_OUT3
+	HAL_GPIO_SetPin(PE, _BIT(3)); //BT_OUT4
+
 	PCM9211_Set_Output(PCM9211_OUTPORT_PORT_CTL_REG_AUXIN0);
 /*
 	uCurVolLevel = AD85050_Amp_Get_Cur_Volume_Level();
@@ -316,10 +331,17 @@ void PCM9211_Set_Path_ADC(Bool mute_needed)
 	else
 		pcm9211_status = PCM9211_RUN;
 
-	uData = PCM9211_ADC_CH_CTL_REG_GAIN_6DB;
+	delay_ms(10);
+
+	HAL_GPIO_SetPin(PE, _BIT(6)); //BT_OUT1
+	HAL_GPIO_SetPin(PE, _BIT(5)); //BT_OUT2
+	HAL_GPIO_SetPin(PE, _BIT(4)); //BT_OUT3
+	HAL_GPIO_SetPin(PE, _BIT(3)); //BT_OUT4	
+
+	uData = PCM9211_ADC_CH_CTL_REG_GAIN_5D5DB;
 	I2C1_Interrupt_Write_Data(PCM9211_DEVICE_ADDR, PCM9211_ADC_L_CH_CTL_REG,&uData,1);
 	
-	uData = PCM9211_ADC_CH_CTL_REG_GAIN_6DB;
+	uData = PCM9211_ADC_CH_CTL_REG_GAIN_5D5DB;
 	I2C1_Interrupt_Write_Data(PCM9211_DEVICE_ADDR, PCM9211_ADC_R_CH_CTL_REG,&uData,1);
 
 	PCM9211_Set_Output(PCM9211_OUTPORT_PORT_CTL_REG_ADC);

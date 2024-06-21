@@ -62,7 +62,7 @@ void TIMER20_Amp_access_error_flag_Stop(void); //2023-04-07_1
 void TIMER20_Amp_error_no_diplay_flag_Start(void); //2023-06-30_1
 void TIMER20_Amp_error_no_diplay_flag_Stop(void); //2023-06-30_1
 
-void TIMER20_mute_flag_Start(void);
+void TIMER20_mute_flag_Start(Bool sync);
 void TIMER20_mute_flag_Stop(void); //1.5sec delay of mute off to avoid pop-up noise
 
 int32_t Is_TIMER20_mute_flag_set(void); //status check of mute_flag (1.5sec delay of mute off)
