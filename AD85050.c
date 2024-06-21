@@ -463,7 +463,7 @@ void AD85050_Process(void)
 				}
 */
 				ad85050_status = AD85050_WAIT_CLK_STABLE; //AD85050_POWER_UP_COMPLETE;
-				ad85050_timer = df10msTimer150ms;
+				ad85050_timer = df10msTimer100ms;
 			}
 			break;
 

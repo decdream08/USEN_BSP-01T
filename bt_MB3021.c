@@ -2637,7 +2637,7 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 					if(uNext_Grouping_State > GROUPING_NONE_MODE) //Groping mode don't need next step here !!!
 						break;
 
-					delay_ms(50); //scpark
+					//delay_ms(50); //scpark
 
 					bPolling_Get_Data |= BCRF_SET_BLE_MANUFACTURE_DATA; //For init sequence (Init Sequnece : Broadcaster -4) //For init sequence (Init Sequnece : Receiver -2)
 					TIMER20_Forced_Input_Audio_Path_Setting_flag_start(); //To avoid, Audio audio output NG
@@ -4266,6 +4266,11 @@ void MB3021_BT_Module_Send_Data_Packcet(uint8_t *param, uint16_t size) //SPP COM
 #endif
 
 	Serial_Send(SERIAL_PORT10, buf, size+1);
+}
+
+void MB3021_BT_Set_BCRF_ADVERTISING_CONTROL(void)
+{
+	bPolling_Get_Data |= BCRF_ADVERTISING_CONTROL;
 }
 
 #endif //UART_10_ENABLE

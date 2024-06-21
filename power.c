@@ -100,7 +100,8 @@ static void Power_On_Start_Process(void)
 
 			PCM9211_PowerUp();
 
-			MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Power, 0x01);
+			MB3021_BT_Set_BCRF_ADVERTISING_CONTROL();
+			//MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Power, 0x01);
 			++mainPowerStep;
 			break;
 		case 1:
@@ -143,7 +144,7 @@ static void Power_On_Start_Process(void)
 			++mainPowerStep;
 			break;
 		case 5:
-			//MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Power, 0x01);
+			MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Power, 0x01);
 			++mainPowerStep;
 			break;
 		default:
