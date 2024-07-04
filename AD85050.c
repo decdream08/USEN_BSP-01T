@@ -569,6 +569,9 @@ AD85050_Status AD85050_GetStatus(void)
 
 void AD85050_ErrorProcess(void)
 {
+	if(protection_check_flag == OFF)
+		return;
+
 	protection_check_flag = protection_check_flag & ~(AMP_PROTECTION_MONITOR);
 
 /*
@@ -592,7 +595,7 @@ void AD85050_PowerUp(void)
     HAL_GPIO_SetPin(PA, _BIT(5)); //+3.3V DAMP Power
     HAL_GPIO_SetPin(PD, _BIT(4)); //+24V DAMP Power
     delay_ms(10);
-	HAL_GPIO_SetPin(PF, _BIT(4));
+	HAL_GPIO_SetPin(PF, _BIT(4)); //AMP Shutdown
 
 	ad85050_status = AD85050_POWER_UP;
 	ad85050_timer = df10msTimer20ms;
@@ -600,13 +603,18 @@ void AD85050_PowerUp(void)
 
 void AD85050_PowerDown(void)
 {
-	uint8_t uRead = AD85050_MASTER_MUTE_ON;
-	I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_STATE_CTL3_REG, &uRead,1);
+	if(ad85050_status >= AD85050_POWER_UP)
+	{
+		uint8_t uRead = AD85050_MASTER_MUTE_ON;
+		I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_STATE_CTL3_REG, &uRead,1);
 
+		delay_ms(10);
+	}
+
+	HAL_GPIO_ClearPin(PF, _BIT(4)); //AMP Shutdown
 	delay_ms(10);
-
-	HAL_GPIO_ClearPin(PF, _BIT(4)); //DAMP_PDN
-	//HAL_GPIO_ClearPin(PD, _BIT(4)); //+24V DAMP Power
+	HAL_GPIO_ClearPin(PD, _BIT(4)); //+24V DAMP Power
+	delay_ms(10);
 	HAL_GPIO_ClearPin(PA, _BIT(5)); //+3.3V DAMP Power
 
 	Set_Is_Mute(TRUE);

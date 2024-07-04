@@ -334,7 +334,7 @@ typedef enum {
 }Remote_Power_Key_Action;
 
 //Variable
-char MCU_Version[6] = "230727"; //MCU Version Info
+char MCU_Version[6] = "240704"; //"230727"; //MCU Version Info
 char BT_Version[7]; //MCU Version Info
 
 Bool BBT_Init_OK = FALSE;
@@ -398,6 +398,8 @@ static uint8_t uPrev_Grouping_State = 0;
 
 Bool B_Delete_PDL_by_Factory_Reset = FALSE;
 Bool bAuxRouting = FALSE;
+Bool bAdvertising_On = FALSE;
+Bool bBA_Mode_Control = FALSE;
 
 #ifdef PRODUCT_LINE_TEST_MASTER_ID2_FIXED //2023-04-03_1 : For master mode checking of BAP-01 on factory line, we need to make BSP-01 Slave and it should be worked auto factory reset on disconnection with Master.
 static Bool B_Auto_FactoryRST_On = FALSE;
@@ -796,6 +798,10 @@ void MB3021_BT_Module_Value_Init(void)
 	B_Auto_FactoryRST_On = FALSE; //2023-04-03_1
 #endif
 	BDoNotSend_Connectable_Mode = FALSE;
+
+	bAuxRouting = FALSE;
+	bAdvertising_On = FALSE;
+	bBA_Mode_Control = FALSE;
 }
 
 void MB3021_BT_Module_HW_Reset(void)
@@ -2949,6 +2955,7 @@ Bool MB3021_BT_Module_CMD_Execute(uint8_t major_id, uint8_t minor_id, uint8_t *d
 			{
 				case MINOR_ID_BA_MODE_CONTROL: //0x16 : 0x00
 				bPolling_Get_Data_backup &= (~BCRF_BA_MODE_CONTROL); //Clear flag
+				//bBA_Mode_Control = TRUE;
 #ifdef BT_DEBUG_MSG	
 					_DBG("\n\rRes: MINOR_ID_BA_MODE_CONTROL");
 #endif				
@@ -2987,6 +2994,7 @@ Bool MB3021_BT_Module_CMD_Execute(uint8_t major_id, uint8_t minor_id, uint8_t *d
 			{
 				case MINOR_ID_ADVERTISING_CONTROL: //0x17 : 0x02
 				bPolling_Get_Data_backup &= (~BCRF_ADVERTISING_CONTROL); //Clear flag
+				//bAdvertising_On = TRUE;
 #ifdef BT_DEBUG_MSG	
 					_DBG("\n\rRes: MINOR_ID_ADVERTISING_CONTROL");
 #endif
@@ -3886,6 +3894,9 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 #endif
 		uBuf[0] = 0x01; //Advertising On
 		MB3021_BT_Module_Send_cmd_param(CMD_ADVERTISING_CONTROL_32, uBuf);
+
+		bAdvertising_On = TRUE;
+		
 		bPolling_Get_Data_backup |= BCRF_ADVERTISING_CONTROL;
 		
 		bPolling_Get_Data &= (~BCRF_ADVERTISING_CONTROL); //Clear flag
@@ -3898,7 +3909,8 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 #endif
 		uBuf[0] = 0x01; //Broadcaster Mode
 		MB3021_BT_Module_Send_cmd_param(CMD_BA_MODE_CONTROL_32, uBuf);
-				
+
+		bBA_Mode_Control = TRUE;
 		BMaster_Send_BLE_Remote_Data = FALSE; //2022-11-11 : Move to Here
 				
 		bPolling_Get_Data &= (~BCRF_BA_MODE_CONTROL); //Clear flag
@@ -4268,9 +4280,10 @@ void MB3021_BT_Module_Send_Data_Packcet(uint8_t *param, uint16_t size) //SPP COM
 	Serial_Send(SERIAL_PORT10, buf, size+1);
 }
 
-void MB3021_BT_Set_BCRF_ADVERTISING_CONTROL(void)
+void MB3021_BT_AdvertisingOn_OnPowerOn(void)
 {
-	bPolling_Get_Data |= BCRF_ADVERTISING_CONTROL;
+	//if(bBA_Mode_Control && !bAdvertising_On)
+		bPolling_Get_Data |= BCRF_ADVERTISING_CONTROL;
 }
 
 #endif //UART_10_ENABLE

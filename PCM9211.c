@@ -127,9 +127,6 @@ void PCM9211_PowerUp(void)
 	pcm9211_status = PCM9211_POWER_UP;
 	HAL_GPIO_SetPin(PE, _BIT(2)); //reset
 
-	if(already_initialized)
-		;//MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Volume, 0x00);
-
 	pcm9211_timer = df10msTimer20ms;
 }
 
@@ -184,48 +181,10 @@ void PCM9211_Set_Path_Init(Bool mute_needed)
 {
 	if(HAL_GPIO_ReadPin(PE) & (1<<0)) //BT_OUT ON
 	{
-#if 1
 		HAL_GPIO_ClearPin(PE, _BIT(6)); //BT_OUT1
 		HAL_GPIO_ClearPin(PE, _BIT(5)); //BT_OUT2
 		HAL_GPIO_SetPin(PE, _BIT(4)); //BT_OUT3
 		HAL_GPIO_SetPin(PE, _BIT(3)); //BT_OUT4
-#else
-		if(!(HAL_GPIO_ReadPin(PF) & (1<<1))) //area1
-		{
-			HAL_GPIO_ClearPin(PE, _BIT(6)); //BT_OUT1
-			HAL_GPIO_SetPin(PE, _BIT(5)); //BT_OUT2
-			HAL_GPIO_SetPin(PE, _BIT(4)); //BT_OUT3
-			HAL_GPIO_ClearPin(PE, _BIT(3)); //BT_OUT4
-
-#ifdef PCM9211_DEBUG_MSG
-		_DBG("\n\rPCM9211_Set_Path_Init - AREA1");
-#endif
-		}
-		
-		if(!(HAL_GPIO_ReadPin(PF) & (1<<2))) //area2
-		{
-			HAL_GPIO_SetPin(PE, _BIT(6)); //BT_OUT1
-			HAL_GPIO_ClearPin(PE, _BIT(5)); //BT_OUT2
-			HAL_GPIO_ClearPin(PE, _BIT(4)); //BT_OUT3
-			HAL_GPIO_SetPin(PE, _BIT(3)); //BT_OUT4
-
-#ifdef PCM9211_DEBUG_MSG
-			_DBG("\n\rPCM9211_Set_Path_Init - AREA2");
-#endif
-		}
-		
-		if(!(HAL_GPIO_ReadPin(PF) & (1<<3))) //area1 + area2
-		{
-			HAL_GPIO_ClearPin(PE, _BIT(6)); //BT_OUT1
-			HAL_GPIO_ClearPin(PE, _BIT(5)); //BT_OUT2
-			HAL_GPIO_SetPin(PE, _BIT(4)); //BT_OUT3
-			HAL_GPIO_SetPin(PE, _BIT(3)); //BT_OUT4
-
-#ifdef PCM9211_DEBUG_MSG
-			_DBG("\n\rPCM9211_Set_Path_Init - AREA1 + AREA2");
-#endif
-		}
-#endif
 		
 		PCM9211_Set_Path_BT(mute_needed);
 	}
@@ -237,8 +196,13 @@ void PCM9211_Set_Path_Init(Bool mute_needed)
 
 		HAL_GPIO_SetPin(PE, _BIT(6)); //BT_OUT1
 		HAL_GPIO_SetPin(PE, _BIT(5)); //BT_OUT2
+#if 1 //ES2
+		HAL_GPIO_ClearPin(PE, _BIT(4)); //BT_OUT3
+		HAL_GPIO_ClearPin(PE, _BIT(3)); //BT_OUT4
+#else
 		HAL_GPIO_SetPin(PE, _BIT(4)); //BT_OUT3
 		HAL_GPIO_SetPin(PE, _BIT(3)); //BT_OUT4
+#endif
 		
 		if(!(HAL_GPIO_ReadPin(PC) & (1<<3)))
 			PCM9211_Set_Path_BT(mute_needed);
@@ -323,10 +287,18 @@ void PCM9211_Set_Path_ADC(Bool mute_needed)
 
 	if(mute_needed && !Get_Is_Mute())
 	{
+#if 1
+		AD85050_Amp_Mute(TRUE, FALSE);
+		MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x02);
+
+		pcm9211_status = PCM9211_MUTE_WAITING_WITH_SLAVE;
+		pcm9211_timer  = df10msTimer600ms;
+#else
 		AD85050_Amp_Mute(TRUE, FALSE);
 
 		pcm9211_status = PCM9211_MUTE_WAITING;
 		pcm9211_timer  = df10msTimer400ms;
+#endif
 	}
 	else
 		pcm9211_status = PCM9211_RUN;
@@ -335,8 +307,13 @@ void PCM9211_Set_Path_ADC(Bool mute_needed)
 
 	HAL_GPIO_SetPin(PE, _BIT(6)); //BT_OUT1
 	HAL_GPIO_SetPin(PE, _BIT(5)); //BT_OUT2
+#if 1 //ES2
+	HAL_GPIO_ClearPin(PE, _BIT(4)); //BT_OUT3
+	HAL_GPIO_ClearPin(PE, _BIT(3)); //BT_OUT4
+#else
 	HAL_GPIO_SetPin(PE, _BIT(4)); //BT_OUT3
 	HAL_GPIO_SetPin(PE, _BIT(3)); //BT_OUT4	
+#endif
 
 	uData = PCM9211_ADC_CH_CTL_REG_GAIN_5D5DB;
 	I2C1_Interrupt_Write_Data(PCM9211_DEVICE_ADDR, PCM9211_ADC_L_CH_CTL_REG,&uData,1);

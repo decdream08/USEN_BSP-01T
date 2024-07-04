@@ -21,6 +21,7 @@ typedef enum
 
 void Power_10ms_timer(void);
 void Power_Mode_Set(unsigned char mode);
+PowerModeDef Power_Get_Mode(void);
 void Power_Process(void);
 
 Bool Power_State(void);

@@ -1109,7 +1109,7 @@ void GPIOF_IRQHandler_IT(void)
 	}
 #endif
 
-	if (status & ((3UL<<(0<<1)) | (3UL<<(5<<1)) | (3UL<<(1<<1)) | (3UL<<(2<<1)) | (3UL<<(3<<1)))) //PF0, PF1, PF2, PF3, PF5
+	if (status & ((3UL<<(0<<1)) | (3UL<<(5<<1)) | /*(3UL<<(1<<1)) |*/ (3UL<<(2<<1)) | (3UL<<(3<<1)))) //PF0, PF1, PF2, PF3, PF5
 	{
 		shift_bit = 0xffffffff;
 					
@@ -1173,51 +1173,8 @@ void GPIOF_IRQHandler_IT(void)
 
 			HAL_GPIO_EXTI_ClearPin(PF, status&clear_bit);
 		}
-		else if(status & (3UL<<(1<<1))) //0x0000000C PF1 : BT_OUT_AREA1
+		else if(status & (3UL<<(2<<1))) //0x00000030 PF2 : LV_DET, Pin High : Low voltage detect
 		{
-#if 0
-			shift_bit = 1;
-
-			status_buf = status & 0x0000000C;
-
-			if(status_buf == 0x00000004) //Falling Edge
-			{
-#ifdef KEY_CHATTERING_ENABLE
-				if(HAL_GPIO_ReadPin(PF) & (1<<1)) //PF1 is High and this says invalid value
-				{
-					shift_bit = 0xffffffff;
-					key = NONE_KEY;
-				}
-				else
-#endif
-				{
-					key = BT_OUT_AREA_1_KEY;
-					cur_button_status = button_release; //High -> Low
-				}
-			}
-			else //status == 0x00000008 //Rising Edge
-			{
-#ifdef KEY_CHATTERING_ENABLE
-				if(!(HAL_GPIO_ReadPin(PF) & (1<<1))) //PF1 is Low and this says invalid value
-				{
-					shift_bit = 0xffffffff;
-					key = NONE_KEY;
-				}
-				else
-#endif
-				{
-					key = NONE_KEY;
-					cur_button_status = button_release; //Low -> High
-				}
-			}
-#endif
-			clear_bit = status & (3UL<<(1<<1));
-
-			HAL_GPIO_EXTI_ClearPin(PF, status&clear_bit);
-		}
-		else if(status & (3UL<<(2<<1))) //0x00000030 PF2 : BT_OUT_AREA2
-		{
-#if 0
 			shift_bit = 2;
 
 			status_buf = status & 0x00000030;
@@ -1233,7 +1190,7 @@ void GPIOF_IRQHandler_IT(void)
 				else
 #endif
 				{
-					key = BT_OUT_AREA_2_KEY;
+					key = NONE_KEY;
 					cur_button_status = button_release; //High -> Low
 				}
 			}
@@ -1248,18 +1205,17 @@ void GPIOF_IRQHandler_IT(void)
 				else
 #endif
 				{
-					key = NONE_KEY;
+					key = LV_DET_KEY;
 					cur_button_status = button_release; //Low -> High
 				}
 			}
-#endif
+
 			clear_bit = status & (3UL<<(2<<1));
 
 			HAL_GPIO_EXTI_ClearPin(PF, status&clear_bit);
 		}
-		else if(status & (3UL<<(3<<1))) //0x00000030 PF3 : BT_OUT_AREA1+2
+		else if(status & (3UL<<(3<<1))) //0x00000030 PF3 : HV_DET, Pin Low : High voltage detect
 		{
-#if 0
 			shift_bit = 3;
 
 			status_buf = status & 0x000000C0;
@@ -1275,7 +1231,7 @@ void GPIOF_IRQHandler_IT(void)
 				else
 #endif
 				{
-					key = BT_OUT_AREA_1_2_KEY;
+					key = HV_DET_KEY;
 					cur_button_status = button_release; //High -> Low
 				}
 			}
@@ -1294,7 +1250,7 @@ void GPIOF_IRQHandler_IT(void)
 					cur_button_status = button_release; //Low -> High
 				}
 			}
-#endif
+
 			clear_bit = status & (3UL<<(3<<1));
 
 			HAL_GPIO_EXTI_ClearPin(PF, status&clear_bit);
@@ -1356,9 +1312,9 @@ void GPIOF_IRQHandler_IT(void)
 void EXIT_PortF_Configure(void)
 {
 	HAL_GPIO_EXTI_Config(PF, 0, IER_EDGE, ICR_BOTH_EDGE_INT);
-	HAL_GPIO_EXTI_Config(PF, 1, IER_EDGE, ICR_BOTH_EDGE_INT);
-	HAL_GPIO_EXTI_Config(PF, 2, IER_EDGE, ICR_BOTH_EDGE_INT);
-	HAL_GPIO_EXTI_Config(PF, 3, IER_EDGE, ICR_BOTH_EDGE_INT);
+	//HAL_GPIO_EXTI_Config(PF, 1, IER_EDGE, ICR_BOTH_EDGE_INT);
+	HAL_GPIO_EXTI_Config(PF, 2, IER_EDGE, ICR_BOTH_EDGE_INT); //LV_DET
+	HAL_GPIO_EXTI_Config(PF, 3, IER_EDGE, ICR_BOTH_EDGE_INT); //HV_DET
 	HAL_GPIO_EXTI_Config(PF, 5, IER_EDGE, ICR_BOTH_EDGE_INT); //Added AMP error
 
 	NVIC_SetPriority(GPIOF_IRQn, 3);	
@@ -1376,8 +1332,11 @@ void GPIO_Configure(void)
 	/* I2C0 PA1:SCL1, PA0:SDA1 */
 	HAL_GPIO_ConfigOutput(PA, 0, ALTERN_FUNC);
 	HAL_GPIO_ConfigFunction(PA, 0, FUNC1);
+	//HAL_GPIO_ConfigPullup(PA, 0, 1);
+	
 	HAL_GPIO_ConfigOutput(PA, 1, ALTERN_FUNC);
 	HAL_GPIO_ConfigFunction(PA, 1, FUNC1);
+	//HAL_GPIO_ConfigPullup(PA, 1, 1);
 
 	/* ADC pin PA2 : BT_VOL */
 	HAL_GPIO_ConfigOutput(PA, 2, ALTERN_FUNC);
@@ -1417,7 +1376,7 @@ void GPIO_Configure(void)
 	HAL_GPIO_ConfigFunction(PB, 1, FUNC1);
 	HAL_GPIO_ConfigPullup(PB, 1, ENPU);
 
-	/* DAMP_GPIO0 */
+	/*AMP_PTC - 105 */
 	HAL_GPIO_ConfigOutput(PB, 2, INPUT);
 	HAL_GPIO_ConfigPullup(PB, 2, ENPU); 
 	HAL_GPIO_ClearPin(PB, _BIT(2));
@@ -1488,8 +1447,7 @@ void GPIO_Configure(void)
 	/* GPIO Output setting PD4 - +24V_DAMP_SW */
 	HAL_GPIO_ConfigOutput(PD, 4, PUSH_PULL_OUTPUT);
 	HAL_GPIO_ConfigPullup(PD, 4, DISPUPD);
-	//HAL_GPIO_ClearPin(PD, _BIT(4));
-	HAL_GPIO_SetPin(PD, _BIT(4));
+	HAL_GPIO_ClearPin(PD, _BIT(4));
 
 	/* GPIO Output setting PD5 - SW_+3.3V_SW(LED Power Control) */
 	HAL_GPIO_ConfigOutput(PD, 5, PUSH_PULL_OUTPUT);
@@ -1501,7 +1459,7 @@ void GPIO_Configure(void)
 	HAL_GPIO_ConfigPullup(PE, 0, ENPU);
 	HAL_GPIO_ClearPin(PE, _BIT(0));
 
-	/* External interrupt pin PE1 DIR INT(INT0/INT1) - Pin Low : Interrupt*/
+	/* External interrupt pin PE1 DIR INT(INT0) - Pin Low : Interrupt*/
 	HAL_GPIO_ConfigOutput(PE, 1, INPUT);
 	HAL_GPIO_ConfigPullup(PE, 1, ENPU);
 	HAL_GPIO_ClearPin(PE, _BIT(1));
@@ -1541,17 +1499,17 @@ void GPIO_Configure(void)
 	HAL_GPIO_ConfigPullup(PF, 0, ENPU); 
 	HAL_GPIO_ClearPin(PF, _BIT(0));
 
-	/* external interrupt pin PF1 : BT_Out area1 - Low : BT_Out_Area1*/
+	/*ES2 : NC*/ /* external interrupt pin PF1 : BT_Out area1 - Low : BT_Out_Area1*/
 	HAL_GPIO_ConfigOutput(PF, 1, INPUT);
 	HAL_GPIO_ConfigPullup(PF, 1, ENPU); 
 	HAL_GPIO_ClearPin(PF, _BIT(1));
 
-	/* external interrupt pin PF2 : BT_Out area2 - Low : BT_Out_Area2*/
+	/*LV_DET - Pin High : Low voltage -*/ /* external interrupt pin PF2 : BT_Out area2 - Low : BT_Out_Area2*/
 	HAL_GPIO_ConfigOutput(PF, 2, INPUT);
 	HAL_GPIO_ConfigPullup(PF, 2, ENPU); 
 	HAL_GPIO_ClearPin(PF, _BIT(2));
 
-	/* external interrupt pin PF3 : BT_Out area1+2 - Low : BT_Out_Area1+2*/
+	/*HV_DET - Pin Low : High voltage detect*/ /* external interrupt pin PF3 : BT_Out area1+2 - Low : BT_Out_Area1+2*/
 	HAL_GPIO_ConfigOutput(PF, 3, INPUT);
 	HAL_GPIO_ConfigPullup(PF, 3, ENPU); 
 	HAL_GPIO_ClearPin(PF, _BIT(3));
@@ -1779,7 +1737,9 @@ void DEBUG_Init(void)
 void DEBUG_MenuPrint(void)
 {
 	#ifdef _DEBUG_MSG
+#ifdef COMMON_DEBUG_MSG
 	_DBG(menu);
+#endif
 	#endif
 }
 

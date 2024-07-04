@@ -40,9 +40,11 @@ const uint8_t ir_key_map[] =
 	BT_UPDATE_KEY,
 	INPUT_BT_KEY,
 	INPUT_AUX_KEY,	
-	BT_OUT_AREA_1_KEY,
-	BT_OUT_AREA_2_KEY,
-	BT_OUT_AREA_1_2_KEY,
+	//BT_OUT_AREA_1_KEY,
+	//BT_OUT_AREA_2_KEY,
+	//BT_OUT_AREA_1_2_KEY,
+	LV_DET_KEY,
+	HV_DET_KEY,
 	BT_OUT_OFF_KEY,
 	BT_OUT_ON_KEY,
 };
@@ -75,6 +77,7 @@ void Send_Remote_Key_Event(uint8_t IR_KEY)
 #ifdef REMOTE_CONTROL_ACTION_DBG
 		_DBG("\n\rNeed to wait until Power on init in BT is finshed!!!");
 #endif
+		if(IR_KEY != POWER_KEY)
 			return;
 	}
 

@@ -297,11 +297,13 @@ void Remocon_Power_Key_Action_Toggle(void) //For only Power Key input
 
 	if(!Power_State()) //Execute Power On
 	{
-		Power_Mode_Set(PWR_ON_START);
+		if(Power_Get_Mode() == PWR_STNDBY)
+			Power_Mode_Set(PWR_ON_START);
 	}
 	else //Execute Power Off
 	{		
-		Power_Mode_Set(PWR_OFF_START);
+		if(Power_Get_Mode() == PWR_ON_NORMAL)
+			Power_Mode_Set(PWR_OFF_START);
 	}
 }
 

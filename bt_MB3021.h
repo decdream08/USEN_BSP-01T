@@ -138,7 +138,7 @@ void MB3021_BT_Disconnect_ACL(uint8_t *Addr); //2023-03-09_2
 
 void Send_Cur_Master_Info_To_Tablet(void);
 
-void MB3021_BT_Set_BCRF_ADVERTISING_CONTROL(void);
+void MB3021_BT_AdvertisingOn_OnPowerOn(void);
 
 extern Bool bAuxRouting;
 #endif //MB3021_ENABLE

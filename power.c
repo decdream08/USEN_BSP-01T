@@ -75,9 +75,68 @@ void Power_Mode_Set(unsigned char mode)
   power_timer = df10msTimer0ms;
 }
 
+PowerModeDef Power_Get_Mode(void)
+{
+	return mainPowerMode;
+}
+
 static void Power_On_Start_Process(void)
 {
 	switch(mainPowerStep) {
+#if 1
+		case 0:
+			{
+				uint8_t uFlash_Read_Buf3[FLASH_SAVE_DATA_END];
+				Flash_Read(FLASH_SAVE_START_ADDR, uFlash_Read_Buf3, FLASH_SAVE_DATA_END);
+
+				Power_state = TRUE;
+
+				if(Aux_In_Exist()) //Keep Aux Mode LED When Power on
+					Set_Status_LED_Mode(STATUS_AUX_MODE);
+				else
+				{
+					if(Get_Connection_State())
+						Set_Status_LED_Mode(STATUS_BT_PAIRED_MODE);
+					else
+						Set_Status_LED_Mode(Get_Return_Status_LED_Mode());
+				}
+
+				if(uFlash_Read_Buf3[FLASH_SAVE_DATA_MUTE])
+					Set_Status_LED_Mode(STATUS_MUTE_ON_MODE);
+
+				HAL_GPIO_SetPin(PD, _BIT(5)); //LED POWER CONTROL - ON
+
+				++mainPowerStep;
+				break;
+			}
+
+		case 1:
+			if(IS_BBT_Init_OK())
+			{
+				/* external interrupt pin PC4 : 8.5V short Protection - Low : short detection */
+				HAL_GPIO_ConfigOutput(PC, 4, INPUT);
+				HAL_GPIO_ConfigPullup(PC, 4, ENPU); 
+				HAL_GPIO_ClearPin(PC, _BIT(4));
+
+				/* external interrupt pin PD0 : AMP short Protection - Low : short detection */
+				HAL_GPIO_ConfigOutput(PD, 0, INPUT);
+				HAL_GPIO_ConfigPullup(PD, 0, ENPU); 
+				HAL_GPIO_ClearPin(PD, _BIT(0));
+
+				/* external interrupt pin PD1 : LED 3.3V short Protection - Low : short detection */
+				HAL_GPIO_ConfigOutput(PD, 1, INPUT);
+				HAL_GPIO_ConfigPullup(PD, 1, ENPU); 
+				HAL_GPIO_ClearPin(PD, _BIT(1));
+
+				TIMER20_Amp_error_flag_Stop();
+
+				PCM9211_PowerUp();
+
+				MB3021_BT_AdvertisingOn_OnPowerOn();
+				++mainPowerStep;
+			}
+			break;
+#else
 		case 0:
 			Power_state = TRUE;
 
@@ -100,36 +159,37 @@ static void Power_On_Start_Process(void)
 
 			PCM9211_PowerUp();
 
-			MB3021_BT_Set_BCRF_ADVERTISING_CONTROL();
+			MB3021_BT_AdvertisingOn_OnPowerOn();
 			//MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Power, 0x01);
 			++mainPowerStep;
 			break;
 		case 1:
 			{
-			uint8_t uFlash_Read_Buf3[FLASH_SAVE_DATA_END];
-			Flash_Read(FLASH_SAVE_START_ADDR, uFlash_Read_Buf3, FLASH_SAVE_DATA_END);
+				uint8_t uFlash_Read_Buf3[FLASH_SAVE_DATA_END];
+				Flash_Read(FLASH_SAVE_START_ADDR, uFlash_Read_Buf3, FLASH_SAVE_DATA_END);
 
-			if(Aux_In_Exist()) //Keep Aux Mode LED When Power on
-				Set_Status_LED_Mode(STATUS_AUX_MODE);
-			else
-			{
-				if(Get_Connection_State())
-					Set_Status_LED_Mode(STATUS_BT_PAIRED_MODE);
+				if(Aux_In_Exist()) //Keep Aux Mode LED When Power on
+					Set_Status_LED_Mode(STATUS_AUX_MODE);
 				else
-					Set_Status_LED_Mode(Get_Return_Status_LED_Mode());
+				{
+					if(Get_Connection_State())
+						Set_Status_LED_Mode(STATUS_BT_PAIRED_MODE);
+					else
+						Set_Status_LED_Mode(Get_Return_Status_LED_Mode());
+				}
+
+				if(uFlash_Read_Buf3[FLASH_SAVE_DATA_MUTE])
+					Set_Status_LED_Mode(STATUS_MUTE_ON_MODE);
+
+				++mainPowerStep;
+				break;
 			}
-
-			if(uFlash_Read_Buf3[FLASH_SAVE_DATA_MUTE])
-				Set_Status_LED_Mode(STATUS_MUTE_ON_MODE);
-
-			++mainPowerStep;
-			break;
+#endif
 		case 2:
-			HAL_GPIO_SetPin(PD, _BIT(5)); //LED POWER CONTROL - ON
+			//HAL_GPIO_SetPin(PD, _BIT(5)); //LED POWER CONTROL - ON
 			power_timer = df10msTimer30ms;
 
 			++mainPowerStep;
-			}
 			break;
 		case 3:
 			if(power_timer == df10msTimer0ms )
@@ -161,10 +221,10 @@ static void Power_Off_Start_Process(void)
 {
 	switch(mainPowerStep) {
 		case 0:
-			Power_state = FALSE;
-
 			PCM9211_PowerDown();
 			AD85050_PowerDown();
+
+			Power_state = FALSE;
 
 			if(already_initialized)
 				MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Power, 0x00);
