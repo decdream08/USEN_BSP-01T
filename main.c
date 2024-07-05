@@ -1192,6 +1192,9 @@ void GPIOF_IRQHandler_IT(void)
 				{
 					key = NONE_KEY;
 					cur_button_status = button_release; //High -> Low
+
+					//if(Power_Get_Mode() == PWR_LOW_LEVEL_START || Power_Get_Mode() == PWR_LOW_LEVEL_STNDBY)
+					//	Power_Mode_Set(PWR_ON_START);
 				}
 			}
 			else //status == 0x00000020 //Rising Edge
@@ -1207,6 +1210,9 @@ void GPIOF_IRQHandler_IT(void)
 				{
 					key = LV_DET_KEY;
 					cur_button_status = button_release; //Low -> High
+
+					//if(Power_Get_Mode() == PWR_ON_NORMAL)
+					//	Power_Mode_Set(PWR_LOW_LEVEL_START);
 				}
 			}
 

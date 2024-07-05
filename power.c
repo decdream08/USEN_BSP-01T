@@ -55,6 +55,7 @@ void Power_Process(void)
 
 		case PWR_OFF_START:
 		case PWR_OFF_PROTECTION_START:
+		case PWR_LOW_LEVEL_START:
 			Power_Off_Start_Process();
 			break;
 
@@ -226,7 +227,7 @@ static void Power_Off_Start_Process(void)
 
 			Power_state = FALSE;
 
-			if(already_initialized)
+			if(mainPowerMode != PWR_LOW_LEVEL_START && already_initialized)
 				MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Power, 0x00);
 
 			++mainPowerStep;
@@ -248,7 +249,10 @@ static void Power_Off_Start_Process(void)
 			break;
 		case 4:
 			Init_uBLE_Remocon_Data();
-			FlashSaveData(FLASH_SAVE_DATA_POWER, 0);
+
+			if(mainPowerMode != PWR_LOW_LEVEL_START)
+				FlashSaveData(FLASH_SAVE_DATA_POWER, 0);
+
 			++mainPowerStep;
 			break;
 		case 5:
@@ -300,8 +304,11 @@ static void Power_Off_Start_Process(void)
 
 				protection_mode = ProtectionNone;
 			}
-			
-			Power_Mode_Set(PWR_STNDBY);
+
+			if(mainPowerMode == PWR_LOW_LEVEL_START)
+				Power_Mode_Set(PWR_LOW_LEVEL_STNDBY);
+			else
+				Power_Mode_Set(PWR_STNDBY);
 			break;
 	}
 }

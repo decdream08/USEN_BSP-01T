@@ -297,7 +297,7 @@ const uint8_t AD85050_Set_Power_Clipping[AD85050_RAM_SINGLE_SIZE][2] = {
 	{0x1D, 0x55},	/* Coefficient RAM base address */
 		
 	{0x1E, 0x17},	/* Top 8-bits of coefficient A1 */		/* Power Clipping */
-	{0x1F, 0x00},	/* Middle 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x1F, 0x40},	/* Middle 8-bits of coefficient A1 */		/* Power Clipping */
 	{0x20, 0x00},	/* Bottom 8-bits of coefficient A1 */		/* Power Clipping */
 	
 	{0x2D, 0x01},	/* CfRW : bank0, writing set coefficient to RAM */
@@ -307,8 +307,8 @@ const uint8_t AD85050_Set_DRC1_Attack_Threshold[AD85050_RAM_SINGLE_SIZE][2] = {
 	{0x1D, 0x56},	/* Coefficient RAM base address */
 		
 	{0x1E, 0x09},	/* Top 8-bits of coefficient A1 */		/* Power Clipping */
-	{0x1F, 0xd5},	/* Middle 8-bits of coefficient A1 */		/* Power Clipping */
-	{0x20, 0x09},	/* Bottom 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x1F, 0x48},	/* Middle 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x20, 0x3c},	/* Bottom 8-bits of coefficient A1 */		/* Power Clipping */
 	
 	{0x2D, 0x01},	/* CfRW : bank0, writing set coefficient to RAM */
 };
@@ -316,9 +316,9 @@ const uint8_t AD85050_Set_DRC1_Attack_Threshold[AD85050_RAM_SINGLE_SIZE][2] = {
 const uint8_t AD85050_Set_DRC1_Release_Threshold[AD85050_RAM_SINGLE_SIZE][2] = {
 	{0x1D, 0x57},	/* Coefficient RAM base address */
 		
-	{0x1E, 0x09},	/* Top 8-bits of coefficient A1 */		/* Power Clipping */
-	{0x1F, 0x8d},	/* Middle 8-bits of coefficient A1 */		/* Power Clipping */
-	{0x20, 0xa0},	/* Bottom 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x1E, 0x08},	/* Top 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x1F, 0x83},	/* Middle 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x20, 0xaa},	/* Bottom 8-bits of coefficient A1 */		/* Power Clipping */
 	
 	{0x2D, 0x01},	/* CfRW : bank0, writing set coefficient to RAM */
 };
@@ -326,7 +326,7 @@ const uint8_t AD85050_Set_DRC1_Release_Threshold[AD85050_RAM_SINGLE_SIZE][2] = {
 const uint8_t AD85050_Set_DRC1_Energy_Coefficient[AD85050_RAM_SINGLE_SIZE][2] = {
 	{0x1D, 0x60},	/* Coefficient RAM base address */
 		
-	{0x1E, 0x08},	/* Top 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x1E, 0x01},	/* Top 8-bits of coefficient A1 */		/* Power Clipping */
 	{0x1F, 0x00},	/* Middle 8-bits of coefficient A1 */		/* Power Clipping */
 	{0x20, 0x00},	/* Bottom 8-bits of coefficient A1 */		/* Power Clipping */
 	
@@ -620,7 +620,12 @@ void AD85050_PowerDown(void)
 	Set_Is_Mute(TRUE);
 
 	if(already_initialized)
-		MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Volume, 0x00);
+	{
+		if(Power_Get_Mode() == PWR_LOW_LEVEL_START)
+			MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x02);
+		else
+			MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Volume, 0x00);
+	}
 
 	ad85050_status = AD85050_POWER_DOWN;
 }
@@ -1046,7 +1051,7 @@ uint32_t AD85050_Amp_Volume_Set_with_Index(uint32_t Vol_Level, Bool Inverse, Boo
 
     uint32_t uCurVolLevel = 0;
 
-	if(ad85050_status < AD85050_POWER_UP_INIT)
+	if(ad85050_status < AD85050_POWER_UP_COMPLETE)
 		return 0;	
 
 #ifdef AD85050_DEBUG_MSG
@@ -1467,6 +1472,9 @@ Bool AD85050_Amp_Get_Cur_CLK_Status(void) //TRUE : Clock Exist / FALSE : Clock a
 {	
 	uint8_t uRead = 0;
 	Bool Ret;
+
+	if(ad85050_status < AD85050_POWER_UP)	
+		return FALSE;
 	
 	I2C_Interrupt_Read_Data(AD85050_I2C_ADDR, AD85050_ERROR_REG, &uRead, 1);
 
