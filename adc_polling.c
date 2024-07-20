@@ -21,6 +21,10 @@
 uint32_t adc_polling_timer;
 uint8_t adc_polling_step;
 
+uint8_t uADC3CurVolLevel = 0;
+uint8_t uADC4CurVolLevel = 0;
+uint8_t uADC2CurVolLevel = 0;
+
 static uint32_t ADC3_Value = 0xffffffff, ADC3_Value_bk = 0xffffffff;
 static uint32_t ADC4_Value = 0xffffffff, ADC4_Value_bk = 0xffffffff;
 static uint32_t ADC2_Value = 0xffffffff, ADC2_Value_bk = 0xffffffff;
@@ -38,7 +42,7 @@ void ADC_Polling_10ms_timer(void)
 void ADC_Polling_Process(void)
 {
 	uint8_t ADC_Level_Min, ADC_Level_Max;
-	uint8_t uCurVolLevel = 0;
+	//uint8_t uCurVolLevel = 0;
 	Bool B_Update;
 	int i;
 
@@ -90,21 +94,21 @@ void ADC_Polling_Process(void)
 
 							if((ADC3_Value >= ADC_Level_Min) && (ADC_Level_Max >= ADC3_Value)) //2023-02-08_3 : Added additional code for Volume GAP
 							{
-								uCurVolLevel = 51 - i;
+								uADC3CurVolLevel = 51 - i;
 								B_Update = TRUE; //2023-02-06_3 
 							}
 							else //2023-02-06_3 : Do not update cur volume level and current ADC value is not valid
 							{
-								if(uCurVolLevel > uCurVolLevel_ADC3_bk)
+								if(uADC3CurVolLevel > uCurVolLevel_ADC3_bk)
 								{
-									if((uCurVolLevel - uCurVolLevel_ADC3_bk) > 1)
+									if((uADC3CurVolLevel - uCurVolLevel_ADC3_bk) > 1)
 										B_Update = TRUE;
 									else
 										B_Update = FALSE;
 								}
 								else
 								{
-									if((uCurVolLevel_ADC3_bk - uCurVolLevel) > 1)
+									if((uCurVolLevel_ADC3_bk - uADC3CurVolLevel) > 1)
 										B_Update = TRUE;
 									else
 										B_Update = FALSE;
@@ -119,16 +123,16 @@ void ADC_Polling_Process(void)
 					{
 						uint32_t l_CurVolLevel = 0;
 
-						uCurVolLevel = 51 - i;
+						uADC3CurVolLevel = 51 - i;
 
-						if(uCurVolLevel_ADC3_bk != uCurVolLevel)
+						if(uCurVolLevel_ADC3_bk != uADC3CurVolLevel)
 						{
-							uCurVolLevel_ADC3_bk = uCurVolLevel;
+							uCurVolLevel_ADC3_bk = uADC3CurVolLevel;
 
 							l_CurVolLevel = INVALID_VOLUME;
 							l_CurVolLevel <<= 8;
 
-							l_CurVolLevel |= uCurVolLevel;
+							l_CurVolLevel |= uADC3CurVolLevel;
 							l_CurVolLevel <<= 8;
 
 							l_CurVolLevel |= INVALID_VOLUME;
@@ -188,21 +192,21 @@ void ADC_Polling_Process(void)
 
 							if((ADC4_Value >= ADC_Level_Min) && (ADC_Level_Max >= ADC4_Value)) //2023-02-08_3 : Added additional code for Volume GAP
 							{
-								uCurVolLevel = 51 - i;
+								uADC4CurVolLevel = 51 - i;
 								B_Update = TRUE; //2023-02-06_3 
 							}
 							else //2023-02-06_3 : Do not update cur volume level and current ADC value is not valid
 							{
-								if(uCurVolLevel > uCurVolLevel_ADC4_bk)
+								if(uADC4CurVolLevel > uCurVolLevel_ADC4_bk)
 								{
-									if((uCurVolLevel - uCurVolLevel_ADC4_bk) > 1)
+									if((uADC4CurVolLevel - uCurVolLevel_ADC4_bk) > 1)
 										B_Update = TRUE;
 									else
 										B_Update = FALSE;
 								}
 								else
 								{
-									if((uCurVolLevel_ADC4_bk - uCurVolLevel) > 1)
+									if((uCurVolLevel_ADC4_bk - uADC4CurVolLevel) > 1)
 										B_Update = TRUE;
 									else
 										B_Update = FALSE;
@@ -217,18 +221,18 @@ void ADC_Polling_Process(void)
 					{
 						uint32_t l_CurVolLevel = 0;
 
-						uCurVolLevel = 51 - i;
+						uADC4CurVolLevel = 51 - i;
 
-						if(uCurVolLevel_ADC4_bk != uCurVolLevel)
+						if(uCurVolLevel_ADC4_bk != uADC4CurVolLevel)
 						{
 #ifdef ADC4_INPUT_DEBUG_MSG
 							_DBG("\n\r === update Volume = 0x");
-							_DBH32(uCurVolLevel);
+							_DBH32(uADC4CurVolLevel);
 #endif
 
-							uCurVolLevel_ADC4_bk = uCurVolLevel;
+							uCurVolLevel_ADC4_bk = uADC4CurVolLevel;
 
-							l_CurVolLevel = uCurVolLevel;
+							l_CurVolLevel = uADC4CurVolLevel;
 							l_CurVolLevel <<= 8;
 
 							l_CurVolLevel |= INVALID_VOLUME;
@@ -296,21 +300,21 @@ void ADC_Polling_Process(void)
 
 							if((ADC2_Value >= ADC_Level_Min) && (ADC_Level_Max >= ADC2_Value)) //2023-02-08_3 : Added additional code for Volume GAP
 							{
-								uCurVolLevel = 51 - i;
+								uADC2CurVolLevel = 51 - i;
 								B_Update = TRUE; //2023-02-06_3 
 							}
 							else //2023-02-06_3 : Do not update cur volume level and current ADC value is not valid
 							{
-								if(uCurVolLevel > uCurVolLevel_ADC2_bk)
+								if(uADC2CurVolLevel > uCurVolLevel_ADC2_bk)
 								{
-									if((uCurVolLevel - uCurVolLevel_ADC2_bk) > 1)
+									if((uADC2CurVolLevel - uCurVolLevel_ADC2_bk) > 1)
 										B_Update = TRUE;
 									else
 										B_Update = FALSE;
 								}
 								else
 								{
-									if((uCurVolLevel_ADC2_bk - uCurVolLevel) > 1)
+									if((uCurVolLevel_ADC2_bk - uADC2CurVolLevel) > 1)
 										B_Update = TRUE;
 									else
 										B_Update = FALSE;
@@ -325,11 +329,11 @@ void ADC_Polling_Process(void)
 					{
 						uint32_t l_CurVolLevel = 0;
 
-						uCurVolLevel = 51 - i;
+						uADC2CurVolLevel = 51 - i;
 
-						if(uCurVolLevel_ADC2_bk != uCurVolLevel)
+						if(uCurVolLevel_ADC2_bk != uADC2CurVolLevel)
 						{
-							uCurVolLevel_ADC2_bk = uCurVolLevel;
+							uCurVolLevel_ADC2_bk = uADC2CurVolLevel;
 
 							l_CurVolLevel = INVALID_VOLUME;
 							l_CurVolLevel <<= 8;
@@ -337,7 +341,7 @@ void ADC_Polling_Process(void)
 							l_CurVolLevel |= INVALID_VOLUME;
 							l_CurVolLevel <<= 8;
 
-							l_CurVolLevel |= uCurVolLevel;
+							l_CurVolLevel |= uADC2CurVolLevel;
 
 							AD85050_Amp_Volume_Set_with_Index(l_CurVolLevel, FALSE, TRUE);
 						}
