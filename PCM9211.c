@@ -233,13 +233,17 @@ void PCM9211_Set_Path_BT(Bool mute_needed)
 	{
 		AD85050_Amp_Mute(TRUE, FALSE);
 		//MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Mute, 0x01);
-		MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x02);
+		MB3021_BT_Module_Input_Key_Sync_With_Slave((Input_Key_Sync_With_Slave)(Input_key_Sync_Slave_Mute_Off | Input_key_Sync_Switch_Status), 0x02);
 
 		pcm9211_status = PCM9211_MUTE_WAITING_WITH_SLAVE;
 		pcm9211_timer  = df10msTimer600ms;
 	}
 	else
+	{
+		//MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Switch_Status, 0x00);
+		Send_Cur_Master_Info_To_Tablet();
 		pcm9211_status = PCM9211_RUN;
+	}
 
 	delay_ms(10);
 
@@ -289,7 +293,7 @@ void PCM9211_Set_Path_ADC(Bool mute_needed)
 	{
 #if 1
 		AD85050_Amp_Mute(TRUE, FALSE);
-		MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x02);
+		MB3021_BT_Module_Input_Key_Sync_With_Slave((Input_Key_Sync_With_Slave)(Input_key_Sync_Slave_Mute_Off | Input_key_Sync_Switch_Status), 0x02);
 
 		pcm9211_status = PCM9211_MUTE_WAITING_WITH_SLAVE;
 		pcm9211_timer  = df10msTimer600ms;
@@ -301,7 +305,11 @@ void PCM9211_Set_Path_ADC(Bool mute_needed)
 #endif
 	}
 	else
+	{
+		//MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Switch_Status, 0x00);
+		Send_Cur_Master_Info_To_Tablet();
 		pcm9211_status = PCM9211_RUN;
+	}
 
 	delay_ms(10);
 

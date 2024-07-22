@@ -620,3 +620,6 @@
   
 ## 2024-07-05 (BAP-02)
   - BAP-2 Volume ADC 처리 오류 수정
+
+## 2024-07-23 (BAP-02)
+  - BAP-02 -> Tablet SPP Input, BT_OUT Switch 추가

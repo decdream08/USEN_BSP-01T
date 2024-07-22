@@ -334,7 +334,7 @@ typedef enum {
 }Remote_Power_Key_Action;
 
 //Variable
-char MCU_Version[6] = "240705"; //"230727"; //MCU Version Info
+char MCU_Version[6] = "240722"; //"230727"; //MCU Version Info
 char BT_Version[7]; //MCU Version Info
 
 Bool BBT_Init_OK = FALSE;
@@ -910,7 +910,19 @@ void Send_Cur_Master_Info_To_Tablet(void)
 	uCurrent_Status_buf8[10] = 0x2D;
 	uCurrent_Status_buf8[11] = 0x30;
 	uCurrent_Status_buf8[12] = 0x32;
-	uCurrent_Status_buf8[13] = 0x20;
+
+	if(HAL_GPIO_ReadPin(PE) & (1<<0)) //BT_OUT ON
+		uCurrent_Status_buf8[13] = 0x00;
+	else
+		uCurrent_Status_buf8[13] = 0x01;
+
+	if((HAL_GPIO_ReadPin(PC) & (1<<3))) //Input AUX
+		uCurrent_Status_buf8[13] |= 0x10;
+	else
+		uCurrent_Status_buf8[13] |= 0x00;
+
+	//uCurrent_Status_buf8[13] = 0x20;
+
 	uCurrent_Status_buf8[14] = SPP_BLE_COM_Calculate_Checksum(uCurrent_Status_buf8, 14);
 
 	bPolling_Get_Data |= BCRF_SEND_SPP_DATA_RESP; //Send SPP Response NG
@@ -920,6 +932,7 @@ void MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_Key_Sync_With_Slave Input_
 {
 	static uint8_t uBuf[32] = {0,};
 	int i;
+	Bool b_inform_switch_status_to_tablet = FALSE;
 
 #ifdef BT_DEBUG_MSG
 	_DBG("\n\rMB3021_BT_Module_Input_Key_Sync_With_Slave() - Start");
@@ -927,6 +940,12 @@ void MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_Key_Sync_With_Slave Input_
 
 	if(uNext_Grouping_State > GROUPING_EVENT_WAIT_STATE && uNext_Grouping_State != GROUPING_MASTER_SET_MANUFACTURE_DATA && Input_Key == Input_key_Sync_Slave_Mute_Off) //To avoid Slave pop-up upon Maste/Slave pairing
 		return;
+
+	if(Input_Key & Input_key_Sync_Switch_Status)
+	{
+		b_inform_switch_status_to_tablet = TRUE;
+		Input_Key = (Input_Key_Sync_With_Slave)(Input_Key & 0x0f);
+	}
 
 	if(Input_Key == input_key_Sync_Volume)
 		uInput_Key_Sync_buf8[Input_Key+1] = Convert_50Step_to_16Step(uValue);
@@ -995,7 +1014,9 @@ void MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_Key_Sync_With_Slave Input_
 	MB3021_BT_Module_Send_cmd_param(CMD_SET_BLE_MANUFACTURE_DATA_32+0x0800, uBuf); //BLE COM : Send SPP data to Slave SPK thru BLE Data - without checksum
 
 	if(Input_Key != Input_key_Sync_Slave_Mute_Off)
-  	Send_Cur_Master_Info_To_Tablet();
+	  	Send_Cur_Master_Info_To_Tablet();
+	else if(b_inform_switch_status_to_tablet)
+	  	Send_Cur_Master_Info_To_Tablet();
 }
 
 void MB3021_BT_Disconnect_All_ACL(void)
@@ -2127,7 +2148,18 @@ static void MB3021_BT_Module_Remote_Data_Receive(uint8_t source_type, uint8_t da
 								uCurrent_Status_buf8[10] = 0x2D;
 								uCurrent_Status_buf8[11] = 0x30;
 								uCurrent_Status_buf8[12] = 0x32;
-								uCurrent_Status_buf8[13] = 0x20; //0x01; //EQ NORMAL
+
+								if(HAL_GPIO_ReadPin(PE) & (1<<0)) //BT_OUT ON
+									uCurrent_Status_buf8[13] = 0x00;
+								else
+									uCurrent_Status_buf8[13] = 0x01;
+								
+								if((HAL_GPIO_ReadPin(PC) & (1<<3))) //Input AUX
+									uCurrent_Status_buf8[13] |= 0x10;
+								else
+									uCurrent_Status_buf8[13] |= 0x00;
+								
+								//uCurrent_Status_buf8[13] = 0x20;
 
 								uCurrent_Status_buf8[14] = SPP_BLE_COM_Calculate_Checksum(uCurrent_Status_buf8, 14);
 

@@ -20,7 +20,9 @@ typedef enum {
 	input_key_Sync_EQ, 			//3
 	input_key_Sync_Reboot, 		//4
 	input_key_Sync_Factory_Reset,  //5
-	Input_key_Sync_Slave_Mute_Off  //6
+	Input_key_Sync_Slave_Mute_Off,  //6
+	Input_key_Sync_Switch_Status = 0x10,
+	Input_key_Sync_Mute_Off_Switch_Status = 0x16
 }Input_Key_Sync_With_Slave;
 
 typedef enum {
