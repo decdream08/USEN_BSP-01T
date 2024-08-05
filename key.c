@@ -54,7 +54,8 @@ void Key_Process(void)
 				break;
 
 			case BT_KEY:
-				Remocon_BT_Short_Key_Action();
+				if(!(IsInputSwitch_Aux() && !IsBT_OUTSwitch_On()))
+					Remocon_BT_Short_Key_Action();
 #ifdef KEY_CHECK_DEBUG_MSG
 				_DBG("\n\rBT_KEY");
 #endif
@@ -146,7 +147,7 @@ void Key_Process(void)
 				HAL_GPIO_SetPin(PE, _BIT(3)); //BT_OUT4
 */
 
-			  if((HAL_GPIO_ReadPin(PC) & (1<<3)))
+			  if(IsInputSwitch_Aux())
 					PCM9211_Set_Status(PCM9211_CHANGE_PATH_TO_ADC);
 				else
 					PCM9211_Set_Status(PCM9211_CHANGE_PATH_TO_AUXIN0);

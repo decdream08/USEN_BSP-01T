@@ -110,7 +110,8 @@ Port Configuration:
 //#define CMD_SET_MODEL_NAME_32					(0x1601UL|((MINOR_ID_SET_MODEL_NAME|(MAJOR_ID_GENERAL_CONTROL << 8)) << PACKET_CMD_SHIFT_BIT)) //7Byte
 #define CMD_SET_MODEL_NAME_32					(0x1001UL|((MINOR_ID_SET_MODEL_NAME|(MAJOR_ID_GENERAL_CONTROL << 8)) << PACKET_CMD_SHIFT_BIT)) //5Byte
 #else
-#define CMD_SET_MODEL_NAME_32					(0x0F01UL|((MINOR_ID_SET_MODEL_NAME|(MAJOR_ID_GENERAL_CONTROL << 8)) << PACKET_CMD_SHIFT_BIT))
+//#define CMD_SET_MODEL_NAME_32					(0x0F01UL|((MINOR_ID_SET_MODEL_NAME|(MAJOR_ID_GENERAL_CONTROL << 8)) << PACKET_CMD_SHIFT_BIT))
+#define CMD_SET_MODEL_NAME_32					(0x0B01UL|((MINOR_ID_SET_MODEL_NAME|(MAJOR_ID_GENERAL_CONTROL << 8)) << PACKET_CMD_SHIFT_BIT))
 #endif
 #define MINOR_ID_SET_DEVICE_ID					0x03
 #ifdef VERSION_INFORMATION_SUPPORT //This size shall be 0x06 only!!!
@@ -334,7 +335,7 @@ typedef enum {
 }Remote_Power_Key_Action;
 
 //Variable
-char MCU_Version[6] = "240722"; //"230727"; //MCU Version Info
+char MCU_Version[6] = "240806"; //"230727"; //MCU Version Info
 char BT_Version[7]; //MCU Version Info
 
 Bool BBT_Init_OK = FALSE;
@@ -911,12 +912,12 @@ void Send_Cur_Master_Info_To_Tablet(void)
 	uCurrent_Status_buf8[11] = 0x30;
 	uCurrent_Status_buf8[12] = 0x32;
 
-	if(HAL_GPIO_ReadPin(PE) & (1<<0)) //BT_OUT ON
+	if(IsBT_OUTSwitch_On()) //BT_OUT ON
 		uCurrent_Status_buf8[13] = 0x00;
 	else
 		uCurrent_Status_buf8[13] = 0x01;
 
-	if((HAL_GPIO_ReadPin(PC) & (1<<3))) //Input AUX
+	if(IsInputSwitch_Aux()) //Input AUX
 		uCurrent_Status_buf8[13] |= 0x10;
 	else
 		uCurrent_Status_buf8[13] |= 0x00;
@@ -1189,7 +1190,7 @@ void Set_MB3021_BT_Module_Source_Change_Direct(void)
 #endif
 	if(BBT_Init_OK) //The Source change is only available when BT Init is finished
 	{
-		if(Aux_In_Exist())
+		if(IsInputSwitch_Aux())
 		{
 			uBuf[0] = 0x50; //Aux Mode
 			Set_Status_LED_Mode(STATUS_AUX_MODE);
@@ -2000,7 +2001,7 @@ static void MB3021_BT_Module_Remote_Data_Receive(uint8_t source_type, uint8_t da
 #endif
 										if(data[7] == 0x01)
 										{
-											if(Aux_In_Exist()) //Under Aux mode, BT Key is invlaid.
+											if(IsInputSwitch_Aux()) //Under Aux mode, BT Key is invlaid.
 											{
 												BRet = FALSE;											
 												bPolling_Get_Data |= BCRF_SEND_SPP_RECEIVE_DATA_NG; //Send SPP Response NG
@@ -2021,7 +2022,7 @@ static void MB3021_BT_Module_Remote_Data_Receive(uint8_t source_type, uint8_t da
 #ifdef BT_DEBUG_MSG
 											_DBG("\n\r+++ 7-1. BT Long Key");
 #endif
-											if(Aux_In_Exist()) //Under Aux mode, BT Key is invlaid.
+											if(IsInputSwitch_Aux()) //Under Aux mode, BT Key is invlaid.
 											{
 												BRet = FALSE;											
 												bPolling_Get_Data |= BCRF_SEND_SPP_RECEIVE_DATA_NG; //Send SPP Response NG
@@ -2149,12 +2150,12 @@ static void MB3021_BT_Module_Remote_Data_Receive(uint8_t source_type, uint8_t da
 								uCurrent_Status_buf8[11] = 0x30;
 								uCurrent_Status_buf8[12] = 0x32;
 
-								if(HAL_GPIO_ReadPin(PE) & (1<<0)) //BT_OUT ON
+								if(IsBT_OUTSwitch_On()) //BT_OUT ON
 									uCurrent_Status_buf8[13] = 0x00;
 								else
 									uCurrent_Status_buf8[13] = 0x01;
 								
-								if((HAL_GPIO_ReadPin(PC) & (1<<3))) //Input AUX
+								if(IsInputSwitch_Aux()) //Input AUX
 									uCurrent_Status_buf8[13] |= 0x10;
 								else
 									uCurrent_Status_buf8[13] |= 0x00;
@@ -2596,7 +2597,7 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 							else
 							{
 								MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x02);
-								if(!Aux_In_Exist())
+								if(!IsInputSwitch_Aux())
 								{
 									AD85050_Amp_Mute(TRUE, FALSE); //Mute On
 								}
@@ -3595,7 +3596,7 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 			}
 		}
 		
-		if(Aux_In_Exist() //Need to keep LED off under Aux Mode
+		if(IsInputSwitch_Aux() //Need to keep LED off under Aux Mode
 		&& !IS_Display_Mute()//This is mute off delay and that's means this action should be worked in mute off. //if(Is_Mute())
 		)
 		{
@@ -3870,7 +3871,7 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 #endif
 		if(BBT_Init_OK) //The Source change is only available when BT Init is finished
 		{
-			if(Aux_In_Exist())
+			if(IsInputSwitch_Aux())
 			{
 				uBuf[0] = 0x50; //Aux Mode
 				Set_Status_LED_Mode(STATUS_AUX_MODE);
@@ -4068,6 +4069,19 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 		_DBG("\n\rDo : BCRF_SET_MODEL_NAME_CONTROL");
 #endif
 		//To Do !!! - Need to check with customer about Name. Temperally the length is 6byte(USEN MUSIC LINK)
+#if 1
+		uBuf[0] = 0x55;  //MODEL NAME : U
+		uBuf[1] = 0x53;  //MODEL NAME : S
+		uBuf[2] = 0x45;  //MODEL NAME : E
+		uBuf[3] = 0x4E;  //MODEL NAME : N
+		uBuf[4] = 0x20;  //MODEL NAME :
+		uBuf[5] = 0x42;  //MODEL NAME : B
+		uBuf[6] = 0x41;  //MODEL NAME : A
+		uBuf[7] = 0x50;  //MODEL NAME : P
+		uBuf[8] = 0x2D;  //MODEL NAME : -
+		uBuf[9] = 0x30;  //MODEL NAME : 0
+		uBuf[10] = 0x32; //MODEL NAME : 2
+#else
 		uBuf[0] = 0x55; //MODEL NAME : U
 		uBuf[1] = 0x53; //MODEL NAME : S
 		uBuf[2] = 0x45; //MODEL NAME : E
@@ -4083,6 +4097,7 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 		uBuf[12] = 0x49; //MODEL NAME : I
 		uBuf[13] = 0x4E; //MODEL NAME : N
 		uBuf[14] = 0x4B; //MODEL NAME : K
+#endif
 
 		MB3021_BT_Module_Send_cmd_param(CMD_SET_MODEL_NAME_32, uBuf);
 

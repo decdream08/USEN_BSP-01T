@@ -92,7 +92,7 @@ static void Power_On_Start_Process(void)
 
 				Power_state = TRUE;
 
-				if(Aux_In_Exist()) //Keep Aux Mode LED When Power on
+				if(IsInputSwitch_Aux()) //Keep Aux Mode LED When Power on
 					Set_Status_LED_Mode(STATUS_AUX_MODE);
 				else
 				{
@@ -169,7 +169,7 @@ static void Power_On_Start_Process(void)
 				uint8_t uFlash_Read_Buf3[FLASH_SAVE_DATA_END];
 				Flash_Read(FLASH_SAVE_START_ADDR, uFlash_Read_Buf3, FLASH_SAVE_DATA_END);
 
-				if(Aux_In_Exist()) //Keep Aux Mode LED When Power on
+				if(IsInputSwitch_Aux()) //Keep Aux Mode LED When Power on
 					Set_Status_LED_Mode(STATUS_AUX_MODE);
 				else
 				{

@@ -179,7 +179,7 @@ void PCM9211_Set_Output(uint8_t Port)
 
 void PCM9211_Set_Path_Init(Bool mute_needed)
 {
-	if(HAL_GPIO_ReadPin(PE) & (1<<0)) //BT_OUT ON
+	if(IsBT_OUTSwitch_On()) //BT_OUT ON
 	{
 		HAL_GPIO_ClearPin(PE, _BIT(6)); //BT_OUT1
 		HAL_GPIO_ClearPin(PE, _BIT(5)); //BT_OUT2
@@ -274,7 +274,7 @@ void PCM9211_Set_Path_ADC(Bool mute_needed)
 	_DBG("\n\rPCM9211_Set_Path_ADC start");
 #endif
 
-	if(!(HAL_GPIO_ReadPin(PC) & (1<<3)))
+	if(!IsInputSwitch_Aux())
 	{
 		pcm9211_status = PCM9211_RUN;
 #ifdef PCM9211_DEBUG_MSG

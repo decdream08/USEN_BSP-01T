@@ -623,3 +623,9 @@
 
 ## 2024-07-23 (BAP-02)
   - BAP-02 -> Tablet SPP Input, BT_OUT Switch 추가
+  
+## 2024-08-05 (BAP-02)
+  - Pairing name 변경
+  - Input AUX & BT_OUT OFF -> BT key 동작되지 않도록
+  - Low voltage detect 처리 루틴 추가
+  - 기타 수정

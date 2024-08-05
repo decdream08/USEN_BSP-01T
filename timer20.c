@@ -439,7 +439,7 @@ int32_t Is_TIMER20_mute_flag_set(void) //status check of mute_flag (1.5sec delay
 
 void TIMER20_auto_power_flag_Start(void) //This feature is only available under master mode
 {
-	if(Aux_In_Exist()) //we don't need to increase count under Aux mode. 2022-09-14
+	if(IsInputSwitch_Aux()) //we don't need to increase count under Aux mode. 2022-09-14
 		return;
 
 	auto_power_flag = 1;

@@ -722,7 +722,8 @@ void EXIT_PortE_Configure(void); //2023-01-03_2
 void Aux_Mode_Setting_After_Timer_Checking(Bool Aux_In);
 void Set_Aux_Detection_flag(void); //2023-04-12_1
 
-Bool Aux_In_Exist(void);
+Bool IsInputSwitch_Aux(void);
+Bool IsBT_OUTSwitch_On(void);
 
 Switch_BAP_EQ_Mode Get_Cur_BAP_EQ_Mode(void);
 Switch_LR_Stereo_Mode Get_Cur_LR_Stereo_Mode(void);

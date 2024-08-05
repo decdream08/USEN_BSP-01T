@@ -646,7 +646,7 @@ void Set_Display_Mute(Bool B_Mute_On_Display) //2023-03-08_4 : For LED Display
 			FlashSaveData(FLASH_SAVE_DATA_MUTE, 0); //Save mute off status to Flash
 #endif
 #ifdef AUX_INPUT_DET_ENABLE
-		if(Aux_In_Exist()) //Need to keep LED off under Aux Mode
+		if(IsInputSwitch_Aux()) //Need to keep LED off under Aux Mode
 			Set_Status_LED_Mode(STATUS_AUX_MODE);
 		else
 #endif
@@ -771,7 +771,7 @@ void TAS5806MD_Amp_Init(void)
 #ifdef TI_AMP_DSP_VOLUME_CONTROL_ENABLE
 	//DAC Gain Default Volume Setting
 #ifdef USEN_BAP
-	TAS5806MD_Dac_Volume_Set(Get_Cur_BAP_EQ_Mode(), Aux_In_Exist()); //2023-06-12_1 : Fixed DAC Volume for AGL Enable depends on EQ Mode.
+	TAS5806MD_Dac_Volume_Set(Get_Cur_BAP_EQ_Mode(), IsInputSwitch_Aux()); //2023-06-12_1 : Fixed DAC Volume for AGL Enable depends on EQ Mode.
 #else
 	uBuffer = 0x11; //15.5dB //2023-02-23_2 : Changed Default DAC GAIN for EQ BYPASS BT FW //0x0F; //16.5dB //2023-02-09_3 : Changed Default DAC GAIN
 	I2C_Interrupt_Write_Data(TAS5806MD_I2C_ADDR, TAS5806MD_DAC_GAIN_CONTROL_REG,&uBuffer,1);
@@ -1070,7 +1070,7 @@ void TAS5806MD_Amp_Mute(Bool Mute_On, Bool LED_Display) // First of all, You nee
 		if(LED_Display)
 		{
 #ifdef AUX_INPUT_DET_ENABLE
-			if(Aux_In_Exist()) //Need to keep LED off under Aux Mode
+			if(IsInputSwitch_Aux()) //Need to keep LED off under Aux Mode
 				Set_Status_LED_Mode(STATUS_AUX_MODE);
 			else
 #endif
@@ -1261,7 +1261,7 @@ void TAS5806MD_Amp_Mute_Toggle(void) //Toggle
 #endif //NOT_USE_POWER_DOWN_MUTE
 #ifdef TIMER21_LED_ENABLE //Need to return latest status led mode
 #ifdef AUX_INPUT_DET_ENABLE
-		if(Aux_In_Exist()) //Need to keep LED off under Aux Mode
+		if(IsInputSwitch_Aux()) //Need to keep LED off under Aux Mode
 			Set_Status_LED_Mode(STATUS_AUX_MODE);
 		else
 #endif

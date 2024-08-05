@@ -582,7 +582,7 @@ void AD82584F_Amp_Mute(Bool Mute_On, Bool LED_Display)
 #ifdef TIMER21_LED_ENABLE //Need to return latest status led mode
 		if(LED_Display)
 		{
-			if(Aux_In_Exist()) //Need to keep LED off under Aux Mode
+			if(IsInputSwitch_Aux()) //Need to keep LED off under Aux Mode
 				Set_Status_LED_Mode(STATUS_AUX_MODE);
 			else
 				Set_Status_LED_Mode(Get_Return_Status_LED_Mode());
@@ -708,7 +708,7 @@ void AD82584F_Amp_Mute_Toggle(void) //Toggle
 #endif
 		HAL_GPIO_SetPin(PF, _BIT(4)); //DAMP_PDN : OFF
 #ifdef TIMER21_LED_ENABLE //Need to return latest status led mode
-		if(Aux_In_Exist()) //Need to keep LED off under Aux Mode
+		if(IsInputSwitch_Aux()) //Need to keep LED off under Aux Mode
 			Set_Status_LED_Mode(STATUS_AUX_MODE);
 		else
 			Set_Status_LED_Mode(Get_Return_Status_LED_Mode());

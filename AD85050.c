@@ -608,7 +608,7 @@ void AD85050_PowerDown(void)
 		uint8_t uRead = AD85050_MASTER_MUTE_ON;
 		I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_STATE_CTL3_REG, &uRead,1);
 
-		delay_ms(10);
+		delay_ms(40);
 	}
 
 	HAL_GPIO_ClearPin(PF, _BIT(4)); //AMP Shutdown
@@ -694,7 +694,7 @@ void Set_Display_Mute(Bool B_Mute_On_Display) //2023-03-08_4 : For LED Display
 		if(uRead_Buf[FLASH_SAVE_DATA_MUTE] != 0)
 			FlashSaveData(FLASH_SAVE_DATA_MUTE, 0); //Save mute off status to Flash
 
-		if(Aux_In_Exist()) //Need to keep LED off under Aux Mode
+		if(IsInputSwitch_Aux()) //Need to keep LED off under Aux Mode
 			Set_Status_LED_Mode(STATUS_AUX_MODE);
 		else
 			Set_Status_LED_Mode(Get_Return_Status_LED_Mode());
@@ -973,7 +973,7 @@ void AD85050_Amp_Mute(Bool Mute_On, Bool LED_Display) // First of all, You need 
 
 	if(LED_Display)
 	{
-		if(Aux_In_Exist()) //Need to keep LED off under Aux Mode
+		if(IsInputSwitch_Aux()) //Need to keep LED off under Aux Mode
 			Set_Status_LED_Mode(STATUS_AUX_MODE);
 		else
 			Set_Status_LED_Mode(Get_Return_Status_LED_Mode());
@@ -1028,7 +1028,7 @@ void AD85050_Amp_Mute_Toggle(void) //Toggle
 		uRead = AD85050_MASTER_MUTE_OFF;
 		I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_STATE_CTL3_REG, &uRead,1);
 
-		if(Aux_In_Exist()) //Need to keep LED off under Aux Mode
+		if(IsInputSwitch_Aux()) //Need to keep LED off under Aux Mode
 			Set_Status_LED_Mode(STATUS_AUX_MODE);
 		else
 			Set_Status_LED_Mode(Get_Return_Status_LED_Mode());

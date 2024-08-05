@@ -188,7 +188,7 @@ void Aux_Mode_Setting_After_Timer_Checking(Bool Aux_In)
 	{
 		MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x02);
 
-		if(!Aux_In_Exist())
+		if(!IsInputSwitch_Aux())
 		{
 			AD85050_Amp_Mute(TRUE, FALSE); //MUTE ON
 		}
@@ -245,7 +245,7 @@ void All_Timer_Off(void)
  * @param[in]	None
  * @return 		None
  **********************************************************************/
-Bool Aux_In_Exist(void)
+Bool IsInputSwitch_Aux(void)
 {
 #ifdef AUX_INPUT_DET_DEBUG
 	_DBG("\n\rAux_In_Exist: ");
@@ -253,6 +253,14 @@ Bool Aux_In_Exist(void)
 #endif
 
 	if(HAL_GPIO_ReadPin(PC) & (1<<3)) //High : Aux /Low : BT
+		return TRUE;
+	else
+		return FALSE;
+}
+
+Bool IsBT_OUTSwitch_On(void)
+{
+	if(HAL_GPIO_ReadPin(PE) & (1<<0))
 		return TRUE;
 	else
 		return FALSE;
@@ -969,7 +977,7 @@ void GPIOE_IRQHandler_IT(void) // PE7 : Button Switch Input
 				else
 #endif
 				{
-					if(!Aux_In_Exist()) //Under Aux mode, BT Key is invlaid.
+					if(!IsInputSwitch_Aux()) //Under Aux mode, BT Key is invlaid.
 					{
 						TIMER13_Periodic_Mode_Run(TRUE, Timer13_BT_Pairing_Key); //BT Key is implemented timer 13 interrupt routine
 					}
@@ -1193,8 +1201,8 @@ void GPIOF_IRQHandler_IT(void)
 					key = NONE_KEY;
 					cur_button_status = button_release; //High -> Low
 
-					//if(Power_Get_Mode() == PWR_LOW_LEVEL_START || Power_Get_Mode() == PWR_LOW_LEVEL_STNDBY)
-					//	Power_Mode_Set(PWR_ON_START);
+					if(Power_Get_Mode() == PWR_LOW_LEVEL_START || Power_Get_Mode() == PWR_LOW_LEVEL_STNDBY)
+						Power_Mode_Set(PWR_ON_START);
 				}
 			}
 			else //status == 0x00000020 //Rising Edge
@@ -1211,8 +1219,8 @@ void GPIOF_IRQHandler_IT(void)
 					key = LV_DET_KEY;
 					cur_button_status = button_release; //Low -> High
 
-					//if(Power_Get_Mode() == PWR_ON_NORMAL)
-					//	Power_Mode_Set(PWR_LOW_LEVEL_START);
+					if(Power_Get_Mode() == PWR_ON_NORMAL)
+						Power_Mode_Set(PWR_LOW_LEVEL_START);
 				}
 			}
 

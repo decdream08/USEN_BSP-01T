@@ -186,7 +186,7 @@ void LED_Status_Display_WR_Color(Status_LED_Mode mode) //L1/L3 LED
 	if(Get_factory_reset_led_display_flag() == TRUE) //Do not change LED statun when FACTORY RESET LED DISPLAY On.
 		return;
 
-	if(Aux_In_Exist())
+	if(IsInputSwitch_Aux())
 	{
 		TIMER21_Periodic_Mode_Run(FALSE); //Blinkiing Timer Off
 	}
@@ -223,7 +223,7 @@ void LED_Status_Display_WR_Color(Status_LED_Mode mode) //L1/L3 LED
 			if(Get_master_slave_grouping_flag())
 				break;
 
-			if(!Aux_In_Exist())
+			if(!IsInputSwitch_Aux())
 			{
 				BT_PAIRING_LED_BLUE_OFF;
 				BT_PAIRING_LED_WHITE_ON;
@@ -252,7 +252,7 @@ void LED_Status_Display_WR_Color(Status_LED_Mode mode) //L1/L3 LED
 			if(Get_master_slave_grouping_flag())
 				break;
 
-			if(!Aux_In_Exist())
+			if(!IsInputSwitch_Aux())
 			{
 				BT_PAIRING_LED_BLUE_OFF;
 				BT_PAIRING_LED_WHITE_ON;
@@ -278,7 +278,7 @@ void LED_Status_Display_WR_Color(Status_LED_Mode mode) //L1/L3 LED
 
 			STATUS_LED_W_ON;
 
-			if(!Aux_In_Exist())
+			if(!IsInputSwitch_Aux())
 			{
 				BT_PAIRING_LED_BLUE_OFF;
 				BT_PAIRING_LED_WHITE_ON;
@@ -292,7 +292,7 @@ void LED_Status_Display_WR_Color(Status_LED_Mode mode) //L1/L3 LED
 
 			STATUS_LED_W_ON;
 
-			if(!Aux_In_Exist()|| Get_master_slave_grouping_flag()) //2023-04-18_1 : Added Grouping LED display condition under Aux Mode to avoid display LED under other case(BT connection disconnect from Peer Device and White LED is blinking).
+			if(!IsInputSwitch_Aux()|| Get_master_slave_grouping_flag()) //2023-04-18_1 : Added Grouping LED display condition under Aux Mode to avoid display LED under other case(BT connection disconnect from Peer Device and White LED is blinking).
 			{
 				BT_PAIRING_LED_BLUE_OFF;
 				BT_PAIRING_LED_WHITE_ON;
@@ -309,7 +309,7 @@ void LED_Status_Display_WR_Color(Status_LED_Mode mode) //L1/L3 LED
 			if(Get_master_slave_grouping_flag())
 				break;
 
-			if(!Aux_In_Exist())
+			if(!IsInputSwitch_Aux())
 			{
 				BT_PAIRING_LED_BLUE_OFF;
 				BT_PAIRING_LED_WHITE_ON;
@@ -400,7 +400,7 @@ void LED_Status_Display_Blinking(Status_LED_Color Color, Bool On)
 			break;
 
 		case L3_LED_WHITE:
-			if(Aux_In_Exist() && !Get_master_slave_grouping_flag()) //2023-04-18_1 : Added Grouping LED display condition under Aux Mode to avoid display LED under other case(BT connection disconnect from Peer Device and White LED is blinking).
+			if(IsInputSwitch_Aux() && !Get_master_slave_grouping_flag()) //2023-04-18_1 : Added Grouping LED display condition under Aux Mode to avoid display LED under other case(BT connection disconnect from Peer Device and White LED is blinking).
 				break;
 
 			if(On)
