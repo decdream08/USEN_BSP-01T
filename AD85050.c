@@ -590,8 +590,6 @@ void AD85050_ErrorProcess(void)
 
 void AD85050_PowerUp(void)
 {
-	//BAmp_Init = TRUE;
-
     HAL_GPIO_SetPin(PA, _BIT(5)); //+3.3V DAMP Power
     HAL_GPIO_SetPin(PD, _BIT(4)); //+24V DAMP Power
     delay_ms(10);
@@ -729,10 +727,6 @@ void AD85050_Amp_Init(Bool Power_On_Init)
 #ifdef AD85050_DEBUG_MSG
 	_DBG("\n\rAD85050_Amp_Init");
 #endif    
-
-	//BAmp_Init = TRUE;
-
-	BAmp_Init = FALSE;
 
 	//mute
 	uRead = AD85050_MASTER_MUTE_ON;
@@ -917,13 +911,16 @@ void AD85050_Amp_Mute(Bool Mute_On, Bool LED_Display) // First of all, You need 
 	uint8_t uRead_Buf[FLASH_SAVE_DATA_END];
 	uint8_t uRead = 0;
 
-  if(!Power_State())
-  {
+	if(!Power_State())
+	{
 #ifdef MUTE_CHECK_DEBUG_MSG	
-    _DBG("\n\rPower Off mode : return ~!!!");
+		_DBG("\n\rPower Off mode : return ~!!!");
 #endif		
-    return;
-  }
+		return;
+	}
+
+  	if(ad85050_status < AD85050_POWER_UP_INIT)
+		return;
 
 	if(LED_Display)
 	  Flash_Read(FLASH_SAVE_START_ADDR, uRead_Buf, FLASH_SAVE_DATA_END);  
@@ -1052,7 +1049,7 @@ uint32_t AD85050_Amp_Volume_Set_with_Index(uint32_t Vol_Level, Bool Inverse, Boo
     uint32_t uCurVolLevel = 0;
 
 	if(ad85050_status < AD85050_POWER_UP_COMPLETE)
-		return 0;	
+		return 0;
 
 #ifdef AD85050_DEBUG_MSG
 	_DBG("\n\rAD85050_Amp_Volume_Set_with_Index() !!!");
@@ -1360,13 +1357,13 @@ void AD85050_Amp_EQ_DRC_Control(EQ_Mode_Setting EQ_mode)
 	_DBG("\n\r+++ AD85050_Amp_EQ_DRC_Control() !!!!");
 #endif
 
-  if(Is_BAmp_Init()) //2023-02-22_1
-  {
-    TIMER20_drc_eq_set_flag_start();
-    return;
-  }
+	if(Is_BAmp_Init())
+	{
+		TIMER20_drc_eq_set_flag_start();
+		return;
+	}
 
-	TIMER20_drc_eq_set_flag_stop();  
+	TIMER20_drc_eq_set_flag_stop();
 
 	BAmp_COM = TRUE;
 	Cur_EQ_Mode = EQ_mode;

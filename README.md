@@ -629,3 +629,6 @@
   - Input AUX & BT_OUT OFF -> BT key 동작되지 않도록
   - Low voltage detect 처리 루틴 추가
   - 기타 수정
+  
+## 2024-08-05 (BAP-02)
+  - mute 수행 조건 추가
