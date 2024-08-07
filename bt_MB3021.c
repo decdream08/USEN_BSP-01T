@@ -3878,8 +3878,8 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 #ifdef BT_DEBUG_MSG	
 				_DBG("AUX Mode");
 #endif
-				//if(!bAuxRouting)
-				//	MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x02);
+				if(!bAuxRouting)
+					MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x02);
 			}
 			else
 			{
