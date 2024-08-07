@@ -1426,7 +1426,8 @@ void GPIO_Configure(void)
 	/* GPIO Output setting PC2 - Outlet enable(High:On, Low:off) */
 	HAL_GPIO_ConfigOutput(PC, 2, PUSH_PULL_OUTPUT);
 	HAL_GPIO_ConfigPullup(PC, 2, DISPUPD);
-	HAL_GPIO_ClearPin(PC, _BIT(2));
+	//HAL_GPIO_ClearPin(PC, _BIT(2));
+	HAL_GPIO_SetPin(PC, _BIT(2));
 
 	/* External interrupt pin PC3 Input select BT(Low) / Aux(High)*/
 	HAL_GPIO_ConfigOutput(PC, 3, INPUT);

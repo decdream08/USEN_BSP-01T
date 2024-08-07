@@ -210,7 +210,7 @@ static void Power_On_Start_Process(void)
 			break;
 		default:
 			mainPowerStep = 0;
-			HAL_GPIO_SetPin(PC, _BIT(2)); //Outlet On
+			//HAL_GPIO_SetPin(PC, _BIT(2)); //Outlet On
 
 			protection_check_flag = ETC_PROTECTION_MONITOR | AMP_PROTECTION_MONITOR | LED_PROTECTION_MONITOR;
 			Power_Mode_Set(PWR_ON_NORMAL);
@@ -269,7 +269,7 @@ static void Power_Off_Start_Process(void)
 
 		default:
 			mainPowerStep = 0;
-			HAL_GPIO_ClearPin(PC, _BIT(2)); //Outlet Off
+			//HAL_GPIO_ClearPin(PC, _BIT(2)); //Outlet Off
 
 			/* DAMP_GPIO0 */
 			HAL_GPIO_ConfigOutput(PB, 2, PUSH_PULL_OUTPUT);
