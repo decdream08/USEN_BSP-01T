@@ -1211,7 +1211,7 @@ void Set_MB3021_BT_Module_Source_Change_Direct(void)
 			&& !IS_Display_Mute()
 			)
 		{
-      if(AD85050_Amp_Get_Cur_CLK_Status())
+			//if(AD85050_Amp_Get_Cur_CLK_Status())
 			{
 				if(uMode_Change == 0x07 || uMode_Change == 0x50) //BT Mode or Aux Mode
 				{
@@ -3892,7 +3892,7 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 
 			if(uMode_Change == uBuf[0] && !IS_Display_Mute())
 			{
-				if(AD85050_Amp_Get_Cur_CLK_Status())
+				//if(AD85050_Amp_Get_Cur_CLK_Status())
 				{
 					if(/*uMode_Change == 0x07 || */uMode_Change == 0x50)
 					{

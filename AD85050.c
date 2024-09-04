@@ -681,8 +681,9 @@ void AD85050_ErrorProcess(void)
 void AD85050_PowerUp(void)
 {
     HAL_GPIO_SetPin(PA, _BIT(5)); //+3.3V DAMP Power
+    delay_ms(20);
     HAL_GPIO_SetPin(PD, _BIT(4)); //+24V DAMP Power
-    delay_ms(10);
+    delay_ms(20);
 	HAL_GPIO_SetPin(PF, _BIT(4)); //AMP Shutdown
 
 	ad85050_status = AD85050_POWER_UP;
@@ -700,9 +701,9 @@ void AD85050_PowerDown(void)
 	}
 
 	HAL_GPIO_ClearPin(PF, _BIT(4)); //AMP Shutdown
-	delay_ms(10);
+	delay_ms(20);
 	HAL_GPIO_ClearPin(PD, _BIT(4)); //+24V DAMP Power
-	delay_ms(10);
+	delay_ms(20);
 	HAL_GPIO_ClearPin(PA, _BIT(5)); //+3.3V DAMP Power
 
 	Set_Is_Mute(TRUE);

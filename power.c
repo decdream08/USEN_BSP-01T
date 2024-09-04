@@ -313,6 +313,11 @@ static void Power_Off_Start_Process(void)
 	}
 }
 
+void Power_SetState(Bool power_state)
+{
+	Power_state = power_state;
+}
+
 Bool Power_State(void)
 {
 	return Power_state;

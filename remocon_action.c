@@ -85,7 +85,7 @@ void Send_Remote_Key_Event(uint8_t IR_KEY)
 	{
 		if(IR_KEY != POWER_KEY && IR_KEY != FACTORY_RESET_KEY && IR_KEY != SW1_KEY && IR_KEY != SW2_KEY) //2023-04-06_3 : Need to allow SW1_KEY and SW2_KEY even though Power off mode.
 		{
-#if 1//def REMOTE_CONTROL_ACTION_DBG
+#ifdef REMOTE_CONTROL_ACTION_DBG
 			_DBG("\n\r5. Under Power Off, only POWER_ON_KEY is valid key !!!");
 #endif
 			return;

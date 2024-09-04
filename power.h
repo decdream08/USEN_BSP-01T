@@ -26,5 +26,6 @@ void Power_Mode_Set(unsigned char mode);
 PowerModeDef Power_Get_Mode(void);
 void Power_Process(void);
 
+void Power_SetState(Bool power_state);
 Bool Power_State(void);
 

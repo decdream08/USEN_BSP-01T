@@ -124,9 +124,9 @@ void PCM9211_Set_Status(PCM92211_Status status)
 
 void PCM9211_PowerUp(void)
 {
-	pcm9211_status = PCM9211_POWER_UP;
 	HAL_GPIO_SetPin(PE, _BIT(2)); //reset
 
+	pcm9211_status = PCM9211_POWER_UP;
 	pcm9211_timer = df10msTimer20ms;
 }
 
