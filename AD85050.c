@@ -187,6 +187,7 @@ uint8_t AD85050_AUX_Volume_Table[] = {
 #define AD85050_RAM_SINGLE_SIZE	5
 #define AD85050_RAM_SET_SIZE	17
 
+#ifndef TP_PBA //need to change L/R channel at TP_PBA
 const uint8_t AD85050_Set_Ch1_Mixer1[AD85050_RAM_SINGLE_SIZE][2] = {
     {0x1D, 0x4B},	/* Coefficient RAM base address */
     	
@@ -226,6 +227,7 @@ const uint8_t AD85050_Set_Ch2_Mixer2[AD85050_RAM_SINGLE_SIZE][2] = {
 
     {0x2D, 0x41},	/* CfRW : bank1, writing set coefficient to RAM */
 };
+#endif
 
 #if 1
 const uint8_t AD85050_Set_EQ1_HPF[AD85050_RAM_SET_SIZE][2] = {
@@ -833,6 +835,7 @@ void AD85050_Amp_Init(Bool Power_On_Init)
 
 	AD85050_OutputLimit(TRUE);
 
+#ifndef TP_PBA //need to change L/R channel at TP_PBA
 	for(i =0;i<AD85050_RAM_SINGLE_SIZE;i++)
 	{
 		uRead = AD85050_Set_Ch1_Mixer1[i][1];
@@ -856,6 +859,7 @@ void AD85050_Amp_Init(Bool Power_On_Init)
 		uRead = AD85050_Set_Ch2_Mixer2[i][1];
 		I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_Set_Ch2_Mixer2[i][0],&uRead,1);        
 	}
+#endif
 
 #if 1
 	for(i =0; i<AD85050_RAM_SET_SIZE; i++)

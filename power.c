@@ -87,6 +87,7 @@ static void Power_On_Start_Process(void)
 #if 1
 		case 0:
 			{
+#if 0
 				uint8_t uFlash_Read_Buf3[FLASH_SAVE_DATA_END];
 				Flash_Read(FLASH_SAVE_START_ADDR, uFlash_Read_Buf3, FLASH_SAVE_DATA_END);
 
@@ -106,13 +107,13 @@ static void Power_On_Start_Process(void)
 					Set_Status_LED_Mode(STATUS_MUTE_ON_MODE);
 
 				HAL_GPIO_SetPin(PD, _BIT(5)); //LED POWER CONTROL - ON
-
+#endif
 				++mainPowerStep;
 				break;
 			}
 
 		case 1:
-			if(IS_BBT_Init_OK())
+			//if(IS_BBT_Init_OK())
 			{
 				/* external interrupt pin PC4 : 8.5V short Protection - Low : short detection */
 				HAL_GPIO_ConfigOutput(PC, 4, INPUT);
@@ -209,11 +210,33 @@ static void Power_On_Start_Process(void)
 			++mainPowerStep;
 			break;
 		default:
-			mainPowerStep = 0;
-			//HAL_GPIO_SetPin(PC, _BIT(2)); //Outlet On
+			{
+				uint8_t uFlash_Read_Buf3[FLASH_SAVE_DATA_END];
+				Flash_Read(FLASH_SAVE_START_ADDR, uFlash_Read_Buf3, FLASH_SAVE_DATA_END);
 
-			protection_check_flag = ETC_PROTECTION_MONITOR | AMP_PROTECTION_MONITOR | LED_PROTECTION_MONITOR;
-			Power_Mode_Set(PWR_ON_NORMAL);
+				Power_state = TRUE;
+
+				if(IsInputSwitch_Aux()) //Keep Aux Mode LED When Power on
+					Set_Status_LED_Mode(STATUS_AUX_MODE);
+				else
+				{
+					if(Get_Connection_State())
+						Set_Status_LED_Mode(STATUS_BT_PAIRED_MODE);
+					else
+						Set_Status_LED_Mode(Get_Return_Status_LED_Mode());
+				}
+
+				if(uFlash_Read_Buf3[FLASH_SAVE_DATA_MUTE])
+					Set_Status_LED_Mode(STATUS_MUTE_ON_MODE);
+
+				HAL_GPIO_SetPin(PD, _BIT(5)); //LED POWER CONTROL - ON
+
+				mainPowerStep = 0;
+				//HAL_GPIO_SetPin(PC, _BIT(2)); //Outlet On
+
+				protection_check_flag = ETC_PROTECTION_MONITOR | AMP_PROTECTION_MONITOR | LED_PROTECTION_MONITOR;
+				Power_Mode_Set(PWR_ON_NORMAL);
+			}
 			break;
 	}
 }
@@ -243,8 +266,8 @@ static void Power_Off_Start_Process(void)
 			++mainPowerStep;
 			break;
 		case 3:
-			LED_Diplay_All_Off();
-			HAL_GPIO_ClearPin(PD, _BIT(5));
+			//LED_Diplay_All_Off();
+			//HAL_GPIO_ClearPin(PD, _BIT(5));
 			++mainPowerStep;
 			break;
 		case 4:
@@ -269,6 +292,9 @@ static void Power_Off_Start_Process(void)
 
 		default:
 			mainPowerStep = 0;
+			LED_Diplay_All_Off();
+			HAL_GPIO_ClearPin(PD, _BIT(5));
+			
 			//HAL_GPIO_ClearPin(PC, _BIT(2)); //Outlet Off
 
 			/* DAMP_GPIO0 */

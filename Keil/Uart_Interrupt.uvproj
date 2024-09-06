@@ -665,6 +665,11 @@
               <FileType>1</FileType>
               <FilePath>..\protection.c</FilePath>
             </File>
+            <File>
+              <FileName>function_test_process.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\function_test_process.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>

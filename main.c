@@ -33,7 +33,9 @@
 #include "adc_polling.h"
 #include "key.h"
 #include "protection.h"
-
+#ifdef AUTO_POWER_ON_OFF_TEST
+#include "function_test_process.h"
+#endif
 /* Private typedef ---------------------------------------------------*/
 //BT_SPK_TACT_SWITCH - PE3 / PE4 / PE5 / PE6 / PE7 : TACT Switch input
 //SWITCH_BUTTON_KEY_ENABLE BSP-01: PA0 / PA1 / PA2 /PA3 / PA4 / PA5 / PA6, BAP-01 : PA0 / PA1 / PA6
@@ -320,6 +322,9 @@ void main_10ms_timer(void)
 		ADC_Polling_10ms_timer();
 		Key_10ms_timer();
 		ADC_Polling_10ms_timer();
+#ifdef AUTO_POWER_ON_OFF_TEST
+		FunctionTest_Process_10ms_timer();
+#endif
 	}
 }
 
@@ -521,6 +526,9 @@ void mainloop(void)
 #endif
 			ADC_Polling_Process();
 			Protection_Process();
+#ifdef AUTO_POWER_ON_OFF_TEST
+			FunctionTest_Process();
+#endif
 		}
 	}
 }

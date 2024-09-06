@@ -640,3 +640,7 @@
 ## 2024-08-29 (BAP-02)
   - LPF 관련 적용
   - PCM9211 AUX gain 조정
+  
+## 2024-09-06 (BAP-02)
+  - POWER ON/OFF TEST 추가
+  - TP변경점 수정

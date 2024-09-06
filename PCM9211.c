@@ -183,8 +183,13 @@ void PCM9211_Set_Path_Init(Bool mute_needed)
 	{
 		HAL_GPIO_ClearPin(PE, _BIT(6)); //BT_OUT1
 		HAL_GPIO_ClearPin(PE, _BIT(5)); //BT_OUT2
+#ifdef TP_PBA //TP
+		HAL_GPIO_ClearPin(PE, _BIT(4)); //BT_OUT3
+		HAL_GPIO_ClearPin(PE, _BIT(3)); //BT_OUT4
+#else //ES
 		HAL_GPIO_SetPin(PE, _BIT(4)); //BT_OUT3
 		HAL_GPIO_SetPin(PE, _BIT(3)); //BT_OUT4
+#endif
 		
 		PCM9211_Set_Path_BT(mute_needed);
 	}
@@ -196,12 +201,12 @@ void PCM9211_Set_Path_Init(Bool mute_needed)
 
 		HAL_GPIO_SetPin(PE, _BIT(6)); //BT_OUT1
 		HAL_GPIO_SetPin(PE, _BIT(5)); //BT_OUT2
-#if 1 //ES2
-		HAL_GPIO_ClearPin(PE, _BIT(4)); //BT_OUT3
-		HAL_GPIO_ClearPin(PE, _BIT(3)); //BT_OUT4
-#else
+#ifdef TP_PBA //TP
 		HAL_GPIO_SetPin(PE, _BIT(4)); //BT_OUT3
 		HAL_GPIO_SetPin(PE, _BIT(3)); //BT_OUT4
+#else //ES
+		HAL_GPIO_ClearPin(PE, _BIT(4)); //BT_OUT3
+		HAL_GPIO_ClearPin(PE, _BIT(3)); //BT_OUT4
 #endif
 		
 		if(!(HAL_GPIO_ReadPin(PC) & (1<<3)))
@@ -249,8 +254,13 @@ void PCM9211_Set_Path_BT(Bool mute_needed)
 
 	HAL_GPIO_ClearPin(PE, _BIT(6)); //BT_OUT1
 	HAL_GPIO_ClearPin(PE, _BIT(5)); //BT_OUT2
+#ifdef TP_PBA //TP
+	HAL_GPIO_ClearPin(PE, _BIT(4)); //BT_OUT3
+	HAL_GPIO_ClearPin(PE, _BIT(3)); //BT_OUT4
+#else //ES
 	HAL_GPIO_SetPin(PE, _BIT(4)); //BT_OUT3
 	HAL_GPIO_SetPin(PE, _BIT(3)); //BT_OUT4
+#endif
 
 	PCM9211_Set_Output(PCM9211_OUTPORT_PORT_CTL_REG_AUXIN0);
 /*
@@ -315,12 +325,12 @@ void PCM9211_Set_Path_ADC(Bool mute_needed)
 
 	HAL_GPIO_SetPin(PE, _BIT(6)); //BT_OUT1
 	HAL_GPIO_SetPin(PE, _BIT(5)); //BT_OUT2
-#if 1 //ES2
+#ifdef TP_PBA //TP
+	HAL_GPIO_SetPin(PE, _BIT(4)); //BT_OUT3
+	HAL_GPIO_SetPin(PE, _BIT(3)); //BT_OUT4
+#else //ES
 	HAL_GPIO_ClearPin(PE, _BIT(4)); //BT_OUT3
 	HAL_GPIO_ClearPin(PE, _BIT(3)); //BT_OUT4
-#else
-	HAL_GPIO_SetPin(PE, _BIT(4)); //BT_OUT3
-	HAL_GPIO_SetPin(PE, _BIT(3)); //BT_OUT4	
 #endif
 
 	uData = PCM9211_ADC_CH_CTL_REG_GAIN_5D5DB; //PCM9211_ADC_CH_CTL_REG_GAIN_6DB;
