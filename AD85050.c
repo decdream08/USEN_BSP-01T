@@ -688,8 +688,40 @@ void AD85050_PowerUp(void)
     delay_ms(20);
 	HAL_GPIO_SetPin(PF, _BIT(4)); //AMP Shutdown
 
+	AD85050_I2C_Init();
+
 	ad85050_status = AD85050_POWER_UP;
 	ad85050_timer = df10msTimer20ms;
+}
+
+void AD85050_I2C_Init(void)
+{
+	//Change I2C port To GPIO port and make i2c stop condition
+	HAL_GPIO_ConfigOutput(PF, 6, OPEN_DRAIN_OUTPUT);
+	HAL_GPIO_ConfigPullup(PF, 6, DISPUPD);
+	HAL_GPIO_ClearPin(PF, _BIT(6)); //SCL Low
+
+	HAL_GPIO_ConfigOutput(PF, 7, OPEN_DRAIN_OUTPUT);
+	HAL_GPIO_ConfigPullup(PF, 7, DISPUPD);
+	HAL_GPIO_ClearPin(PF, _BIT(7)); //SDA Low
+
+	delay_ms(10);
+
+	HAL_GPIO_SetPin(PF, _BIT(6)); //SCL High
+	HAL_GPIO_ClearPin(PF, _BIT(7)); //SDA Low
+	delay_ms(10);
+
+	HAL_GPIO_SetPin(PF, _BIT(6)); //SCL High
+	HAL_GPIO_SetPin(PF, _BIT(7)); //SDA High
+	delay_ms(10);	
+
+    //Change to I2C port
+	HAL_GPIO_ConfigOutput(PF, 6, ALTERN_FUNC);
+	HAL_GPIO_ConfigFunction(PF, 6, FUNC2);
+	HAL_GPIO_ConfigOutput(PF, 7, ALTERN_FUNC);
+	HAL_GPIO_ConfigFunction(PF, 7, FUNC2);
+
+	I2C_Configure();
 }
 
 void AD85050_PowerDown(void)

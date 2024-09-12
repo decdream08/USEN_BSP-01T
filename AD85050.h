@@ -74,6 +74,7 @@ AD85050_Status AD85050_GetStatus(void);
 void AD85050_ErrorProcess(void);
 void AD85050_PowerUp(void);
 void AD85050_PowerDown(void);
+void AD85050_I2C_Init(void);
 
 //Function
 void AD85050_Set_Cur_EQ_DRC_Mode(void);
