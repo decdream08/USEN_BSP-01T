@@ -647,3 +647,4 @@
   
 ## 2024-09-11 (BAP-02)
   - I2C Pull Up 전원의 On <-> Off에 따른 I2C fail S/W 보완 수정
+  - poweer state 변수 처리 오류 및 LED on / off timing 조정

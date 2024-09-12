@@ -107,6 +107,8 @@ static void Power_On_Start_Process(void)
 					Set_Status_LED_Mode(STATUS_MUTE_ON_MODE);
 
 				HAL_GPIO_SetPin(PD, _BIT(5)); //LED POWER CONTROL - ON
+#else
+				Power_state = TRUE;
 #endif
 				++mainPowerStep;
 				break;
@@ -115,6 +117,7 @@ static void Power_On_Start_Process(void)
 		case 1:
 			//if(IS_BBT_Init_OK())
 			{
+#if 0
 				/* external interrupt pin PC4 : 8.5V short Protection - Low : short detection */
 				HAL_GPIO_ConfigOutput(PC, 4, INPUT);
 				HAL_GPIO_ConfigPullup(PC, 4, ENPU); 
@@ -129,7 +132,7 @@ static void Power_On_Start_Process(void)
 				HAL_GPIO_ConfigOutput(PD, 1, INPUT);
 				HAL_GPIO_ConfigPullup(PD, 1, ENPU); 
 				HAL_GPIO_ClearPin(PD, _BIT(1));
-
+#endif
 				TIMER20_Amp_error_flag_Stop();
 
 				PCM9211_PowerUp();
@@ -190,7 +193,6 @@ static void Power_On_Start_Process(void)
 		case 2:
 			//HAL_GPIO_SetPin(PD, _BIT(5)); //LED POWER CONTROL - ON
 			power_timer = df10msTimer30ms;
-
 			++mainPowerStep;
 			break;
 		case 3:
@@ -211,10 +213,9 @@ static void Power_On_Start_Process(void)
 			break;
 		default:
 			{
+#if 1
 				uint8_t uFlash_Read_Buf3[FLASH_SAVE_DATA_END];
 				Flash_Read(FLASH_SAVE_START_ADDR, uFlash_Read_Buf3, FLASH_SAVE_DATA_END);
-
-				Power_state = TRUE;
 
 				if(IsInputSwitch_Aux()) //Keep Aux Mode LED When Power on
 					Set_Status_LED_Mode(STATUS_AUX_MODE);
@@ -230,10 +231,25 @@ static void Power_On_Start_Process(void)
 					Set_Status_LED_Mode(STATUS_MUTE_ON_MODE);
 
 				HAL_GPIO_SetPin(PD, _BIT(5)); //LED POWER CONTROL - ON
-
+#endif
 				mainPowerStep = 0;
 				//HAL_GPIO_SetPin(PC, _BIT(2)); //Outlet On
+#if 1
+				/* external interrupt pin PC4 : 8.5V short Protection - Low : short detection */
+				HAL_GPIO_ConfigOutput(PC, 4, INPUT);
+				HAL_GPIO_ConfigPullup(PC, 4, ENPU); 
+				HAL_GPIO_ClearPin(PC, _BIT(4));
 
+				/* external interrupt pin PD0 : AMP short Protection - Low : short detection */
+				HAL_GPIO_ConfigOutput(PD, 0, INPUT);
+				HAL_GPIO_ConfigPullup(PD, 0, ENPU); 
+				HAL_GPIO_ClearPin(PD, _BIT(0));
+
+				/* external interrupt pin PD1 : LED 3.3V short Protection - Low : short detection */
+				HAL_GPIO_ConfigOutput(PD, 1, INPUT);
+				HAL_GPIO_ConfigPullup(PD, 1, ENPU); 
+				HAL_GPIO_ClearPin(PD, _BIT(1));
+#endif
 				protection_check_flag = ETC_PROTECTION_MONITOR | AMP_PROTECTION_MONITOR | LED_PROTECTION_MONITOR;
 				Power_Mode_Set(PWR_ON_NORMAL);
 			}
@@ -257,7 +273,7 @@ static void Power_Off_Start_Process(void)
 			break;
 		case 1:
 			EXIT_PortE_Disable();
-			Set_Status_LED_Mode(STATUS_POWER_OFF_MODE);
+			//Set_Status_LED_Mode(STATUS_POWER_OFF_MODE);
 			++mainPowerStep;
 			break;
 		case 2:
@@ -292,6 +308,8 @@ static void Power_Off_Start_Process(void)
 
 		default:
 			mainPowerStep = 0;
+
+			Set_Status_LED_Mode(STATUS_POWER_OFF_MODE);
 			LED_Diplay_All_Off();
 			HAL_GPIO_ClearPin(PD, _BIT(5));
 			
