@@ -147,10 +147,17 @@ void Key_Process(void)
 				HAL_GPIO_SetPin(PE, _BIT(3)); //BT_OUT4
 */
 
-			  if(IsInputSwitch_Aux())
+				if(IsInputSwitch_Aux())
+				{
+					if(Get_master_slave_grouping_flag())
+						TIMER20_Master_Slave_Grouping_flag_Stop(FALSE);
+
 					PCM9211_Set_Status(PCM9211_CHANGE_PATH_TO_ADC);
+				}
 				else
+				{
 					PCM9211_Set_Status(PCM9211_CHANGE_PATH_TO_AUXIN0);
+				}
 
 #ifdef KEY_CHECK_DEBUG_MSG
 				_DBG("\n\rBT_OUT_OFF_KEY");

@@ -648,3 +648,6 @@
 ## 2024-09-11 (BAP-02)
   - I2C Pull Up 전원의 On <-> Off에 따른 I2C fail S/W 보완 수정
   - poweer state 변수 처리 오류 및 LED on / off timing 조정
+  
+## 2024-09-13 (BAP-02)
+  - AUX 모드 & BT_OUT ON 상태에서 BT key 입력 후 broadcasting 연결 동작 중 BT_OUT OFF 시 바로 해제되도록 수정
