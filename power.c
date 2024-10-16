@@ -87,7 +87,7 @@ static void Power_On_Start_Process(void)
 #if 1
 		case 0:
 			{
-#if 0
+#if 1
 				uint8_t uFlash_Read_Buf3[FLASH_SAVE_DATA_END];
 				Flash_Read(FLASH_SAVE_START_ADDR, uFlash_Read_Buf3, FLASH_SAVE_DATA_END);
 
@@ -213,7 +213,7 @@ static void Power_On_Start_Process(void)
 			break;
 		default:
 			{
-#if 1
+#if 0
 				uint8_t uFlash_Read_Buf3[FLASH_SAVE_DATA_END];
 				Flash_Read(FLASH_SAVE_START_ADDR, uFlash_Read_Buf3, FLASH_SAVE_DATA_END);
 

@@ -651,3 +651,6 @@
   
 ## 2024-09-13 (BAP-02)
   - AUX 모드 & BT_OUT ON 상태에서 BT key 입력 후 broadcasting 연결 동작 중 BT_OUT OFF 시 바로 해제되도록 수정
+
+## 2024-10-14 (BAP-02)
+  - TP RomWrite F/W 발행

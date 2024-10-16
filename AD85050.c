@@ -2095,7 +2095,11 @@ void AD85050_Amp_Volume_Register_Writing(uint16_t uVolumeLevel)
 		else
 			uReg_Value = AD85050_BT_Volume_Table[uArea1_Level];
 		
-		I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_CHANNEL2_VOL_CONTROL_REG1,&uReg_Value,1);  
+#ifdef TP_PBA
+		I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_CHANNEL1_VOL_CONTROL_REG1,&uReg_Value,1);
+#else
+		I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_CHANNEL2_VOL_CONTROL_REG1,&uReg_Value,1);
+#endif
 	}
 
 	if(uArea2_Level != INVALID_VOLUME)
@@ -2105,7 +2109,11 @@ void AD85050_Amp_Volume_Register_Writing(uint16_t uVolumeLevel)
 		else
 			uReg_Value = AD85050_BT_Volume_Table[uArea2_Level];
 
-		I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_CHANNEL1_VOL_CONTROL_REG1,&uReg_Value,1);  
+#ifdef TP_PBA
+		I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_CHANNEL2_VOL_CONTROL_REG1,&uReg_Value,1);
+#else
+		I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_CHANNEL1_VOL_CONTROL_REG1,&uReg_Value,1);
+#endif
 	}
 
 }
