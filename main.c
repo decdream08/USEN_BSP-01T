@@ -1431,11 +1431,13 @@ void GPIO_Configure(void)
 	HAL_GPIO_ConfigPullup(PC, 1, DISPUPD);
 	HAL_GPIO_SetPin(PC, _BIT(1));
 
+#ifndef TP_PBA
 	/* GPIO Output setting PC2 - Outlet enable(High:On, Low:off) */
 	HAL_GPIO_ConfigOutput(PC, 2, PUSH_PULL_OUTPUT);
 	HAL_GPIO_ConfigPullup(PC, 2, DISPUPD);
 	//HAL_GPIO_ClearPin(PC, _BIT(2));
 	HAL_GPIO_SetPin(PC, _BIT(2));
+#endif
 
 	/* External interrupt pin PC3 Input select BT(Low) / Aux(High)*/
 	HAL_GPIO_ConfigOutput(PC, 3, INPUT);
@@ -1492,6 +1494,7 @@ void GPIO_Configure(void)
 	HAL_GPIO_ConfigPullup(PE, 2, DISPUPD);
 	HAL_GPIO_ClearPin(PE, _BIT(2));
 
+#ifndef TP_PBA
 	/* GPIO Output setting pin PE3 BT_out4*/
 	HAL_GPIO_ConfigOutput(PE, 3, PUSH_PULL_OUTPUT);
 	HAL_GPIO_ConfigPullup(PE, 3, DISPUPD);
@@ -1506,6 +1509,7 @@ void GPIO_Configure(void)
 	HAL_GPIO_ConfigOutput(PE, 5, PUSH_PULL_OUTPUT);
 	HAL_GPIO_ConfigPullup(PE, 5, DISPUPD);
 	HAL_GPIO_ClearPin(PE, _BIT(5));
+#endif
 
 	/* GPIO Output setting pin PE6 BT_out1*/
 	HAL_GPIO_ConfigOutput(PE, 6, PUSH_PULL_OUTPUT);

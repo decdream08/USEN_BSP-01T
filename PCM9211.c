@@ -181,6 +181,9 @@ void PCM9211_Set_Path_Init(Bool mute_needed)
 {
 	if(IsBT_OUTSwitch_On()) //BT_OUT ON
 	{
+#ifdef TP_PBA
+		HAL_GPIO_ClearPin(PE, _BIT(6)); //BT_OUT
+#else
 		HAL_GPIO_ClearPin(PE, _BIT(6)); //BT_OUT1
 		HAL_GPIO_ClearPin(PE, _BIT(5)); //BT_OUT2
 #ifdef TP_PBA //TP
@@ -190,7 +193,7 @@ void PCM9211_Set_Path_Init(Bool mute_needed)
 		HAL_GPIO_SetPin(PE, _BIT(4)); //BT_OUT3
 		HAL_GPIO_SetPin(PE, _BIT(3)); //BT_OUT4
 #endif
-		
+#endif
 		PCM9211_Set_Path_BT(mute_needed);
 	}
 	else //BT_OUT OFF
@@ -199,6 +202,9 @@ void PCM9211_Set_Path_Init(Bool mute_needed)
 		_DBG("\n\rPCM9211_Set_Path_Init - BT_OUT OFF");
 #endif
 
+#ifdef TP_PBA
+		HAL_GPIO_SetPin(PE, _BIT(6)); //BT_OUT
+#else
 		HAL_GPIO_SetPin(PE, _BIT(6)); //BT_OUT1
 		HAL_GPIO_SetPin(PE, _BIT(5)); //BT_OUT2
 #ifdef TP_PBA //TP
@@ -208,7 +214,8 @@ void PCM9211_Set_Path_Init(Bool mute_needed)
 		HAL_GPIO_ClearPin(PE, _BIT(4)); //BT_OUT3
 		HAL_GPIO_ClearPin(PE, _BIT(3)); //BT_OUT4
 #endif
-		
+#endif
+
 		if(!(HAL_GPIO_ReadPin(PC) & (1<<3)))
 			PCM9211_Set_Path_BT(mute_needed);
 		else
@@ -252,6 +259,9 @@ void PCM9211_Set_Path_BT(Bool mute_needed)
 
 	delay_ms(10);
 
+#ifdef TP_PBA
+	HAL_GPIO_ClearPin(PE, _BIT(6)); //BT_OUT
+#else
 	HAL_GPIO_ClearPin(PE, _BIT(6)); //BT_OUT1
 	HAL_GPIO_ClearPin(PE, _BIT(5)); //BT_OUT2
 #ifdef TP_PBA //TP
@@ -260,6 +270,7 @@ void PCM9211_Set_Path_BT(Bool mute_needed)
 #else //ES
 	HAL_GPIO_SetPin(PE, _BIT(4)); //BT_OUT3
 	HAL_GPIO_SetPin(PE, _BIT(3)); //BT_OUT4
+#endif
 #endif
 
 	PCM9211_Set_Output(PCM9211_OUTPORT_PORT_CTL_REG_AUXIN0);
@@ -323,6 +334,9 @@ void PCM9211_Set_Path_ADC(Bool mute_needed)
 
 	delay_ms(10);
 
+#ifdef TP_PBA
+	HAL_GPIO_SetPin(PE, _BIT(6)); //BT_OUT
+#else
 	HAL_GPIO_SetPin(PE, _BIT(6)); //BT_OUT1
 	HAL_GPIO_SetPin(PE, _BIT(5)); //BT_OUT2
 #ifdef TP_PBA //TP
@@ -331,6 +345,7 @@ void PCM9211_Set_Path_ADC(Bool mute_needed)
 #else //ES
 	HAL_GPIO_ClearPin(PE, _BIT(4)); //BT_OUT3
 	HAL_GPIO_ClearPin(PE, _BIT(3)); //BT_OUT4
+#endif
 #endif
 
 	uData = PCM9211_ADC_CH_CTL_REG_GAIN_5D5DB; //PCM9211_ADC_CH_CTL_REG_GAIN_6DB;

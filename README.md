@@ -654,3 +654,6 @@
 
 ## 2024-10-14 (BAP-02)
   - TP RomWrite F/W 발행
+  
+## 2024-10-17 (BAP-02)
+  - TP RomWrite F/W 재발행 (NC port 정리)
