@@ -583,7 +583,11 @@ void TIMER20_IRQHandler_IT(void)
 #ifdef TIMER20_DEBUG_MSG
 			_DBG("\n\rAux Detect Timer is working !!!");
 #endif
+#ifdef TP_PBA
+				if(HAL_GPIO_ReadPin(PE) & (1<<0))
+#else
 				if(!(HAL_GPIO_ReadPin(PC) & (1<<3))) //Check if Aux Detect Pin is Low(Aux In)
+#endif
 				{
 #ifdef TIMER20_DEBUG_MSG
 					_DBG("\n\rAux Detect Timer : Detect Aux In !!!");
@@ -795,7 +799,11 @@ void TIMER20_IRQHandler_IT(void)
 				{
 					ADC_Value_Update_to_send_Slave();
 
+#ifdef TP_PBA
+					if(!(HAL_GPIO_ReadPin(PE) & (1<<0)))
+#else
 					if(HAL_GPIO_ReadPin(PC) & (1<<3))
+#endif
 						//MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x01);
 						MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Mute, 0x00);
 					else if(BT_Is_Routed())

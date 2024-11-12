@@ -216,7 +216,11 @@ void PCM9211_Set_Path_Init(Bool mute_needed)
 #endif
 #endif
 
+#ifdef TP_PBA
+		if(HAL_GPIO_ReadPin(PE) & (1<<0))
+#else
 		if(!(HAL_GPIO_ReadPin(PC) & (1<<3)))
+#endif
 			PCM9211_Set_Path_BT(mute_needed);
 		else
 			PCM9211_Set_Path_ADC(mute_needed);

@@ -539,7 +539,11 @@ void AD85050_Process(void)
 			if(ad85050_timer == df10msTimer0ms)
 			{
 /*
+#ifdef TP_PBA
+				if(!(HAL_GPIO_ReadPin(PE) & (1<<0)))
+#else
 				if(HAL_GPIO_ReadPin(PC) & (1<<3))
+#endif
 				{
 					if(already_initialized)
 					{
@@ -582,7 +586,11 @@ void AD85050_Process(void)
 			if(ad85050_timer == df10msTimer0ms)
 			{
 				//Set_MB3021_BT_Module_Source_Change();
+#ifdef TP_PBA
+				if(!(HAL_GPIO_ReadPin(PE) & (1<<0)))
+#else
 				if(HAL_GPIO_ReadPin(PC) & (1<<3))
+#endif
 				{
 					//if(already_initialized)
 					if(bAuxRouting)
@@ -615,7 +623,11 @@ void AD85050_Process(void)
 
 				AD85050_Amp_Mute(TRUE, FALSE);
 
+#ifdef TP_PBA
+				if(!(HAL_GPIO_ReadPin(PE) & (1<<0)))
+#else
 				if((HAL_GPIO_ReadPin(PC) & (1<<3)))
+#endif
 				{
 					uReg_Value = AUX_MASTER_VOLUME_LEVEL;
 					I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_VOL_CONTROL_REG1,&uReg_Value,1);
@@ -2077,7 +2089,11 @@ void AD85050_Amp_Volume_Register_Writing(uint16_t uVolumeLevel)
     }
     } 
 
+#ifdef TP_PBA
+	if(!(HAL_GPIO_ReadPin(PE) & (1<<0)))
+#else
 	if((HAL_GPIO_ReadPin(PC) & (1<<3)))
+#endif
 	{
 		uReg_Value = AUX_MASTER_VOLUME_LEVEL;
 		I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_VOL_CONTROL_REG1,&uReg_Value,1);
@@ -2090,7 +2106,11 @@ void AD85050_Amp_Volume_Register_Writing(uint16_t uVolumeLevel)
 
 	if(uArea1_Level != INVALID_VOLUME)
 	{
+#ifdef TP_PBA
+		if(!(HAL_GPIO_ReadPin(PE) & (1<<0)))
+#else
 		if((HAL_GPIO_ReadPin(PC) & (1<<3)))
+#endif
 			uReg_Value = AD85050_AUX_Volume_Table[uArea1_Level];
 		else
 			uReg_Value = AD85050_BT_Volume_Table[uArea1_Level];
@@ -2104,7 +2124,11 @@ void AD85050_Amp_Volume_Register_Writing(uint16_t uVolumeLevel)
 
 	if(uArea2_Level != INVALID_VOLUME)
 	{
+#ifdef TP_PBA
+		if(!(HAL_GPIO_ReadPin(PE) & (1<<0)))
+#else
 		if((HAL_GPIO_ReadPin(PC) & (1<<3)))
+#endif
 			uReg_Value = AD85050_AUX_Volume_Table[uArea2_Level];
 		else
 			uReg_Value = AD85050_BT_Volume_Table[uArea2_Level];

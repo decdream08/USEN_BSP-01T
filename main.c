@@ -201,7 +201,11 @@ void Aux_Mode_Setting_After_Timer_Checking(Bool Aux_In)
 
 void Set_Aux_Detection_flag(void) //2023-04-12_1
 {	
+#ifdef TP_PBA
+	if(!(HAL_GPIO_ReadPin(PE) & (1<<0)))
+#else
 	if(HAL_GPIO_ReadPin(PC) & (1<<3)) //Input(Aux Detec Pin) : High -Aux Out / Low -Aux In
+#endif
 	{
 		B_AUX_DET = TRUE;
 	}
@@ -254,7 +258,11 @@ Bool IsInputSwitch_Aux(void)
 	_DBH(B_AUX_DET);
 #endif
 
+#ifdef TP_PBA
+	if(!(HAL_GPIO_ReadPin(PE) & (1<<0)))
+#else
 	if(HAL_GPIO_ReadPin(PC) & (1<<3)) //High : Aux /Low : BT
+#endif
 		return TRUE;
 	else
 		return FALSE;
@@ -262,7 +270,11 @@ Bool IsInputSwitch_Aux(void)
 
 Bool IsBT_OUTSwitch_On(void)
 {
+#ifdef TP_PBA
+	if(!(HAL_GPIO_ReadPin(PC) & (1<<3)))
+#else
 	if(HAL_GPIO_ReadPin(PE) & (1<<0))
+#endif
 		return TRUE;
 	else
 		return FALSE;
@@ -593,7 +605,11 @@ void GPIOCD_IRQHandler_IT2(void)
 			delay_ms(80);
 			if(HAL_GPIO_ReadPin(PC) & (1<<3)) //PC3 : High - Aux
 			{
+#ifdef TP_PBA
+				key = BT_OUT_OFF_KEY;
+#else
 				key = INPUT_AUX_KEY;
+#endif
 			}
 			else //Low Invalid value in here
 			{
@@ -606,7 +622,11 @@ void GPIOCD_IRQHandler_IT2(void)
 			delay_ms(80);
 			if(!(HAL_GPIO_ReadPin(PC) & (1<<3)) )
 			{
+#ifdef TP_PBA
+				key = BT_OUT_ON_KEY;
+#else
 				key = INPUT_BT_KEY;
+#endif
 			}
 			else //High - Aux out //Invalid value in here
 			{
@@ -942,7 +962,11 @@ void GPIOE_IRQHandler_IT(void) // PE7 : Button Switch Input
 				else
 #endif
 				{
+#ifdef TP_PBA
+					key = INPUT_AUX_KEY;
+#else
 					key = BT_OUT_OFF_KEY;
+#endif
 					cur_button_status = button_release;
 				}
 			}
@@ -957,7 +981,11 @@ void GPIOE_IRQHandler_IT(void) // PE7 : Button Switch Input
 				else
 #endif
 				{
+#ifdef TP_PBA
+					key = INPUT_BT_KEY;
+#else
 					key = BT_OUT_ON_KEY;
+#endif
 					cur_button_status = button_release; //Low -> High
 				}
 			}
