@@ -662,3 +662,6 @@
   - TP 부품 실장 오류로 하기 문제점 발생 -> F/W으로 수정 대응
   1. BT/AUX 스위치와 BT_OUT ON/OFF 스위치가 반대로 동작
   2. 각 스위치 port애 대해서 low,high 동작 반대로 동작
+
+## 2024-11-12 (BAP-02)
+  - Volume table 수정

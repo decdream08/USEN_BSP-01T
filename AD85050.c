@@ -78,7 +78,6 @@
 
 uint8_t AD85050_BT_Volume_Table[] = {
   0xff    , //min
-  0x64	  , //-38db
   0x62	  , //-37db
   0x60	  , //-36db
   0x5E	  , //-35db
@@ -104,6 +103,7 @@ uint8_t AD85050_BT_Volume_Table[] = {
   0x36	  , //-15db
   0x34	  , //-14db
   0x32	  , //-13db
+  0x30	  , //-12db
   0x2E	  , //-11db
   0x2C	  , //-10db
   0x2A	  , //-9db
@@ -132,7 +132,6 @@ uint8_t AD85050_BT_Volume_Table[] = {
 
 uint8_t AD85050_AUX_Volume_Table[] = {
   0xff    , //min
-  0x64	  , //-38db
   0x62	  , //-37db
   0x60	  , //-36db
   0x5E	  , //-35db
@@ -158,6 +157,7 @@ uint8_t AD85050_AUX_Volume_Table[] = {
   0x36	  , //-15db
   0x34	  , //-14db
   0x32	  , //-13db
+  0x30	  , //-12db
   0x2E	  , //-11db
   0x2C	  , //-10db
   0x2A	  , //-9db
