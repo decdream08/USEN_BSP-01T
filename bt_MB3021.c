@@ -335,7 +335,7 @@ typedef enum {
 }Remote_Power_Key_Action;
 
 //Variable
-char MCU_Version[6] = "241112"; //"230727"; //MCU Version Info
+char MCU_Version[6] = "241119"; //"230727"; //MCU Version Info
 char BT_Version[7]; //MCU Version Info
 
 Bool BBT_Init_OK = FALSE;
@@ -1192,7 +1192,7 @@ void Set_MB3021_BT_Module_Source_Change_Direct(void)
 	{
 		if(IsInputSwitch_Aux())
 		{
-			uBuf[0] = 0x50; //Aux Mode
+			uMode_Change = uBuf[0] = 0x50; //Aux Mode
 			Set_Status_LED_Mode(STATUS_AUX_MODE);
 #if 0//def BT_DEBUG_MSG	
 			_DBG("AUX Mode");
@@ -1201,12 +1201,12 @@ void Set_MB3021_BT_Module_Source_Change_Direct(void)
 		else
 		{
 			Set_Status_LED_Mode(Get_Return_Status_LED_Mode());
-			uBuf[0] = 0x07; //Bluetooth Mode
+			uMode_Change = uBuf[0] = 0x07; //Bluetooth Mode
 #if 0//def BT_DEBUG_MSG	
 			_DBG("BT Mode");
 #endif
 		}
-
+#if 0
 		if(uMode_Change == uBuf[0] 
 			&& !IS_Display_Mute()
 			)
@@ -1223,7 +1223,7 @@ void Set_MB3021_BT_Module_Source_Change_Direct(void)
 		}
 		else
 			uMode_Change = uBuf[0];
-
+#endif
 		if(uBuf[0] == 0x07) //Bluetooth Mode
 			AD85050_Dac_Volume_Set(FALSE);
 		else //Aux Mode
@@ -3873,7 +3873,7 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 		{
 			if(IsInputSwitch_Aux())
 			{
-				uBuf[0] = 0x50; //Aux Mode
+				uMode_Change = uBuf[0] = 0x50; //Aux Mode
 				Set_Status_LED_Mode(STATUS_AUX_MODE);
 #ifdef BT_DEBUG_MSG	
 				_DBG("AUX Mode");
@@ -3884,12 +3884,12 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 			else
 			{
 				Set_Status_LED_Mode(Get_Return_Status_LED_Mode());
-				uBuf[0] = 0x07; //Bluetooth Mode
+				uMode_Change = uBuf[0] = 0x07; //Bluetooth Mode
 #ifdef BT_DEBUG_MSG	
 				_DBG("BT Mode");
 #endif
 			}
-
+#if 0
 			if(uMode_Change == uBuf[0] && !IS_Display_Mute())
 			{
 				//if(AD85050_Amp_Get_Cur_CLK_Status())
@@ -3905,6 +3905,7 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 			}
 			else
 				uMode_Change = uBuf[0];
+#endif
 
 			if(uBuf[0] == 0x07) //Bluetooth Mode
 				AD85050_Dac_Volume_Set(FALSE);

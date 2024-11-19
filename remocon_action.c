@@ -22,6 +22,8 @@
 #include "pcm9211.h"
 #include "key.h"
 
+extern uint16_t key_timer;
+
 /* Private define ----------------------------------------------------*/
 //#define REMOTE_CONTROL_ACTION_DBG							(1)
 
@@ -94,5 +96,8 @@ void Send_Remote_Key_Event(uint8_t IR_KEY)
 
 	keyCode = IR_KEY;
 	keyOk = ON;
+
+	if(keyCode == INPUT_BT_KEY || keyCode == INPUT_AUX_KEY)
+		key_timer = df10msTimer300ms;
 }
 

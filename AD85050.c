@@ -26,56 +26,6 @@
 
 /* Private typedef ---------------------------------------------------*/
 /* Private define ----------------------------------------------------*/
-#define AD85050_STATE_CTL5_REG						(0x19)
-#define AD85050_DRC_LINK_ENABLE						(0x18)
-#define AD85050_DRC_LINK_DISABLE					(0x10)
-
-#define AD85050_STATE_CTL6_REG						(0x1A)
-#define AD85050_RESET_ON								(~(0x20))
-#define AD85050_RESET_OFF								(0x20)
-
-#define AD85050_DAC_GAIN_REG						(0x36)
-#define AD85050_DAC_GAIN_MINUS_4DB					(0xC0)
-
-#define AD85050_STATE_CTL2_REG						(0x01)
-#define AD85050_M12D2_SAMPLE_FREQ_48K						(0x91)
-
-#define AD85050_STATE_CTL3_REG						(0x02)
-#define AD85050_MASTER_MUTE_ON						(0x40)
-#define AD85050_MASTER_MUTE_OFF						(0x00)
-
-#define AD85050_STATE_CTL4_REG						(0x0C)
-#define AD85050_CHANNEL2_USE_CHANNEL1_EQ				(0x98)
-
-//RAM Access Register
-#define AD85050_COEFFICIENT_RAM_BASE_ADDR_REG		(0x1D)
-#define AD85050_TOP_COFFICIENTS_A1_REG				(0x1E)
-#define AD85050_MID_COFFICIENTS_A1_REG				(0x1F)
-#define AD85050_BOTTOM_COFFICIENTS_A1_REG			(0x20)
-#define AD85050_TOP_COFFICIENTS_A2_REG				(0x21)
-#define AD85050_MID_COFFICIENTS_A2_REG				(0x22)
-#define AD85050_BOTTOM_COFFICIENTS_A2_REG			(0x23)
-#define AD85050_TOP_COFFICIENTS_B1_REG				(0x24)
-#define AD85050_MID_COFFICIENTS_B1_REG				(0x25)
-#define AD85050_BOTTOM_COFFICIENTS_B1_REG			(0x26)
-#define AD85050_TOP_COFFICIENTS_B2_REG				(0x27)
-#define AD85050_MID_COFFICIENTS_B2_REG				(0x28)
-#define AD85050_BOTTOM_COFFICIENTS_B2_REG			(0x29)
-#define AD85050_TOP_COFFICIENTS_A0_REG				(0x2A)
-#define AD85050_MID_COFFICIENTS_A0_REG				(0x2B)
-#define AD85050_BOTTOM_COFFICIENTS_A0_REG			(0x2C)
-#define AD85050_RAM_SETTING_REG						(0x2D)
-
-#define VOLUME_DEFAULT_LEVEL		(0x32)
-#define AUX_MASTER_VOLUME_LEVEL		(0x04)//(0x05)
-#define BT_MASTER_VOLUME_LEVEL		(0x33)//(0x19)
-
-#define AD85050_VOL_CONTROL_REG1					(0x03)
-#define AD85050_CHANNEL1_VOL_CONTROL_REG1					(0x04)
-#define AD85050_CHANNEL2_VOL_CONTROL_REG1					(0x05)
-
-#define AD85050_ERROR_REG								(0x84)
-
 uint8_t AD85050_BT_Volume_Table[] = {
   0xff    , //min
   0x62	  , //-37db
@@ -538,27 +488,7 @@ void AD85050_Process(void)
 		case AD85050_POWER_UP_INIT:
 			if(ad85050_timer == df10msTimer0ms)
 			{
-/*
-#ifdef TP_PBA
-				if(!(HAL_GPIO_ReadPin(PE) & (1<<0)))
-#else
-				if(HAL_GPIO_ReadPin(PC) & (1<<3))
-#endif
-				{
-					if(already_initialized)
-					{
-						TIMER20_mute_flag_Start();
-					}
-					else
-						MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x02);
-				}
-				else
-				{
-					if(BT_Is_Routed())
-						TIMER20_mute_flag_Start();
-				}
-*/
-				ad85050_status = AD85050_WAIT_CLK_STABLE; //AD85050_POWER_UP_COMPLETE;
+				ad85050_status = AD85050_WAIT_CLK_STABLE;
 				ad85050_timer = df10msTimer100ms;
 			}
 			break;
@@ -566,31 +496,19 @@ void AD85050_Process(void)
 		case AD85050_WAIT_CLK_STABLE:
 			if(ad85050_timer == df10msTimer0ms)
 			{
-				//if(AD85050_Amp_Get_Cur_CLK_Status())
-				{
-					MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x02);
-					Set_MB3021_BT_Module_Source_Change();
+				MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x02);
+				Set_MB3021_BT_Module_Source_Change();
 #ifdef AD85050_DEBUG_MSG
-					_DBG("\n\rAD85050 CLK STABLE");
+				_DBG("\n\rAD85050 CLK STABLE");
 #endif
-					//ad85050_timer = df10msTimer5s;
-					ad85050_status = AD85050_POWER_UP_COMPLETE;
-				}
-				//else
-				//	ad85050_timer = df10msTimer200ms;
+				ad85050_status = AD85050_POWER_UP_COMPLETE;
 			}
 			break;
 
 		case AD85050_POWER_UP_COMPLETE:
-			//if(AD85050_Amp_Get_Cur_CLK_Status())
 			if(ad85050_timer == df10msTimer0ms)
 			{
-				//Set_MB3021_BT_Module_Source_Change();
-#ifdef TP_PBA
-				if(!(HAL_GPIO_ReadPin(PE) & (1<<0)))
-#else
-				if(HAL_GPIO_ReadPin(PC) & (1<<3))
-#endif
+				if(IsInputSwitch_Aux())
 				{
 					//if(already_initialized)
 					if(bAuxRouting)
@@ -621,15 +539,17 @@ void AD85050_Process(void)
 			{
 				uint8_t uReg_Value = 0;
 
-				AD85050_Amp_Mute(TRUE, FALSE);
+				//AD85050_Amp_Mute(TRUE, FALSE);
 
-#ifdef TP_PBA
-				if(!(HAL_GPIO_ReadPin(PE) & (1<<0)))
-#else
-				if((HAL_GPIO_ReadPin(PC) & (1<<3)))
-#endif
+				if(IsInputSwitch_Aux())
 				{
-					uReg_Value = AUX_MASTER_VOLUME_LEVEL;
+#ifdef TP_PBA
+					if(IsBT_OUTSwitch_On())
+						uReg_Value = AUX_MASTER_VOLUME_LEVEL_BT_OUT_ON;
+					else
+#endif
+						uReg_Value = AUX_MASTER_VOLUME_LEVEL;
+
 					I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_VOL_CONTROL_REG1,&uReg_Value,1);
 				}
 				else
@@ -676,7 +596,7 @@ void AD85050_ErrorProcess(void)
 	if(protection_check_flag == OFF)
 		return;
 
-	protection_check_flag = protection_check_flag & ~(AMP_PROTECTION_MONITOR);
+	//protection_check_flag = protection_check_flag & ~(AMP_PROTECTION_MONITOR);
 
 /*
 	HAL_GPIO_ClearPin(PF, _BIT(4)); //DAMP_PDN
@@ -684,7 +604,7 @@ void AD85050_ErrorProcess(void)
 	HAL_GPIO_ClearPin(PA, _BIT(5)); //+3.3V DAMP Power
 */
 	
-	Set_Is_Mute(TRUE);
+	//Set_Is_Mute(TRUE);
 	
 	if(Get_Cur_Status_LED_Mode() != STATUS_AMP_ERROR_MODE)
 		Set_Status_LED_Mode(STATUS_AMP_ERROR_MODE);
@@ -1212,8 +1132,8 @@ uint32_t AD85050_Amp_Volume_Set_with_Index(uint32_t Vol_Level, Bool Inverse, Boo
 
     uint32_t uCurVolLevel = 0;
 
-	if(ad85050_status < AD85050_POWER_UP_COMPLETE)
-		return 0;
+	//if(ad85050_status < AD85050_POWER_UP_COMPLETE)
+	//	return 0;
 
 #ifdef AD85050_DEBUG_MSG
 	_DBG("\n\rAD85050_Amp_Volume_Set_with_Index() !!!");
@@ -1277,7 +1197,10 @@ uint32_t AD85050_Amp_Volume_Set_with_Index(uint32_t Vol_Level, Bool Inverse, Boo
 	_DBD(slaveBT_Vol_Level);
 #endif	
 
-    AD85050_Amp_Set_Cur_Volume_Level(uCurVolLevel); //Save current volume level  
+    AD85050_Amp_Set_Cur_Volume_Level(uCurVolLevel); //Save current volume level
+
+	if(ad85050_status < AD85050_POWER_UP_COMPLETE)
+		return 0;
 
     if(slaveBT_Vol_Level != INVALID_VOLUME && bt_vol_Actual_Key)
     {
@@ -1578,7 +1501,7 @@ void AD85050_Amp_Set_Cur_Volume_Level(uint32_t volume)
 
     area1_vol_level = (uint8_t)((volume & AREA1_VOLUME_MASK) >> 8);
     if(area1_vol_level == INVALID_VOLUME)
-        area1_vol_level = (uint8_t)((uCurrent_Vol_Level & AREA2_VOLUME_MASK) >> 8);
+        area1_vol_level = (uint8_t)((uCurrent_Vol_Level & AREA1_VOLUME_MASK) >> 8);
 
     bt_vol_level = (uint8_t)(volume & BT_VOLUME_MASK);
     if(bt_vol_level == INVALID_VOLUME)
@@ -2089,13 +2012,15 @@ void AD85050_Amp_Volume_Register_Writing(uint16_t uVolumeLevel)
     }
     } 
 
-#ifdef TP_PBA
-	if(!(HAL_GPIO_ReadPin(PE) & (1<<0)))
-#else
-	if((HAL_GPIO_ReadPin(PC) & (1<<3)))
-#endif
+	if(IsInputSwitch_Aux())
 	{
-		uReg_Value = AUX_MASTER_VOLUME_LEVEL;
+#ifdef TP_PBA
+		if(IsBT_OUTSwitch_On())
+			uReg_Value = AUX_MASTER_VOLUME_LEVEL_BT_OUT_ON;
+		else
+#endif		
+			uReg_Value = AUX_MASTER_VOLUME_LEVEL;
+
 		I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_VOL_CONTROL_REG1,&uReg_Value,1);
 	}
 	else
@@ -2106,11 +2031,7 @@ void AD85050_Amp_Volume_Register_Writing(uint16_t uVolumeLevel)
 
 	if(uArea1_Level != INVALID_VOLUME)
 	{
-#ifdef TP_PBA
-		if(!(HAL_GPIO_ReadPin(PE) & (1<<0)))
-#else
-		if((HAL_GPIO_ReadPin(PC) & (1<<3)))
-#endif
+		if(IsInputSwitch_Aux())
 			uReg_Value = AD85050_AUX_Volume_Table[uArea1_Level];
 		else
 			uReg_Value = AD85050_BT_Volume_Table[uArea1_Level];
@@ -2124,11 +2045,7 @@ void AD85050_Amp_Volume_Register_Writing(uint16_t uVolumeLevel)
 
 	if(uArea2_Level != INVALID_VOLUME)
 	{
-#ifdef TP_PBA
-		if(!(HAL_GPIO_ReadPin(PE) & (1<<0)))
-#else
-		if((HAL_GPIO_ReadPin(PC) & (1<<3)))
-#endif
+		if(IsInputSwitch_Aux())
 			uReg_Value = AD85050_AUX_Volume_Table[uArea2_Level];
 		else
 			uReg_Value = AD85050_BT_Volume_Table[uArea2_Level];
