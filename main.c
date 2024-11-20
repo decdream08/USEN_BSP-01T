@@ -125,7 +125,7 @@ uint32_t ADC_Value_Update_to_send_Slave(void)
         if(i==51)
           ADC_Level_Max = 255;
         else
-          ADC_Level_Max = (i*5)-1; //4 9 14 19 ... 244 249~253
+          ADC_Level_Max = (i*5)-2; //1; //4 9 14 19 ... 244 249~253
 
         if((ADC_Value >= ADC_Level_Min) && (ADC_Level_Max >= ADC_Value)) //2023-02-08_3 : Added additional code for Volume GAP
         {

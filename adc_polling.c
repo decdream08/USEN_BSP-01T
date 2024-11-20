@@ -90,7 +90,7 @@ void ADC_Polling_Process(void)
 							if(i==51)
 								ADC_Level_Max = 255;
 							else
-								ADC_Level_Max = (i*5)-1; //4 9 14 19 ... 244 249~253
+								ADC_Level_Max = (i*5)-2;//1; //4 9 14 19 ... 244 249~253
 
 							if((ADC3_Value >= ADC_Level_Min) && (ADC_Level_Max >= ADC3_Value)) //2023-02-08_3 : Added additional code for Volume GAP
 							{
@@ -101,14 +101,14 @@ void ADC_Polling_Process(void)
 							{
 								if(uADC3CurVolLevel > uCurVolLevel_ADC3_bk)
 								{
-									if((uADC3CurVolLevel - uCurVolLevel_ADC3_bk) > 1)
+									if((uADC3CurVolLevel - uCurVolLevel_ADC3_bk) > 2/*1*/)
 										B_Update = TRUE;
 									else
 										B_Update = FALSE;
 								}
 								else
 								{
-									if((uCurVolLevel_ADC3_bk - uADC3CurVolLevel) > 1)
+									if((uCurVolLevel_ADC3_bk - uADC3CurVolLevel) > 2/*1*/)
 										B_Update = TRUE;
 									else
 										B_Update = FALSE;
@@ -188,7 +188,7 @@ void ADC_Polling_Process(void)
 							if(i==51)
 								ADC_Level_Max = 255;
 							else
-								ADC_Level_Max = (i*5)-1; //4 9 14 19 ... 244 249~253
+								ADC_Level_Max = (i*5)-2;//1; //4 9 14 19 ... 244 249~253
 
 							if((ADC4_Value >= ADC_Level_Min) && (ADC_Level_Max >= ADC4_Value)) //2023-02-08_3 : Added additional code for Volume GAP
 							{
@@ -199,14 +199,14 @@ void ADC_Polling_Process(void)
 							{
 								if(uADC4CurVolLevel > uCurVolLevel_ADC4_bk)
 								{
-									if((uADC4CurVolLevel - uCurVolLevel_ADC4_bk) > 1)
+									if((uADC4CurVolLevel - uCurVolLevel_ADC4_bk) > 2/*1*/)
 										B_Update = TRUE;
 									else
 										B_Update = FALSE;
 								}
 								else
 								{
-									if((uCurVolLevel_ADC4_bk - uADC4CurVolLevel) > 1)
+									if((uCurVolLevel_ADC4_bk - uADC4CurVolLevel) > 2/*1*/)
 										B_Update = TRUE;
 									else
 										B_Update = FALSE;
@@ -296,7 +296,7 @@ void ADC_Polling_Process(void)
 							if(i==51)
 								ADC_Level_Max = 255;
 							else
-								ADC_Level_Max = (i*5)-1; //4 9 14 19 ... 244 249~253
+								ADC_Level_Max = (i*5)-2;//1; //4 9 14 19 ... 244 249~253
 
 							if((ADC2_Value >= ADC_Level_Min) && (ADC_Level_Max >= ADC2_Value)) //2023-02-08_3 : Added additional code for Volume GAP
 							{
@@ -307,14 +307,14 @@ void ADC_Polling_Process(void)
 							{
 								if(uADC2CurVolLevel > uCurVolLevel_ADC2_bk)
 								{
-									if((uADC2CurVolLevel - uCurVolLevel_ADC2_bk) > 1)
+									if((uADC2CurVolLevel - uCurVolLevel_ADC2_bk) > 2/*1*/)
 										B_Update = TRUE;
 									else
 										B_Update = FALSE;
 								}
 								else
 								{
-									if((uCurVolLevel_ADC2_bk - uADC2CurVolLevel) > 1)
+									if((uCurVolLevel_ADC2_bk - uADC2CurVolLevel) > 2/*1*/)
 										B_Update = TRUE;
 									else
 										B_Update = FALSE;
