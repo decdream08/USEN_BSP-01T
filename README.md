@@ -673,3 +673,6 @@
 ## 2024-11-19 (BAP-02)
   - H/W 요청 : AUX모드 BT_OUT ON시 1.5dB 낮게 설정
   - BT_OUT ON/OFF, INPUT BT/AUX 스위치 빠르게 동작할 경우 소리 출력 안되는 문제 수정 (PBA 상태)
+
+## 2024-11-21 (BAP-02)
+  - SIG PTS Test를 위한 코드 추가

@@ -154,6 +154,9 @@ void Key_Process(void)
 				break;
 #endif
 			case BT_OUT_OFF_KEY:
+#ifdef SIG_TEST
+				MB3021_BT_Module_SIG_Test(A2DP_Abort_Request);
+#else
 				if(IsInputSwitch_Aux())
 				{
 					if(Get_master_slave_grouping_flag())
@@ -169,13 +172,18 @@ void Key_Process(void)
 #ifdef KEY_CHECK_DEBUG_MSG
 				_DBG("\n\rBT_OUT_OFF_KEY");
 #endif
+#endif
 				break;
 
 			case BT_OUT_ON_KEY:
+#ifdef SIG_TEST
+				MB3021_BT_Module_SIG_Test(A2DP_Close_Request);
+#else				
 				PCM9211_Set_Status(PCM9211_CHANGE_PATH_TO_AUXIN0);
 
 #ifdef KEY_CHECK_DEBUG_MSG
 				_DBG("\n\rBT_OUT_ON_KEY");
+#endif
 #endif
 				break;
 
