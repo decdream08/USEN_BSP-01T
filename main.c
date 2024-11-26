@@ -1158,7 +1158,7 @@ void GPIOF_IRQHandler_IT(void)
 		shift_bit = 0xffffffff;
 					
 #ifdef KEY_CHATTERING_ENABLE
-		delay_ms(KEY_CHATTERING_DELAY_MS);
+		delay_ms(KEY_CHATTERING_DELAY_MS+60);
 #endif
 		if(status & (3UL<<(0<<1))) //0x00000003 PF0 : FACTORY RESET Button
 		{
