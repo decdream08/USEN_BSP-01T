@@ -1378,7 +1378,6 @@ void EXIT_PortF_Configure(void)
  **********************************************************************/
 void GPIO_Configure(void)
 {
-#if 1 //USEN_BAP2 GPIO
 	/* I2C0 PA1:SCL1, PA0:SDA1 */
 	HAL_GPIO_ConfigOutput(PA, 0, ALTERN_FUNC);
 	HAL_GPIO_ConfigFunction(PA, 0, FUNC1);
@@ -1459,7 +1458,12 @@ void GPIO_Configure(void)
 	HAL_GPIO_ConfigPullup(PC, 1, DISPUPD);
 	HAL_GPIO_SetPin(PC, _BIT(1));
 
-#ifndef TP_PBA
+#ifdef TP_PBA
+	/* NC */
+	HAL_GPIO_ConfigOutput(PC, 2, PUSH_PULL_OUTPUT);
+	HAL_GPIO_ConfigPullup(PC, 2, DISPUPD);
+	HAL_GPIO_ClearPin(PC, _BIT(2));
+#else
 	/* GPIO Output setting PC2 - Outlet enable(High:On, Low:off) */
 	HAL_GPIO_ConfigOutput(PC, 2, PUSH_PULL_OUTPUT);
 	HAL_GPIO_ConfigPullup(PC, 2, DISPUPD);
@@ -1522,22 +1526,20 @@ void GPIO_Configure(void)
 	HAL_GPIO_ConfigPullup(PE, 2, DISPUPD);
 	HAL_GPIO_ClearPin(PE, _BIT(2));
 
-#ifndef TP_PBA
-	/* GPIO Output setting pin PE3 BT_out4*/
+	/* NC */
 	HAL_GPIO_ConfigOutput(PE, 3, PUSH_PULL_OUTPUT);
 	HAL_GPIO_ConfigPullup(PE, 3, DISPUPD);
 	HAL_GPIO_ClearPin(PE, _BIT(3));
-
-	/* GPIO Output setting pin PE4 BT_out3*/
+    
+	/* NC */
 	HAL_GPIO_ConfigOutput(PE, 4, PUSH_PULL_OUTPUT);
 	HAL_GPIO_ConfigPullup(PE, 4, DISPUPD);
 	HAL_GPIO_ClearPin(PE, _BIT(4));
 
-	/* GPIO Output setting pin PE5 BT_out2*/
+	/* NC */
 	HAL_GPIO_ConfigOutput(PE, 5, PUSH_PULL_OUTPUT);
 	HAL_GPIO_ConfigPullup(PE, 5, DISPUPD);
 	HAL_GPIO_ClearPin(PE, _BIT(5));
-#endif
 
 	/* GPIO Output setting pin PE6 BT_out1*/
 	HAL_GPIO_ConfigOutput(PE, 6, PUSH_PULL_OUTPUT);
@@ -1554,10 +1556,17 @@ void GPIO_Configure(void)
 	HAL_GPIO_ConfigPullup(PF, 0, ENPU); 
 	HAL_GPIO_ClearPin(PF, _BIT(0));
 
+#ifdef TP_PBA
+    /* NC */
+	HAL_GPIO_ConfigOutput(PF, 1, PUSH_PULL_OUTPUT);
+	HAL_GPIO_ConfigPullup(PF, 1, DISPUPD);
+	HAL_GPIO_ClearPin(PF, _BIT(1));
+#else
 	/*ES2 : NC*/ /* external interrupt pin PF1 : BT_Out area1 - Low : BT_Out_Area1*/
 	HAL_GPIO_ConfigOutput(PF, 1, INPUT);
 	HAL_GPIO_ConfigPullup(PF, 1, ENPU); 
 	HAL_GPIO_ClearPin(PF, _BIT(1));
+#endif
 
 	/*LV_DET - Pin High : Low voltage -*/ /* external interrupt pin PF2 : BT_Out area2 - Low : BT_Out_Area2*/
 	HAL_GPIO_ConfigOutput(PF, 2, INPUT);
@@ -1584,192 +1593,6 @@ void GPIO_Configure(void)
 	HAL_GPIO_ConfigFunction(PF, 6, FUNC2);
 	HAL_GPIO_ConfigOutput(PF, 7, ALTERN_FUNC);
 	HAL_GPIO_ConfigFunction(PF, 7, FUNC2);
-#else
-    int i;
-  
-    for(i=2;i<4;i++) //PB 2 ~ 3
-    {
-      HAL_GPIO_ConfigOutput(PB, i, PUSH_PULL_OUTPUT);
-      HAL_GPIO_ConfigPullup(PB, i, ENPD);
-      HAL_GPIO_ClearPin(PB, _BIT(i));
-    }
-  
-    for(i=6;i<8;i++) //PB 6 ~ 7
-    {
-      HAL_GPIO_ConfigOutput(PB, i, PUSH_PULL_OUTPUT);
-      HAL_GPIO_ConfigPullup(PB, i, ENPD);
-      HAL_GPIO_ClearPin(PB, _BIT(i));
-    }
-  
-    //PC 2
-    i = 2;
-    HAL_GPIO_ConfigOutput(PC, i, PUSH_PULL_OUTPUT);
-    HAL_GPIO_ConfigPullup(PC, i, ENPD);
-    HAL_GPIO_ClearPin(PC, _BIT(i));
-  
-    for(i=0;i<2;i++) //PD 0 ~ 1
-    {
-      HAL_GPIO_ConfigOutput(PD, i, PUSH_PULL_OUTPUT);
-      HAL_GPIO_ConfigPullup(PD, i, ENPD);
-      HAL_GPIO_ClearPin(PD, _BIT(i));
-    }
-  
-    for(i=0;i<7;i++) //PE 0 ~ 6
-    {
-      HAL_GPIO_ConfigOutput(PE, i, PUSH_PULL_OUTPUT);
-      HAL_GPIO_ConfigPullup(PE, i, ENPD);
-      HAL_GPIO_ClearPin(PE, _BIT(i));
-    }
-  
-    for(i=1;i<4;i++) //PF 1 ~ 3
-    {
-      HAL_GPIO_ConfigOutput(PF, i, PUSH_PULL_OUTPUT);
-      HAL_GPIO_ConfigPullup(PF, i, ENPD);
-      HAL_GPIO_ClearPin(PF, _BIT(i));
-    }
-
-    /* external interrupt pin PA0 : AUTO_SW */
-    HAL_GPIO_ConfigOutput(PA, 0, INPUT);
-    HAL_GPIO_ConfigPullup(PA, 0, ENPU); 
-    HAL_GPIO_ClearPin(PA, _BIT(0));
-  
-    /* external interrupt pin PA1 : M/S_SWITCH_1 */
-    HAL_GPIO_ConfigOutput(PA, 1, INPUT);
-    HAL_GPIO_ConfigPullup(PA, 1, ENPU); 
-    HAL_GPIO_ClearPin(PA, _BIT(1));
-  
-    /* external interrupt pin PA6 : POWER_Off(short)/POWER_ON(Long) */
-    HAL_GPIO_ConfigOutput(PA, 6, INPUT);
-    HAL_GPIO_ConfigPullup(PA, 6, ENPU); 
-    HAL_GPIO_ClearPin(PA, _BIT(6));
-  
-    //To Do !!! PA4 : LOW_VOL_DETECT
-    /* external interrupt pin PA7 : BT_UPDATE_DET(High) / Normal(Low) */ //2022-10-12_4
-    HAL_GPIO_ConfigOutput(PA, 7, INPUT);
-    HAL_GPIO_ConfigPullup(PA, 7, ENPU); 
-    HAL_GPIO_ClearPin(PA, _BIT(7));
-  
-    /* External interrupt pin PE7 : BT KEY */ //Implemented Interrupt Port E for BT Key(PE7) //2022-10-11_2
-    HAL_GPIO_ConfigOutput(PE, 7, INPUT);
-    HAL_GPIO_ConfigPullup(PE, 7, ENPD); //2022-12-08 : Pull-Down Setting and controlled by externall Pull-up
-    HAL_GPIO_ClearPin(PE, _BIT(7));
-  
-    /* ADC pin PA2 : BSP_VOL_A/D(Attenuator Volume) */
-    HAL_GPIO_ConfigOutput(PA, 2, ALTERN_FUNC);
-    HAL_GPIO_ConfigFunction(PA, 2, FUNC3);
-    HAL_GPIO_ConfigPullup(PA, 2, DISPUPD);
-  
-    /* ADC pin PA3 : VOL_CONT(Master Volume) */
-    HAL_GPIO_ConfigOutput(PA, 3, ALTERN_FUNC);
-    HAL_GPIO_ConfigFunction(PA, 3, FUNC3);
-    HAL_GPIO_ConfigPullup(PA, 3, DISPUPD);
-  
-    /* GPIO Output setting PA5 - +3.3V_DAMP_SW_1 */
-    HAL_GPIO_ConfigOutput(PA, 5, PUSH_PULL_OUTPUT);
-    HAL_GPIO_ConfigPullup(PA, 5, DISPUPD);
-    HAL_GPIO_ClearPin(PA, _BIT(5));
-  
-    /* GPIO Output setting PC4 - +3.3V_SIG_SW */
-    HAL_GPIO_ConfigOutput(PC, 4, PUSH_PULL_OUTPUT);
-    HAL_GPIO_ConfigPullup(PC, 4, DISPUPD);
-    HAL_GPIO_ClearPin(PC, _BIT(4));
-  
-    /* GPIO Output setting PD4 - +24V_DAMP_SW */
-    HAL_GPIO_ConfigOutput(PD, 4, PUSH_PULL_OUTPUT);
-    HAL_GPIO_ConfigPullup(PD, 4, DISPUPD);
-    HAL_GPIO_ClearPin(PD, _BIT(4));
-  
-    /* GPIO Output setting PD5 - SW_+3.3V_SW(LED Power Control) */
-    HAL_GPIO_ConfigOutput(PD, 5, PUSH_PULL_OUTPUT);
-    HAL_GPIO_ConfigPullup(PD, 5, DISPUPD);
-    HAL_GPIO_ClearPin(PD, _BIT(5));
-  
-    /* external interrupt pin PF0 : FACTORY RESET Button */
-    HAL_GPIO_ConfigOutput(PF, 0, INPUT);
-    HAL_GPIO_ConfigPullup(PF, 0, ENPU); 
-    HAL_GPIO_ClearPin(PF, _BIT(0));
-  
-    /* setting PF4 - DAMP_PDN */
-    HAL_GPIO_ConfigOutput(PF, 4, PUSH_PULL_OUTPUT);
-    HAL_GPIO_ConfigPullup(PF, 4, DISPUPD);
-    HAL_GPIO_ClearPin(PF, _BIT(4));
-  
-    /* External interrupt pin PF5 - DAMP_ERROR */
-    HAL_GPIO_ConfigOutput(PF, 5, INPUT);
-    HAL_GPIO_ConfigPullup(PF, 5, ENPU);
-    HAL_GPIO_ClearPin(PF, _BIT(5));
-  
-    /* Initialize USART10 pin connect - TX10 : PB0 / RX10 : PB1 */
-    HAL_GPIO_ConfigOutput(PB, 1, ALTERN_FUNC);
-    HAL_GPIO_ConfigFunction(PB, 1, FUNC1);
-    HAL_GPIO_ConfigPullup(PB, 1, ENPU);
-  
-    HAL_GPIO_ConfigOutput(PB, 0, ALTERN_FUNC);
-    HAL_GPIO_ConfigFunction(PB, 0, FUNC1);
-  
-    /* PC0 Output - MODULE_RESET *///In referece flatrom, this port works as remote control port.
-    HAL_GPIO_ConfigOutput(PC, 0, PUSH_PULL_OUTPUT);
-    HAL_GPIO_ConfigPullup(PC, 0, DISPUPD);
-    HAL_GPIO_SetPin(PC, _BIT(0));
-    
-    /* External interrupt pin PC3 */
-    HAL_GPIO_ConfigOutput(PC, 3, INPUT);
-    HAL_GPIO_ConfigPullup(PC, 3, ENPU);
-    HAL_GPIO_ClearPin(PC, _BIT(3));
-  
-    /* PC1 Output - STATUS_LED_W1 */
-    HAL_GPIO_ConfigOutput(PC, 1, PUSH_PULL_OUTPUT);
-    HAL_GPIO_ConfigPullup(PC, 1, DISPUPD);
-    HAL_GPIO_SetPin(PC, _BIT(1));
-  
-    /* PD2 Output - BT_PAIRING_B */
-    HAL_GPIO_ConfigOutput(PD, 2, OPEN_DRAIN_OUTPUT);
-    HAL_GPIO_ConfigPullup(PD, 2, DISPUPD);
-    HAL_GPIO_SetPin(PD, _BIT(2));
-  
-    /* PD3 Output - BT_PAIRING_W */
-    HAL_GPIO_ConfigOutput(PD, 3, OPEN_DRAIN_OUTPUT);
-    HAL_GPIO_ConfigPullup(PD, 3, DISPUPD);
-    HAL_GPIO_SetPin(PD, _BIT(3));
-
-#ifdef _DEBUG_MSG //2023-05-12_1 : #ifndef _DEBUG_MSG //If we don't use DEBUG_MSG, we need to set some GPIO like below. Becasue these GPIOs can avoid USART10 UART error. But we don't know why.
-    HAL_GPIO_ConfigOutput(PB, 7, ALTERN_FUNC); //RX1
-    HAL_GPIO_ConfigFunction(PB, 7, FUNC1);
-    HAL_GPIO_ConfigPullup(PB, 7, 1); 
-  
-    HAL_GPIO_ConfigOutput(PB, 6, ALTERN_FUNC); //TX1
-    HAL_GPIO_ConfigFunction(PB, 6, FUNC1);
-    HAL_GPIO_ConfigPullup(PB, 6, 1);
-#endif
-
-/*
-    delay_ms(20);
-    HAL_GPIO_SetPin(PA, _BIT(5)); //+3.3V_DAMP_SW_1
-    delay_ms(20);
-    HAL_GPIO_SetPin(PD, _BIT(4)); //+24V_DAMP_SW
-    delay_ms(20);
-    HAL_GPIO_SetPin(PF, _BIT(4)); //DAMP_PDN
-*/
-    /* GPIO Output setting PC4 - +3.3V_SIG_SW */
-    HAL_GPIO_SetPin(PC, _BIT(4));
-  
-    /* GPIO Output setting PD5 - SW_+3.3V_SW(LED Power Control) */
-    HAL_GPIO_SetPin(PD, _BIT(5));
-
-    /* I2C0 PF6:SCL0, PF7:SDA0 */
-    HAL_GPIO_ConfigOutput(PF, 6, ALTERN_FUNC);
-    HAL_GPIO_ConfigFunction(PF, 6, FUNC2);
-    HAL_GPIO_ConfigOutput(PF, 7, ALTERN_FUNC);
-    HAL_GPIO_ConfigFunction(PF, 7, FUNC2);
-
-#ifdef I2C_1_ENABLE
-    /* I2C0 PA1:SCL1, PA0:SDA1 */
-    HAL_GPIO_ConfigOutput(PA, 0, ALTERN_FUNC);
-    HAL_GPIO_ConfigFunction(PA, 0, FUNC1);
-    HAL_GPIO_ConfigOutput(PA, 1, ALTERN_FUNC);
-    HAL_GPIO_ConfigFunction(PA, 1, FUNC1);
-#endif //I2C_1_ENABLE
-#endif
 }
 
 /**********************************************************************
