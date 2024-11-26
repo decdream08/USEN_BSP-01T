@@ -676,3 +676,6 @@
 
 ## 2024-11-21 (BAP-02)
   - SIG PTS Test를 위한 코드 추가
+
+## 2024-11-22 (BAP-02)
+  - H/W 요청 - NC port push pull out으로 적용
