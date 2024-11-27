@@ -288,7 +288,12 @@ void Remocon_Power_Key_Action_Toggle(void) //For only Power Key input
 	if(!Power_State()) //Execute Power On
 	{
 		if(Power_Get_Mode() == PWR_STNDBY)
+		{
+			if(Get_Cur_Status_LED_Mode() == STATUS_PROTECTION_MODE)
+				Set_Status_LED_Mode(STATUS_POWER_OFF_MODE);
+
 			Power_Mode_Set(PWR_ON_START);
+		}
 	}
 	else //Execute Power Off
 	{		

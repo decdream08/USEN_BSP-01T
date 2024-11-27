@@ -91,6 +91,8 @@ static void Power_On_Start_Process(void)
 				uint8_t uFlash_Read_Buf3[FLASH_SAVE_DATA_END];
 				Flash_Read(FLASH_SAVE_START_ADDR, uFlash_Read_Buf3, FLASH_SAVE_DATA_END);
 
+				TIMER20_Amp_error_flag_Stop();
+
 				Power_state = TRUE;
 
 				if(IsInputSwitch_Aux()) //Keep Aux Mode LED When Power on

@@ -129,3 +129,8 @@ void init_protect_values(void)
 	protection_check_flag = OFF;
 }
 
+void protection_set_mode(ProtectionMode mode)
+{
+	protection_mode = protection_data.mode = mode;
+}
+
