@@ -15,6 +15,7 @@
 #include "power.h"
 #include "led_display.h"
 #include "timer20.h"
+#include "bt_MB3021.h"
 
 uint16_t protection_timer;
 uint8_t protection_check_flag;
@@ -38,6 +39,8 @@ void Protection_Process(void)
 		{
 			if ( protection_check() != ProtectionNone )
 			{
+				MB3021_BT_Module_Init(FALSE);
+
 				protection_mode = protection_data.mode;
 				Power_Mode_Set(PWR_OFF_PROTECTION_START);
 

@@ -887,8 +887,7 @@ void GPIOAB_IRQHandler_IT(void)
 				_DBG("\n\rSOC_ERROR - 6");
 #endif
 #if 1
-				if(!IsInputSwitch_Aux())
-					MB3021_BT_Module_Init(FALSE);
+				MB3021_BT_Module_Init(FALSE);
 				
 				protection_set_mode(ProtectionAMP);
 				Power_Mode_Set(PWR_OFF_PROTECTION_START);
@@ -1361,8 +1360,7 @@ void GPIOF_IRQHandler_IT(void)
 					_DBG("\n\rSOC_ERROR - 6");
 #endif
 #if 1
-					if(!IsInputSwitch_Aux())
-						MB3021_BT_Module_Init(FALSE);
+					MB3021_BT_Module_Init(FALSE);
 					
 					protection_set_mode(ProtectionAMP);
 					Power_Mode_Set(PWR_OFF_PROTECTION_START);
