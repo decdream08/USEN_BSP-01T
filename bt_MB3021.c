@@ -335,7 +335,7 @@ typedef enum {
 }Remote_Power_Key_Action;
 
 //Variable
-char MCU_Version[6] = "241128"; //"230727"; //MCU Version Info
+char MCU_Version[6] = "241211"; //"230727"; //MCU Version Info
 char BT_Version[7]; //MCU Version Info
 
 Bool BBT_Init_OK = FALSE;
@@ -2287,6 +2287,8 @@ static void MB3021_BT_Module_Receive_Data_IND(uint8_t major_id, uint8_t minor_id
 				{
 					bPolling_Get_Data |= BCRF_GET_PAIRED_DEVICE_LIST; //For init sequence (Init Sequnece : Broadcaster -0) //Last -5
 					BBT_Init_OK = TRUE;
+
+					TIMER20_switch_change_check_flag_Start();
 				}
 				break;
 				
@@ -3989,6 +3991,8 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 			//BMaster_Send_BLE_Remote_Data = TRUE;
 
 			//delay_ms(50); //Deleted 50ms delay because of speed of Master CMD for Slave
+
+			uInput_Key_Sync_buf8[input_key_Sync_Volume+1] = Convert_50Step_to_16Step(AD85050_Amp_Get_Cur_BT_Volume_Level());
 			
 			if(uBuf[6] == 0xff) //When we didn't get SPP data from Tablet, we don't need to send SPP receive data.
 			{
@@ -4009,6 +4013,7 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 			}
 			else
 			{
+				uBuf[input_key_Sync_Volume+1+6] = uInput_Key_Sync_buf8[input_key_Sync_Volume+1];
 				MB3021_BT_Module_Send_cmd_param(CMD_SET_BLE_MANUFACTURE_DATA_32+0x0800, uBuf); //BLE COM : Send SPP data to Slave SPK thru BLE Data - without checksum
 			}
 		}

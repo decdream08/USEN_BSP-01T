@@ -210,7 +210,7 @@ static void Power_On_Start_Process(void)
 			++mainPowerStep;
 			break;
 		case 5:
-			MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Power, 0x01);
+			//MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Power, 0x01);
 			++mainPowerStep;
 			break;
 		default:
@@ -252,7 +252,7 @@ static void Power_On_Start_Process(void)
 				HAL_GPIO_ConfigPullup(PD, 1, ENPU); 
 				HAL_GPIO_ClearPin(PD, _BIT(1));
 #endif
-				protection_check_flag = ETC_PROTECTION_MONITOR | AMP_PROTECTION_MONITOR | LED_PROTECTION_MONITOR;
+				//protection_check_flag = ETC_PROTECTION_MONITOR | AMP_PROTECTION_MONITOR | LED_PROTECTION_MONITOR;
 				Power_Mode_Set(PWR_ON_NORMAL);
 			}
 			break;
@@ -263,6 +263,8 @@ static void Power_Off_Start_Process(void)
 {
 	switch(mainPowerStep) {
 		case 0:
+			protection_check_flag = OFF;
+
 			PCM9211_PowerDown();
 			AD85050_PowerDown();
 
@@ -318,9 +320,9 @@ static void Power_Off_Start_Process(void)
 			//HAL_GPIO_ClearPin(PC, _BIT(2)); //Outlet Off
 
 			/* DAMP_GPIO0 */
-			HAL_GPIO_ConfigOutput(PB, 2, PUSH_PULL_OUTPUT);
-			HAL_GPIO_ConfigPullup(PB, 2, ENPU); 
-			HAL_GPIO_ClearPin(PB, _BIT(2));
+			//HAL_GPIO_ConfigOutput(PB, 2, PUSH_PULL_OUTPUT);
+			//HAL_GPIO_ConfigPullup(PB, 2, ENPU); 
+			//HAL_GPIO_ClearPin(PB, _BIT(2));
 
 			/* external interrupt pin PC4 : 8.5V short Protection - Low : short detection */
 			HAL_GPIO_ConfigOutput(PC, 4, PUSH_PULL_OUTPUT);
@@ -337,7 +339,7 @@ static void Power_Off_Start_Process(void)
 			HAL_GPIO_ConfigPullup(PD, 1, ENPU); 
 			HAL_GPIO_ClearPin(PD, _BIT(1));			
 
-			protection_check_flag = OFF;
+			//protection_check_flag = OFF;
 
 			if(mainPowerMode == PWR_OFF_PROTECTION_START)
 			{

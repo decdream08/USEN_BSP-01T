@@ -135,6 +135,7 @@ void PCM9211_Process(void);
 void PCM9211_PowerUp(void);
 void PCM9211_PowerDown(void);
 void PCM9211_Set_Status(PCM92211_Status op);
+PCM92211_Status PCM9211_Get_Status(void);
 void PCM9211_Init(void);
 void PCM9211_Set_Output(uint8_t Port);
 

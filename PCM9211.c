@@ -55,18 +55,21 @@ void PCM9211_Process(void)
 			break;
 
 		case PCM9211_CHANGE_PATH_TO_AUXIN0:
-			PCM9211_Set_Path_BT(TRUE);
+			if(AD85050_GetStatus() > AD85050_POWER_UP_INIT)
+				PCM9211_Set_Path_BT(TRUE);
 			break;
 
 		case PCM9211_CHANGE_PATH_TO_ADC:
-			PCM9211_Set_Path_ADC(TRUE);
+			if(AD85050_GetStatus() > AD85050_POWER_UP_INIT)
+				PCM9211_Set_Path_ADC(TRUE);
 			break;
 
 		case PCM9211_MUTE_WAITING:
 		case PCM9211_MUTE_WAITING_WITH_SLAVE:
 			if(pcm9211_timer  == df10msTimer0ms)
 			{
-				AD85050_Amp_Mute(FALSE, FALSE);
+				if(!IS_Display_Mute())
+					AD85050_Amp_Mute(FALSE, FALSE);
 
 				if(pcm9211_status == PCM9211_MUTE_WAITING_WITH_SLAVE)
 					MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x01); //MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Mute, 0x00);
@@ -122,9 +125,14 @@ void PCM9211_Set_Status(PCM92211_Status status)
 	pcm9211_status = status;
 }
 
+PCM92211_Status PCM9211_Get_Status(void)
+{
+	return pcm9211_status;
+}
+
 void PCM9211_PowerUp(void)
 {
-	HAL_GPIO_SetPin(PE, _BIT(2)); //reset
+	HAL_GPIO_SetPin(PE, _BIT(2)); //reset off
 
 	pcm9211_status = PCM9211_POWER_UP;
 	pcm9211_timer = df10msTimer20ms;
@@ -132,6 +140,7 @@ void PCM9211_PowerUp(void)
 
 void PCM9211_PowerDown(void)
 {
+	HAL_GPIO_ClearPin(PE, _BIT(2)); //reset on
 	pcm9211_status = PCM9211_POWER_DOWN;
 }
 
@@ -247,14 +256,24 @@ void PCM9211_Set_Path_BT(Bool mute_needed)
 		}
 	}
 
-	if(mute_needed && !Get_Is_Mute())
+	if(mute_needed/* && !Get_Is_Mute()*/)
 	{
-		AD85050_Amp_Mute(TRUE, FALSE);
-		//MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Mute, 0x01);
-		MB3021_BT_Module_Input_Key_Sync_With_Slave((Input_Key_Sync_With_Slave)(Input_key_Sync_Slave_Mute_Off | Input_key_Sync_Switch_Status), 0x02);
+		if(!Get_Is_Mute())
+		{
+			AD85050_Amp_Mute(TRUE, FALSE);
+			MB3021_BT_Module_Input_Key_Sync_With_Slave((Input_Key_Sync_With_Slave)(Input_key_Sync_Slave_Mute_Off | Input_key_Sync_Switch_Status), 0x02);
 
-		pcm9211_status = PCM9211_MUTE_WAITING_WITH_SLAVE;
-		pcm9211_timer  = df10msTimer600ms;
+			pcm9211_status = PCM9211_MUTE_WAITING_WITH_SLAVE;
+			pcm9211_timer  = df10msTimer600ms;
+		}
+		else
+		{
+			if(Is_TIMER20_mute_flag_set())
+				TIMER20_mute_flag_Start(TRUE);
+
+			Send_Cur_Master_Info_To_Tablet();
+			pcm9211_status = PCM9211_RUN;
+		}
 	}
 	else
 	{
@@ -325,20 +344,24 @@ void PCM9211_Set_Path_ADC(Bool mute_needed)
 		}
 	}
 
-	if(mute_needed && !Get_Is_Mute())
+	if(mute_needed/* && !Get_Is_Mute()*/)
 	{
-#if 1
-		AD85050_Amp_Mute(TRUE, FALSE);
-		MB3021_BT_Module_Input_Key_Sync_With_Slave((Input_Key_Sync_With_Slave)(Input_key_Sync_Slave_Mute_Off | Input_key_Sync_Switch_Status), 0x02);
+		if(!Get_Is_Mute())
+		{
+			AD85050_Amp_Mute(TRUE, FALSE);
+			MB3021_BT_Module_Input_Key_Sync_With_Slave((Input_Key_Sync_With_Slave)(Input_key_Sync_Slave_Mute_Off | Input_key_Sync_Switch_Status), 0x02);
 
-		pcm9211_status = PCM9211_MUTE_WAITING_WITH_SLAVE;
-		pcm9211_timer  = df10msTimer600ms;
-#else
-		AD85050_Amp_Mute(TRUE, FALSE);
+			pcm9211_status = PCM9211_MUTE_WAITING_WITH_SLAVE;
+			pcm9211_timer  = df10msTimer600ms;
+		}
+		else
+		{
+			if(Is_TIMER20_mute_flag_set())
+				TIMER20_mute_flag_Start(TRUE);
 
-		pcm9211_status = PCM9211_MUTE_WAITING;
-		pcm9211_timer  = df10msTimer400ms;
-#endif
+			Send_Cur_Master_Info_To_Tablet();
+			pcm9211_status = PCM9211_RUN;
+		}
 	}
 	else
 	{

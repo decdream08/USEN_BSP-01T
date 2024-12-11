@@ -24,6 +24,7 @@
 #include "key.h"
 #include "bt_MB3021.h"
 #include "power.h"
+#include "pcm9211.h"
 
 /* Private typedef ---------------------------------------------------*/
 /* Private define ----------------------------------------------------*/
@@ -57,6 +58,10 @@ int32_t aux_detecttion_flag = 0;
 int32_t drc_eq_set_recovery_flag = 0;
 
 int32_t power_on_volume_sync_flag = 0;
+
+int32_t switch_change_check_flag = 0;
+
+extern uint8_t uMode_Change;
 
 #if defined(USEN_TI_AMP_EQ_ENABLE) || defined(AD85050_ENABLE) //2023-05-09_2
 void TIMER20_drc_eq_set_flag_start(void)
@@ -453,6 +458,16 @@ void TIMER20_auto_power_flag_Stop()
 	auto_power_flag = 0;
 }
 
+void TIMER20_switch_change_check_flag_Start(void)
+{
+	switch_change_check_flag = 1;
+}
+
+void TIMER20_switch_change_check_flag_Stop(void)
+{	
+	switch_change_check_flag = 0;
+}
+
 Bool Get_auto_power_flag(void)
 {
 	Bool Ret;
@@ -469,6 +484,7 @@ void TIMER20_Flag_init(void)
 {
 	TIMER20_factory_reset_led_display_flag_Stop();
 	TIMER20_mute_flag_Stop();
+	TIMER20_switch_change_check_flag_Stop();
 }
 
 int32_t TIMER20_1s_Count_Value(void)
@@ -677,7 +693,8 @@ void TIMER20_IRQHandler_IT(void)
 #ifdef TIMER20_DEBUG_MSG
           _DBG("\n\r+++ Mute off using mute_flag !!!");
 #endif					
-          AD85050_Amp_Mute(FALSE, FALSE); //MUTE OFF
+					if(PCM9211_Get_Status() != PCM9211_MUTE_WAITING_WITH_SLAVE)
+	          			AD85050_Amp_Mute(FALSE, FALSE); //MUTE OFF
 				}
 			}
 			else
@@ -841,6 +858,27 @@ void TIMER20_IRQHandler_IT(void)
 			}
 			else
 				aux_setting_flag++;
+		}
+
+		if(switch_change_check_flag)
+		{
+			if(AD85050_GetStatus() >= AD85050_POWER_UP_INIT)
+			{
+				uint32_t uCurVolLevel = 0;
+
+				switch_change_check_flag = 0;
+
+				if((IsInputSwitch_Aux() && uMode_Change == 0x07) || (!IsInputSwitch_Aux() && uMode_Change == 0x50))
+					MB3021_BT_Module_Forced_Input_Audio_Path_Setting();
+
+				uCurVolLevel = AD85050_Amp_Get_Cur_Volume_Level();
+				uCurVolLevel = uCurVolLevel >> 8;
+				AD85050_Amp_Volume_Register_Writing((uint16_t)uCurVolLevel);
+
+				PCM9211_Set_Path_Init(FALSE);
+			}
+			else
+				switch_change_check_flag++;
 		}
 
 		timer20_100ms_count++;

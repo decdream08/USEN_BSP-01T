@@ -685,3 +685,13 @@
 
 ## 2024-11-28 (BAP-02)
   - 품질 요청 : Protection발생 시 BSP-01에서 출력 계속 됨 -> 출력이 발생안되도록 수정 요청 (추가 수정)
+  
+## 2024-12-06 (BAP-02)
+  - 전원 cable on 후 바로 BT_OUT ON/OFF 스위치 동작 시 popup noise 수정
+  - 전원 cable on 시 바로 Input Select Switch 동작 시 볼륨 오동작 수정
+  
+## 2024-12-10 (BAP-02)
+  - power off시 AMP 전원 유지하도록 변경
+
+## 2024-12-11 (BAP-02)
+  - Factory reset 시 BSP-01 volume max로 변경되는 문제 수정

@@ -290,7 +290,7 @@ void Factory_Reset_Value_Setting(void)
 #ifdef COMMON_DEBUG_MSG
 	_DBG("\n\rFactory_Reset_Value_Setting(void)");
 #endif
-	Remocon_EQ_Key_Action(EQ_NORMAL_MODE);
+	//Remocon_EQ_Key_Action(EQ_NORMAL_MODE);
 	MB3021_BT_Delete_Paired_List_All(TRUE);
 }
 

@@ -86,6 +86,9 @@ int32_t TIMER20_100ms_Count_Value(void);
 void TIMER20_Master_Slave_Grouping_flag_Start(void);
 void TIMER20_Master_Slave_Grouping_flag_Stop(Bool Clear_Flag);
 Bool Get_master_slave_grouping_flag(void);
+
+void TIMER20_switch_change_check_flag_Start(void);
+void TIMER20_switch_change_check_flag_Stop(void);
 #endif /* __TIMER21_H__ */
 
 
