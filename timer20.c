@@ -25,7 +25,9 @@
 #include "bt_MB3021.h"
 #include "power.h"
 #include "pcm9211.h"
-
+#ifdef AMP_FAULT_PROCESSING_REMAIN_FOR_1S
+#include "protection.h"
+#endif
 /* Private typedef ---------------------------------------------------*/
 /* Private define ----------------------------------------------------*/
 //#define TIMER20_DEBUG_MSG					(1)
@@ -60,6 +62,9 @@ int32_t drc_eq_set_recovery_flag = 0;
 int32_t power_on_volume_sync_flag = 0;
 
 int32_t switch_change_check_flag = 0;
+#ifdef AMP_FAULT_PROCESSING_REMAIN_FOR_1S
+int32_t amp_fault_flag = 0;
+#endif
 
 extern uint8_t uMode_Change;
 
@@ -467,6 +472,30 @@ void TIMER20_switch_change_check_flag_Stop(void)
 {	
 	switch_change_check_flag = 0;
 }
+
+#ifdef AMP_FAULT_PROCESSING_REMAIN_FOR_1S
+void TIMER20_Amp_fault_flag_Start(void)
+{
+	amp_fault_flag = 1;
+}
+
+void TIMER20_Amp_fault_flag_Stop(void)
+{
+	amp_fault_flag = 0;
+}
+
+Bool Get_Amp_fault_flag(void)
+{
+	Bool BRet;
+	
+	if(amp_fault_flag)
+		BRet = TRUE;
+	else
+		BRet = FALSE;
+
+	return BRet;
+}
+#endif
 
 Bool Get_auto_power_flag(void)
 {
@@ -880,6 +909,26 @@ void TIMER20_IRQHandler_IT(void)
 			else
 				switch_change_check_flag++;
 		}
+
+#ifdef AMP_FAULT_PROCESSING_REMAIN_FOR_1S
+		if(amp_fault_flag)
+		{
+			if(amp_fault_flag == /*df100msTimer600ms*/df100msTimer1s)
+			{
+				amp_fault_flag = 0;
+
+				if(!(HAL_GPIO_ReadPin(PF) & (1<<5)))
+				{
+					MB3021_BT_Module_Init(FALSE);
+					
+					protection_set_mode(ProtectionAMP);
+					Power_Mode_Set(PWR_OFF_AMP_FAULT_START);
+				}
+			}
+			else
+				amp_fault_flag++;
+		}
+#endif
 
 		timer20_100ms_count++;
 	}// 100ms Timer

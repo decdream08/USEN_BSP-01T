@@ -701,3 +701,6 @@
 
 ## 2024-12-20 (BAP-02)
   - AMP fault 발생 시 AMP 전원 off까지 하도록 수정
+ 
+## 2024-12-20 (BAP-02)
+  - AMP Fault protection 지연 처리 (not define)

@@ -89,6 +89,12 @@ Bool Get_master_slave_grouping_flag(void);
 
 void TIMER20_switch_change_check_flag_Start(void);
 void TIMER20_switch_change_check_flag_Stop(void);
+
+#ifdef AMP_FAULT_PROCESSING_REMAIN_FOR_1S
+void TIMER20_Amp_fault_flag_Start(void);
+void TIMER20_Amp_fault_flag_Stop(void);
+Bool Get_Amp_fault_flag(void);
+#endif
 #endif /* __TIMER21_H__ */
 
 

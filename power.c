@@ -278,6 +278,10 @@ static void Power_Off_Start_Process(void)
 
 			Power_state = FALSE;
 
+#ifdef AMP_FAULT_PROCESSING_REMAIN_FOR_1S
+			TIMER20_Amp_fault_flag_Stop();
+#endif
+
 			if(mainPowerMode != PWR_LOW_LEVEL_START && already_initialized)
 				MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Power, 0x00);
 

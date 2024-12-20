@@ -432,6 +432,8 @@ extern "C"
 #define ESD_ERROR_RECOVERY_TIME           (500000)	//1sec // (5000000/2) // 5000000 = 10sec (100000 = 200ms)
 #endif
 
+//#define AMP_FAULT_PROCESSING_REMAIN_FOR_1S (1)
+
 typedef enum {
 	Mute_Status_Mute,
 	Mute_Status_Unmute
@@ -614,7 +616,9 @@ enum enTimer100msStatus {
 	df100msTimer300ms	= 3,
 	df100msTimer400ms	= 4,
 	df100msTimer500ms	= 5,
-	df100msTimer700ms	= 7,	
+	df100msTimer600ms	= 6,
+	df100msTimer700ms	= 7,
+	df100msTimer800ms	= 8,
 	df100msTimer1s		= 10,
 	df100msTimer1d1s	= 11,
 	df100msTimer1d3s	= 13,
