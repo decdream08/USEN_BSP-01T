@@ -695,3 +695,6 @@
 
 ## 2024-12-11 (BAP-02)
   - Factory reset 시 BSP-01 volume max로 변경되는 문제 수정
+
+## 2024-12-16 (BAP-02)
+  - AUX(오디오)에서 AMP OCP 발생 건 EQ(HFP) 조정

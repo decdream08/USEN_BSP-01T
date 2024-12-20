@@ -179,52 +179,29 @@ const uint8_t AD85050_Set_Ch2_Mixer2[AD85050_RAM_SINGLE_SIZE][2] = {
 };
 #endif
 
-#if 0 //LPF 90 -> 150Hz
+//LPF 90
 const uint8_t AD85050_Set_EQ1_HPF[AD85050_RAM_SET_SIZE][2] = {
+#if 1 //241216 OCP
 	{0x1d, 0x00},//##Coefficient_RAM_Base_Address
 	{0x1e, 0xc0},//##Top_8-bits_of_coefficients_A1
-	{0x1f, 0x50},//##Middle_8-bits_of_coefficients_A1
-	{0x20, 0x6c},//##Bottom_8-bits_of_coefficients_A1
+	{0x1f, 0x44},//##Middle_8-bits_of_coefficients_A1
+	{0x20, 0xca},//##Bottom_8-bits_of_coefficients_A1
 	{0x21, 0x1f},//##Top_8-bits_of_coefficients_A2
-	{0x22, 0xd7},//##Middle_8-bits_of_coefficients_A2
-	{0x23, 0xca},//##Bottom_8-bits_of_coefficients_A2
+	{0x22, 0xdd},//##Middle_8-bits_of_coefficients_A2
+	{0x23, 0x9b},//##Bottom_8-bits_of_coefficients_A2
 	{0x24, 0x3f},//##Top_8-bits_of_coefficients_B1
-	{0x25, 0xaf},//##Middle_8-bits_of_coefficients_B1
-	{0x26, 0x2f},//##Bottom_8-bits_of_coefficients_B1
+	{0x25, 0xbb},//##Middle_8-bits_of_coefficients_B1
+	{0x26, 0x12},//##Bottom_8-bits_of_coefficients_B1
 	{0x27, 0xe0},//##Top_8-bits_of_coefficients_B2
-	{0x28, 0x50},//##Middle_8-bits_of_coefficients_B2
-	{0x29, 0x08},//##Bottom_8-bits_of_coefficients_B2
+	{0x28, 0x44},//##Middle_8-bits_of_coefficients_B2
+	{0x29, 0xa5},//##Bottom_8-bits_of_coefficients_B2
 	{0x2a, 0x1f},//##Top_8-bits_of_coefficients_A0
-	{0x2b, 0xd7},//##Middle_8-bits_of_coefficients_A0
-	{0x2c, 0xca},//##Bottom_8-bits_of_coefficients_A0
+	{0x2b, 0xdd},//##Middle_8-bits_of_coefficients_A0
+	{0x2c, 0x9b},//##Bottom_8-bits_of_coefficients_A0
 
 	
 	{0x2D, 0x02},	/* CfRW : bank0, writing set coefficient to RAM */
-};
-
-const uint8_t AD85050_Set_EQ2_PEAK[AD85050_RAM_SET_SIZE][2] = {
-	{0x1d, 0x05},//##Coefficient_RAM_Base_Address
-	{0x1e, 0xc0},//##Top_8-bits_of_coefficients_A1
-	{0x1f, 0x38},//##Middle_8-bits_of_coefficients_A1
-	{0x20, 0x87},//##Bottom_8-bits_of_coefficients_A1
-	{0x21, 0x1f},//##Top_8-bits_of_coefficients_A2
-	{0x22, 0xe2},//##Middle_8-bits_of_coefficients_A2
-	{0x23, 0x40},//##Bottom_8-bits_of_coefficients_A2
-	{0x24, 0x3f},//##Top_8-bits_of_coefficients_B1
-	{0x25, 0xc7},//##Middle_8-bits_of_coefficients_B1
-	{0x26, 0x79},//##Bottom_8-bits_of_coefficients_B1
-	{0x27, 0xe0},//##Top_8-bits_of_coefficients_B2
-	{0x28, 0x38},//##Middle_8-bits_of_coefficients_B2
-	{0x29, 0x55},//##Bottom_8-bits_of_coefficients_B2
-	{0x2a, 0x1f},//##Top_8-bits_of_coefficients_A0
-	{0x2b, 0xe5},//##Middle_8-bits_of_coefficients_A0
-	{0x2c, 0x6b},//##Bottom_8-bits_of_coefficients_A0
-
-
-	{0x2D, 0x02},	/* CfRW : bank0, writing set coefficient to RAM */
-};
-#else //LPF 90
-const uint8_t AD85050_Set_EQ1_HPF[AD85050_RAM_SET_SIZE][2] = {
+#else
 	{0x1d, 0x00},//##Coefficient_RAM_Base_Address
 	{0x1e, 0xc0},//##Top_8-bits_of_coefficients_A1
 	{0x1f, 0x30},//##Middle_8-bits_of_coefficients_A1
@@ -244,9 +221,11 @@ const uint8_t AD85050_Set_EQ1_HPF[AD85050_RAM_SET_SIZE][2] = {
 
 	
 	{0x2D, 0x02},	/* CfRW : bank0, writing set coefficient to RAM */
+#endif
 };
 
 const uint8_t AD85050_Set_EQ2_PEAK[AD85050_RAM_SET_SIZE][2] = {
+#if 1 //241216 OCP
 	{0x1d, 0x05},//##Coefficient_RAM_Base_Address
 	{0x1e, 0xc0},//##Top_8-bits_of_coefficients_A1
 	{0x1f, 0x20},//##Middle_8-bits_of_coefficients_A1
@@ -266,11 +245,120 @@ const uint8_t AD85050_Set_EQ2_PEAK[AD85050_RAM_SET_SIZE][2] = {
 
 
 	{0x2D, 0x02},	/* CfRW : bank0, writing set coefficient to RAM */
-};
+#else
+	{0x1d, 0x05},//##Coefficient_RAM_Base_Address
+	{0x1e, 0xc0},//##Top_8-bits_of_coefficients_A1
+	{0x1f, 0x20},//##Middle_8-bits_of_coefficients_A1
+	{0x20, 0x07},//##Bottom_8-bits_of_coefficients_A1
+	{0x21, 0x1f},//##Top_8-bits_of_coefficients_A2
+	{0x22, 0xef},//##Middle_8-bits_of_coefficients_A2
+	{0x23, 0x03},//##Bottom_8-bits_of_coefficients_A2
+	{0x24, 0x3f},//##Top_8-bits_of_coefficients_B1
+	{0x25, 0xdf},//##Middle_8-bits_of_coefficients_B1
+	{0x26, 0xf9},//##Bottom_8-bits_of_coefficients_B1
+	{0x27, 0xe0},//##Top_8-bits_of_coefficients_B2
+	{0x28, 0x1f},//##Middle_8-bits_of_coefficients_B2
+	{0x29, 0xf5},//##Bottom_8-bits_of_coefficients_B2
+	{0x2a, 0x1f},//##Top_8-bits_of_coefficients_A0
+	{0x2b, 0xf1},//##Middle_8-bits_of_coefficients_A0
+	{0x2c, 0x07},//##Bottom_8-bits_of_coefficients_A0
+
+
+	{0x2D, 0x02},	/* CfRW : bank0, writing set coefficient to RAM */
 #endif
+};
 
 const uint8_t AD85050_Set_EQ3_PEAK[AD85050_RAM_SET_SIZE][2] = {
+#if 1 //241216 OCP
 	{0x1d, 0x0a},//##Coefficient_RAM_Base_Address
+	{0x1e, 0xc0},//##Top_8-bits_of_coefficients_A1
+	{0x1f, 0x1e},//##Middle_8-bits_of_coefficients_A1
+	{0x20, 0x21},//##Bottom_8-bits_of_coefficients_A1
+	{0x21, 0x1f},//##Top_8-bits_of_coefficients_A2
+	{0x22, 0xf0},//##Middle_8-bits_of_coefficients_A2
+	{0x23, 0x7a},//##Bottom_8-bits_of_coefficients_A2
+	{0x24, 0x3f},//##Top_8-bits_of_coefficients_B1
+	{0x25, 0xe1},//##Middle_8-bits_of_coefficients_B1
+	{0x26, 0xdf},//##Bottom_8-bits_of_coefficients_B1
+	{0x27, 0xe0},//##Top_8-bits_of_coefficients_B2
+	{0x28, 0x1e},//##Middle_8-bits_of_coefficients_B2
+	{0x29, 0x19},//##Bottom_8-bits_of_coefficients_B2
+	{0x2a, 0x1f},//##Top_8-bits_of_coefficients_A0
+	{0x2b, 0xf1},//##Middle_8-bits_of_coefficients_A0
+	{0x2c, 0x6d},//##Bottom_8-bits_of_coefficients_A0
+
+	
+	{0x2D, 0x02},	/* CfRW : bank0, writing set coefficient to RAM */
+#else
+	{0x1d, 0x0a},//##Coefficient_RAM_Base_Address
+	{0x1e, 0xf2},//##Top_8-bits_of_coefficients_A1
+	{0x1f, 0xf8},//##Middle_8-bits_of_coefficients_A1
+	{0x20, 0xb8},//##Bottom_8-bits_of_coefficients_A1
+	{0x21, 0x18},//##Top_8-bits_of_coefficients_A2
+	{0x22, 0xf3},//##Middle_8-bits_of_coefficients_A2
+	{0x23, 0x03},//##Bottom_8-bits_of_coefficients_A2
+	{0x24, 0x0d},//##Top_8-bits_of_coefficients_B1
+	{0x25, 0x07},//##Middle_8-bits_of_coefficients_B1
+	{0x26, 0x48},//##Bottom_8-bits_of_coefficients_B1
+	{0x27, 0xed},//##Top_8-bits_of_coefficients_B2
+	{0x28, 0xab},//##Middle_8-bits_of_coefficients_B2
+	{0x29, 0x51},//##Bottom_8-bits_of_coefficients_B2
+	{0x2a, 0x19},//##Top_8-bits_of_coefficients_A0
+	{0x2b, 0x61},//##Middle_8-bits_of_coefficients_A0
+	{0x2c, 0xab},//##Bottom_8-bits_of_coefficients_A0
+
+	
+	{0x2D, 0x02},	/* CfRW : bank0, writing set coefficient to RAM */
+#endif
+};
+
+const uint8_t AD85050_Set_EQ4_PEAK[AD85050_RAM_SET_SIZE][2] = {
+#if 1 //241216 OCP
+	{0x1d, 0x0f},//##Coefficient_RAM_Base_Address
+	{0x1e, 0xc0},//##Top_8-bits_of_coefficients_A1
+	{0x1f, 0x1b},//##Middle_8-bits_of_coefficients_A1
+	{0x20, 0x36},//##Bottom_8-bits_of_coefficients_A1
+	{0x21, 0x1f},//##Top_8-bits_of_coefficients_A2
+	{0x22, 0xee},//##Middle_8-bits_of_coefficients_A2
+	{0x23, 0x1a},//##Bottom_8-bits_of_coefficients_A2
+	{0x24, 0x3f},//##Top_8-bits_of_coefficients_B1
+	{0x25, 0xe4},//##Middle_8-bits_of_coefficients_B1
+	{0x26, 0xca},//##Bottom_8-bits_of_coefficients_B1
+	{0x27, 0xe0},//##Top_8-bits_of_coefficients_B2
+	{0x28, 0x1b},//##Middle_8-bits_of_coefficients_B2
+	{0x29, 0x33},//##Bottom_8-bits_of_coefficients_B2
+	{0x2a, 0x1f},//##Top_8-bits_of_coefficients_A0
+	{0x2b, 0xf6},//##Middle_8-bits_of_coefficients_A0
+	{0x2c, 0xb3},//##Bottom_8-bits_of_coefficients_A0
+
+	
+	{0x2D, 0x02},	/* CfRW : bank0, writing set coefficient to RAM */
+#else
+	{0x1d, 0x0f},//##Coefficient_RAM_Base_Address
+	{0x1e, 0x0f},//##Top_8-bits_of_coefficients_A1
+	{0x1f, 0xfe},//##Middle_8-bits_of_coefficients_A1
+	{0x20, 0x25},//##Bottom_8-bits_of_coefficients_A1
+	{0x21, 0x07},//##Top_8-bits_of_coefficients_A2
+	{0x22, 0xff},//##Middle_8-bits_of_coefficients_A2
+	{0x23, 0x12},//##Bottom_8-bits_of_coefficients_A2
+	{0x24, 0x0b},//##Top_8-bits_of_coefficients_B1
+	{0x25, 0x2b},//##Middle_8-bits_of_coefficients_B1
+	{0x26, 0xe4},//##Bottom_8-bits_of_coefficients_B1
+	{0x27, 0xf4},//##Top_8-bits_of_coefficients_B2
+	{0x28, 0xd7},//##Middle_8-bits_of_coefficients_B2
+	{0x29, 0xd0},//##Bottom_8-bits_of_coefficients_B2
+	{0x2a, 0x07},//##Top_8-bits_of_coefficients_A0
+	{0x2b, 0xff},//##Middle_8-bits_of_coefficients_A0
+	{0x2c, 0x12},//##Bottom_8-bits_of_coefficients_A0
+
+	
+	{0x2D, 0x02},	/* CfRW : bank0, writing set coefficient to RAM */
+#endif
+};
+
+#if 1 //241216 OCP
+const uint8_t AD85050_Set_EQ5_PEAK[AD85050_RAM_SET_SIZE][2] = {
+	{0x1d, 0x14},//##Coefficient_RAM_Base_Address
 	{0x1e, 0xf2},//##Top_8-bits_of_coefficients_A1
 	{0x1f, 0xf8},//##Middle_8-bits_of_coefficients_A1
 	{0x20, 0xb8},//##Bottom_8-bits_of_coefficients_A1
@@ -291,8 +379,8 @@ const uint8_t AD85050_Set_EQ3_PEAK[AD85050_RAM_SET_SIZE][2] = {
 	{0x2D, 0x02},	/* CfRW : bank0, writing set coefficient to RAM */
 };
 
-const uint8_t AD85050_Set_EQ4_LPF[AD85050_RAM_SET_SIZE][2] = {
-	{0x1d, 0x0f},//##Coefficient_RAM_Base_Address
+const uint8_t AD85050_Set_EQ6_LPF[AD85050_RAM_SET_SIZE][2] = {
+	{0x1d, 0x19},//##Coefficient_RAM_Base_Address
 	{0x1e, 0x0f},//##Top_8-bits_of_coefficients_A1
 	{0x1f, 0xfe},//##Middle_8-bits_of_coefficients_A1
 	{0x20, 0x25},//##Bottom_8-bits_of_coefficients_A1
@@ -312,6 +400,7 @@ const uint8_t AD85050_Set_EQ4_LPF[AD85050_RAM_SET_SIZE][2] = {
 	
 	{0x2D, 0x02},	/* CfRW : bank0, writing set coefficient to RAM */
 };
+#endif
 
 const uint8_t AD85050_Set_Power_Clipping[AD85050_RAM_SINGLE_SIZE][2] = {
 	{0x1D, 0x55},	/* Coefficient RAM base address */
@@ -818,7 +907,6 @@ void AD85050_Amp_Init(Bool Power_On_Init)
 	}
 #endif
 
-#if 1
 	for(i =0; i<AD85050_RAM_SET_SIZE; i++)
 	{
 		uRead = AD85050_Set_EQ1_HPF[i][1];
@@ -839,28 +927,21 @@ void AD85050_Amp_Init(Bool Power_On_Init)
 
 	for(i =0;i<AD85050_RAM_SET_SIZE;i++)
 	{
-		uRead = AD85050_Set_EQ4_LPF[i][1];
-		I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_Set_EQ4_LPF[i][0],&uRead,1);        
+		uRead = AD85050_Set_EQ4_PEAK[i][1];
+		I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_Set_EQ4_PEAK[i][0],&uRead,1);        
 	}
-#else
-	//90Hz 24dB/Oct HPF CHANNEL 1
-	for(i =0; i<AD85050_RAM_SET_SIZE; i++)
+
+#if 0 //241216
+	for(i =0;i<AD85050_RAM_SET_SIZE;i++)
 	{
-		uRead = AD85050_Set_EQ1_90Hz_24dB_Oct_HPF[i][1];
-		I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_Set_EQ1_90Hz_24dB_Oct_HPF[i][0],&uRead,1);
+		uRead = AD85050_Set_EQ5_PEAK[i][1];
+		I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_Set_EQ5_PEAK[i][0],&uRead,1);        
 	}
 
 	for(i =0;i<AD85050_RAM_SET_SIZE;i++)
 	{
-		uRead = AD85050_Set_EQ2_90Hz_24dB_Oct_HPF[i][1];
-		I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_Set_EQ2_90Hz_24dB_Oct_HPF[i][0],&uRead,1);        
-	}
-
-	//PEAK 18000hz, GAIN:3, Q:0.7
-	for(i =0;i<AD85050_RAM_SET_SIZE;i++)
-	{
-		uRead = AD85050_Set_EQ3_18000Hz_G3_Q0_7[i][1];
-		I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_Set_EQ3_18000Hz_G3_Q0_7[i][0],&uRead,1);        
+		uRead = AD85050_Set_EQ6_LPF[i][1];
+		I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_Set_EQ6_LPF[i][0],&uRead,1);        
 	}
 #endif
 	uArea1_Vol_Level = ADC_Volume_Attenuator_Value_Init(AREA1_VOLUME);
