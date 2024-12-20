@@ -1359,14 +1359,10 @@ void GPIOF_IRQHandler_IT(void)
 #ifdef SOC_ERROR_ALARM_DEBUG_MSG
 					_DBG("\n\rSOC_ERROR - 6");
 #endif
-#if 1
 					MB3021_BT_Module_Init(FALSE);
 					
 					protection_set_mode(ProtectionAMP);
-					Power_Mode_Set(PWR_OFF_PROTECTION_START);
-#else
-					AD85050_SetStatus(AD85050_ERROR_STATUS);
-#endif
+					Power_Mode_Set(PWR_OFF_AMP_FAULT_START);
 				}
 			}
 		}

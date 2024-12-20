@@ -56,6 +56,7 @@ void Power_Process(void)
 		case PWR_OFF_START:
 		case PWR_OFF_PROTECTION_START:
 		case PWR_LOW_LEVEL_START:
+		case PWR_OFF_AMP_FAULT_START:
 			Power_Off_Start_Process();
 			break;
 
@@ -268,6 +269,13 @@ static void Power_Off_Start_Process(void)
 			PCM9211_PowerDown();
 			AD85050_PowerDown();
 
+			if(mainPowerMode == PWR_OFF_AMP_FAULT_START)
+			{
+				HAL_GPIO_ClearPin(PD, _BIT(4)); //+24V DAMP Power
+				delay_ms(20);
+				HAL_GPIO_ClearPin(PA, _BIT(5)); //+3.3V DAMP Power
+			}
+
 			Power_state = FALSE;
 
 			if(mainPowerMode != PWR_LOW_LEVEL_START && already_initialized)
@@ -341,7 +349,7 @@ static void Power_Off_Start_Process(void)
 
 			//protection_check_flag = OFF;
 
-			if(mainPowerMode == PWR_OFF_PROTECTION_START)
+			if(mainPowerMode == PWR_OFF_PROTECTION_START || mainPowerMode == PWR_OFF_AMP_FAULT_START)
 			{
 				if(protection_mode != ProtectionLED)
 				{
