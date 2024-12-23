@@ -704,3 +704,6 @@
  
 ## 2024-12-20 (BAP-02)
   - AMP Fault protection 瘤楷 贸府 (not define)
+
+## 2024-12-23 (BAP-02)
+  - AMP Fault protection 瘤楷 贸府 (define)
