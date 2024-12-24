@@ -224,6 +224,7 @@ const uint8_t AD85050_Set_EQ2_PEAK[AD85050_RAM_SET_SIZE][2] = {
 	{0x2D, 0x02},	/* CfRW : bank0, writing set coefficient to RAM */
 };
 
+#if 0
 const uint8_t AD85050_Set_EQ3_PEAK[AD85050_RAM_SET_SIZE][2] = {
 	{0x1d, 0x0a},//##Coefficient_RAM_Base_Address
 	{0x1e, 0xf2},//##Top_8-bits_of_coefficients_A1
@@ -267,6 +268,7 @@ const uint8_t AD85050_Set_EQ4_LPF[AD85050_RAM_SET_SIZE][2] = {
 	
 	{0x2D, 0x02},	/* CfRW : bank0, writing set coefficient to RAM */
 };
+#endif
 // ]
 
 const uint8_t AD85050_Set_Power_Clipping[AD85050_RAM_SINGLE_SIZE][2] = {
@@ -793,6 +795,7 @@ void AD85050_Amp_Init(Bool Power_On_Init)
 		I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_Set_EQ2_PEAK[i][0],&uRead,1);        
 	}
 
+#if 0
 	for(i =0;i<AD85050_RAM_SET_SIZE;i++)
 	{
 		uRead = AD85050_Set_EQ3_PEAK[i][1];
@@ -804,6 +807,7 @@ void AD85050_Amp_Init(Bool Power_On_Init)
 		uRead = AD85050_Set_EQ4_LPF[i][1];
 		I2C_Interrupt_Write_Data(AD85050_I2C_ADDR, AD85050_Set_EQ4_LPF[i][0],&uRead,1);        
 	}
+#endif
 
 	uArea1_Vol_Level = ADC_Volume_Attenuator_Value_Init(AREA1_VOLUME);
 	uArea2_Vol_Level = ADC_Volume_Attenuator_Value_Init(AREA2_VOLUME);
