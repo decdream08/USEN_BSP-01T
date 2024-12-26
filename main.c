@@ -1337,7 +1337,7 @@ void GPIOF_IRQHandler_IT(void)
 
 		if(status & (3UL<<(5<<1))) //0x00000c00 PF5 - DAMP_ERROR (AMP FAULT)
 		{
-#ifdef AMP_FAULT_PROCESSING_REMAIN_FOR_1S
+#ifdef AMP_AUTO_RECOVERY
 			if(Get_Amp_fault_flag())
 			{
 				clear_bit = status & (3UL<<(5<<1));
@@ -1359,7 +1359,7 @@ void GPIOF_IRQHandler_IT(void)
 #ifdef SWITCH_BUTTON_KEY_ENABLE_DEBUG_MSG
 					_DBG("\n\rDAMP_ERROR - CLEAR");
 #endif
-#ifdef AMP_FAULT_PROCESSING_REMAIN_FOR_1S
+#ifdef AMP_AUTO_RECOVERY
 					//TIMER20_Amp_fault_flag_Stop();
 #endif
 				}
@@ -1371,7 +1371,7 @@ void GPIOF_IRQHandler_IT(void)
 #ifdef SOC_ERROR_ALARM_DEBUG_MSG
 					_DBG("\n\rSOC_ERROR - 6");
 #endif
-#ifdef AMP_FAULT_PROCESSING_REMAIN_FOR_1S
+#ifdef AMP_AUTO_RECOVERY
 					TIMER20_Amp_fault_flag_Start();
 #else
 					MB3021_BT_Module_Init(FALSE);
@@ -1605,7 +1605,7 @@ void GPIO_Configure(void)
 	HAL_GPIO_ClearPin(PF, _BIT(3));
 
 	/* GPIO Output setting PF4 - AMP_SDB_CONT, SD Enabled : Low / SD Disabled : High */
-#ifdef AMP_FAULT_PROCESSING_REMAIN_FOR_1S //1220
+#ifdef AMP_AUTO_RECOVERY //1220
 	HAL_GPIO_ConfigOutput(PF, 4, INPUT);
 #else
 	HAL_GPIO_ConfigOutput(PF, 4, PUSH_PULL_OUTPUT);

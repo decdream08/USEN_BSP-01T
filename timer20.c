@@ -25,7 +25,7 @@
 #include "bt_MB3021.h"
 #include "power.h"
 #include "pcm9211.h"
-#ifdef AMP_FAULT_PROCESSING_REMAIN_FOR_1S
+#ifdef AMP_AUTO_RECOVERY
 #include "protection.h"
 #endif
 /* Private typedef ---------------------------------------------------*/
@@ -62,7 +62,7 @@ int32_t drc_eq_set_recovery_flag = 0;
 int32_t power_on_volume_sync_flag = 0;
 
 int32_t switch_change_check_flag = 0;
-#ifdef AMP_FAULT_PROCESSING_REMAIN_FOR_1S
+#ifdef AMP_AUTO_RECOVERY
 int32_t amp_fault_flag = 0;
 #endif
 
@@ -473,7 +473,7 @@ void TIMER20_switch_change_check_flag_Stop(void)
 	switch_change_check_flag = 0;
 }
 
-#ifdef AMP_FAULT_PROCESSING_REMAIN_FOR_1S
+#ifdef AMP_AUTO_RECOVERY
 void TIMER20_Amp_fault_flag_Start(void)
 {
 	amp_fault_flag = 1;
@@ -910,10 +910,10 @@ void TIMER20_IRQHandler_IT(void)
 				switch_change_check_flag++;
 		}
 
-#ifdef AMP_FAULT_PROCESSING_REMAIN_FOR_1S
+#ifdef AMP_AUTO_RECOVERY
 		if(amp_fault_flag)
 		{
-			if(amp_fault_flag == /*df100msTimer600ms*/df100msTimer1s)
+			if(amp_fault_flag == df100msTimer1s)
 			{
 				amp_fault_flag = 0;
 

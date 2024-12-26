@@ -432,7 +432,7 @@ extern "C"
 #define ESD_ERROR_RECOVERY_TIME           (500000)	//1sec // (5000000/2) // 5000000 = 10sec (100000 = 200ms)
 #endif
 
-#define AMP_FAULT_PROCESSING_REMAIN_FOR_1S (1)
+#define AMP_AUTO_RECOVERY (1)
 
 typedef enum {
 	Mute_Status_Mute,

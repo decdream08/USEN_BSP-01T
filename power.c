@@ -278,7 +278,7 @@ static void Power_Off_Start_Process(void)
 
 			Power_state = FALSE;
 
-#ifdef AMP_FAULT_PROCESSING_REMAIN_FOR_1S
+#ifdef AMP_AUTO_RECOVERY
 			TIMER20_Amp_fault_flag_Stop();
 #endif
 

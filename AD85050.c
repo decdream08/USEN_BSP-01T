@@ -565,7 +565,7 @@ void AD85050_PowerUp(void)
     delay_ms(20);
     HAL_GPIO_SetPin(PD, _BIT(4)); //+24V DAMP Power
     delay_ms(20);
-#ifdef AMP_FAULT_PROCESSING_REMAIN_FOR_1S //1220
+#ifdef AMP_AUTO_RECOVERY //1220
 	HAL_GPIO_ConfigOutput(PF, 4, INPUT);
 #else
 	HAL_GPIO_SetPin(PF, _BIT(4)); //AMP Shutdown
@@ -616,7 +616,7 @@ void AD85050_PowerDown(void)
 		delay_ms(40);
 	}
 
-#ifdef AMP_FAULT_PROCESSING_REMAIN_FOR_1S //1220
+#ifdef AMP_AUTO_RECOVERY //1220
 	HAL_GPIO_ConfigOutput(PF, 4, PUSH_PULL_OUTPUT);
 	HAL_GPIO_ConfigPullup(PF, 4, DISPUPD);
 #endif
