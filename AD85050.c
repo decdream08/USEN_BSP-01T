@@ -438,7 +438,7 @@ void AD85050_Process(void)
 		case AD85050_WAIT_CLK_STABLE:
 			if(ad85050_timer == df10msTimer0ms)
 			{
-				MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x02);
+				//MB3021_BT_Module_Input_Key_Sync_With_Slave(Input_key_Sync_Slave_Mute_Off, 0x02);
 				Set_MB3021_BT_Module_Source_Change();
 #ifdef AD85050_DEBUG_MSG
 				_DBG("\n\rAD85050 CLK STABLE");
@@ -566,10 +566,18 @@ void AD85050_PowerUp(void)
     HAL_GPIO_SetPin(PD, _BIT(4)); //+24V DAMP Power
     delay_ms(20);
 #ifdef AMP_AUTO_RECOVERY //1220
-	HAL_GPIO_ConfigOutput(PF, 4, INPUT);
+	HAL_GPIO_ConfigOutput(PF, 4, PUSH_PULL_OUTPUT);
+	HAL_GPIO_ConfigPullup(PF, 4, DISPUPD);
+	HAL_GPIO_SetPin(PF, _BIT(4));
+	delay_ms(20);
 #else
 	HAL_GPIO_SetPin(PF, _BIT(4)); //AMP Shutdown
 #endif
+
+#ifdef AMP_AUTO_RECOVERY
+	HAL_GPIO_ConfigOutput(PF, 4, INPUT);
+#endif
+
 	AD85050_I2C_Init();
 
 	ad85050_status = AD85050_POWER_UP;

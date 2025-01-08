@@ -335,7 +335,7 @@ typedef enum {
 }Remote_Power_Key_Action;
 
 //Variable
-char MCU_Version[6] = "241226"; //"230727"; //MCU Version Info
+char MCU_Version[6] = "250108"; //"230727"; //MCU Version Info
 char BT_Version[7]; //MCU Version Info
 
 Bool BBT_Init_OK = FALSE;
@@ -487,7 +487,7 @@ void MB3021_Process(void)
 			}
 			break;
 
-		case MB3021_SW_RESETTING_CMD_PROCESS:
+		case MB3021_START_SW_RESET_CMD_PROCESS:
 			if(mb3021_timer == df10msTimer0ms)
 			{
 				MB3021_BT_Disconnect_All_ACL(); //To avoid last connection fail after reboot //Reboot recovery solution - 1
@@ -3469,7 +3469,7 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 			if(Is_SSP_REBOOT_KEY_In()) //check whether it receive reboot key thru SPP and execute reboot if it receives reboot key
 			{
 #if 1
-				mb3021_status = MB3021_SW_RESETTING_CMD_PROCESS;
+				mb3021_status = MB3021_START_SW_RESET_CMD_PROCESS;
 				mb3021_timer = df10msTimer200ms;
 #else
 				delay_ms(200); //2023-04-27_2 : When TWS Master get reboot CMD over USEN Tablet remocon App, TWS Master need some delay to send reboot CMD to TWS Slave.

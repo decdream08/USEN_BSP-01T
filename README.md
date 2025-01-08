@@ -714,3 +714,7 @@
 
 ## 2024-12-26 (BAP-02)
   - 고객 요청 15Khz LPF 다시 적용
+
+## 2025-01-08 (BAP-02)
+  - AMP Auto recovery 관련 shutdown port control 변경
+  - 기타 수정

@@ -290,7 +290,7 @@ void Factory_Reset_Value_Setting(void)
 #ifdef COMMON_DEBUG_MSG
 	_DBG("\n\rFactory_Reset_Value_Setting(void)");
 #endif
-	//Remocon_EQ_Key_Action(EQ_NORMAL_MODE);
+	Remocon_EQ_Key_Action(EQ_NORMAL_MODE);
 	MB3021_BT_Delete_Paired_List_All(TRUE);
 }
 
@@ -1605,13 +1605,9 @@ void GPIO_Configure(void)
 	HAL_GPIO_ClearPin(PF, _BIT(3));
 
 	/* GPIO Output setting PF4 - AMP_SDB_CONT, SD Enabled : Low / SD Disabled : High */
-#ifdef AMP_AUTO_RECOVERY //1220
-	HAL_GPIO_ConfigOutput(PF, 4, INPUT);
-#else
 	HAL_GPIO_ConfigOutput(PF, 4, PUSH_PULL_OUTPUT);
 	HAL_GPIO_ConfigPullup(PF, 4, DISPUPD);
 	HAL_GPIO_ClearPin(PF, _BIT(4));
-#endif
 
 	/* External interrupt pin PF5 - DAMP_ERROR */
 	HAL_GPIO_ConfigOutput(PF, 5, INPUT);
