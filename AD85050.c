@@ -1154,6 +1154,11 @@ uint32_t AD85050_Amp_Volume_Set_with_Index(uint32_t Vol_Level, Bool Inverse, Boo
         MB3021_BT_Module_Input_Key_Sync_With_Slave(input_key_Sync_Volume, slaveBT_Vol_Level);
     }  
 
+    if((area1_Vol_Level != INVALID_VOLUME || area2_Vol_Level != INVALID_VOLUME) && bt_vol_Actual_Key)
+    {
+        Send_Cur_Master_Info_To_Tablet();
+    }
+
     return uCurVolLevel;
 }
 

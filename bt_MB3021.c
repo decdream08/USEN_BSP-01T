@@ -335,7 +335,7 @@ typedef enum {
 }Remote_Power_Key_Action;
 
 //Variable
-char MCU_Version[6] = "250108"; //"230727"; //MCU Version Info
+char MCU_Version[6] = "250116"; //"230727"; //MCU Version Info
 char BT_Version[7]; //MCU Version Info
 
 Bool BBT_Init_OK = FALSE;
@@ -357,7 +357,7 @@ uint8_t uPaired_Device_Count = 0; //First time, we use this to chech if last con
 uint8_t uAuto_receive_buf32[32] = {0,};
 uint8_t uSPP_receive_buf8[9] = {0xff,};
 
-uint8_t uCurrent_Status_buf8[15] = {0xff,};
+uint8_t uCurrent_Status_buf8[17] = {0xff,};
 
 uint8_t uInput_Key_Sync_buf8[9] = {0xff,}; //For Master
 uint8_t uBLE_Remocon_Data[9] = {0xff,}; //For Slave //Added mute off delay for SLAVE SPK
@@ -776,6 +776,7 @@ void MB3021_BT_Module_Value_Init(void)
 	BMaster_Send_BLE_Remote_Data = FALSE;
 	BBT_Is_Connected = FALSE;
 	BKeep_Connectable = FALSE;
+	uEQ_Mode = EQ_NORMAL_MODE;
 
 	uNext_Grouping_State = 0;
 	uPrev_Grouping_State = 0;
@@ -866,6 +867,7 @@ void MB3021_BT_Module_Input_Key_Init(void) //To Do!!! - Need to change later usi
 void Send_Cur_Master_Info_To_Tablet(void)
 {
 	uint8_t uVol_Level = 0;
+	uint32_t uVolume_Level = 0;
 
 	uCurrent_Status_buf8[0] = 0xBB; 
 	
@@ -896,35 +898,39 @@ void Send_Cur_Master_Info_To_Tablet(void)
 	uVol_Level = AD85050_Amp_Get_Cur_BT_Volume_Level();//AD85050_Amp_Get_Cur_BT_Volume_Level_Inverse(); //Volume Level
 	uCurrent_Status_buf8[3] = Convert_50Step_to_16Step(uVol_Level);
 
-	if(Get_Cur_BAP_EQ_Mode() == Switch_EQ_NORMAL_Mode)
-	{
-		uEQ_Mode = EQ_NORMAL_MODE;
-	}
+	uVolume_Level = AD85050_Amp_Get_Cur_Volume_Level();
 
-	uCurrent_Status_buf8[4] = uEQ_Mode; //Sound EQ mode
-	uCurrent_Status_buf8[5] = 0x00; //Reboot Off
-	uCurrent_Status_buf8[6] = 0x00; //Factory Reset Off
+    uVol_Level = (uint8_t)((uVolume_Level & AREA1_VOLUME_MASK) >> 8);
+	uCurrent_Status_buf8[4] = Convert_50Step_to_16Step(uVol_Level);
 
-	uCurrent_Status_buf8[7] = 0x42;
-	uCurrent_Status_buf8[8] = 0x41;
-	uCurrent_Status_buf8[9] = 0x50;
-	uCurrent_Status_buf8[10] = 0x2D;
-	uCurrent_Status_buf8[11] = 0x30;
-	uCurrent_Status_buf8[12] = 0x32;
+    uVol_Level = (uint8_t)((uVolume_Level & AREA2_VOLUME_MASK) >> 16);
+	uCurrent_Status_buf8[5] = Convert_50Step_to_16Step(uVol_Level);
+
+	uCurrent_Status_buf8[6] = uEQ_Mode; //Sound EQ mode
+
+	uCurrent_Status_buf8[7] = 0x00; //Reboot Off
+	uCurrent_Status_buf8[8] = 0x00; //Factory Reset Off
+
+	uCurrent_Status_buf8[9] = 0x42;
+	uCurrent_Status_buf8[10] = 0x41;
+	uCurrent_Status_buf8[11] = 0x50;
+	uCurrent_Status_buf8[12] = 0x2D;
+	uCurrent_Status_buf8[13] = 0x30;
+	uCurrent_Status_buf8[14] = 0x32;
 
 	if(IsBT_OUTSwitch_On()) //BT_OUT ON
-		uCurrent_Status_buf8[13] = 0x00;
+		uCurrent_Status_buf8[15] = 0x00;
 	else
-		uCurrent_Status_buf8[13] = 0x01;
+		uCurrent_Status_buf8[15] = 0x01;
 
 	if(IsInputSwitch_Aux()) //Input AUX
-		uCurrent_Status_buf8[13] |= 0x10;
+		uCurrent_Status_buf8[15] |= 0x10;
 	else
-		uCurrent_Status_buf8[13] |= 0x00;
+		uCurrent_Status_buf8[15] |= 0x00;
 
 	//uCurrent_Status_buf8[13] = 0x20;
 
-	uCurrent_Status_buf8[14] = SPP_BLE_COM_Calculate_Checksum(uCurrent_Status_buf8, 14);
+	uCurrent_Status_buf8[16] = SPP_BLE_COM_Calculate_Checksum(uCurrent_Status_buf8, 16);
 
 	bPolling_Get_Data |= BCRF_SEND_SPP_DATA_RESP; //Send SPP Response NG
 }
@@ -1930,14 +1936,6 @@ static void MB3021_BT_Module_Remote_Data_Receive(uint8_t source_type, uint8_t da
 #ifdef BT_DEBUG_MSG					
 										_DBG("\n\r+++ 4.Sound Effect(EQ)");
 #endif
-										/*if(Get_Cur_BAP_EQ_Mode() == Switch_EQ_NORMAL_Mode)
-										{
-											uEQ_Mode = EQ_NORMAL_MODE;
-											
-											break;
-										}
-										else*/
-										//To Do !!! EQ control function
 										if(data[4] <= 0x04)
 										{
 											AD85050_Amp_Mute(TRUE, FALSE); //MUTE ON //Adding Mute when EQ Toggle
@@ -2110,6 +2108,7 @@ static void MB3021_BT_Module_Remote_Data_Receive(uint8_t source_type, uint8_t da
 							
 							if(data[2] == bChecksum)
 							{
+								uint32_t uVolume_Level = 0; 
 								uCurrent_Status_buf8[0] = 0xBB; 
 								
 								if(Power_State() == TRUE)
@@ -2139,30 +2138,38 @@ static void MB3021_BT_Module_Remote_Data_Receive(uint8_t source_type, uint8_t da
 								uVol_buf = AD85050_Amp_Get_Cur_BT_Volume_Level(); //AD85050_Amp_Get_Cur_BT_Volume_Level_Inverse();
 								uCurrent_Status_buf8[3] = Convert_50Step_to_16Step(uVol_buf);
 
-								uCurrent_Status_buf8[4] = uEQ_Mode; //Sound EQ mode
+								uVolume_Level = AD85050_Amp_Get_Cur_Volume_Level();
 								
-								uCurrent_Status_buf8[5] = 0x00; //Reboot Off
-								uCurrent_Status_buf8[6] = 0x00; //Factory Reset Off
-								uCurrent_Status_buf8[7] = 0x42;
-								uCurrent_Status_buf8[8] = 0x41;
-								uCurrent_Status_buf8[9] = 0x50;
-								uCurrent_Status_buf8[10] = 0x2D;
-								uCurrent_Status_buf8[11] = 0x30;
-								uCurrent_Status_buf8[12] = 0x32;
+								uVol_buf = (uint8_t)((uVolume_Level & AREA1_VOLUME_MASK) >> 8);
+								uCurrent_Status_buf8[4] = Convert_50Step_to_16Step(uVol_buf);
+								
+								uVol_buf = (uint8_t)((uVolume_Level & AREA2_VOLUME_MASK) >> 16);
+								uCurrent_Status_buf8[5] = Convert_50Step_to_16Step(uVol_buf);
+
+								uCurrent_Status_buf8[6] = uEQ_Mode; //Sound EQ mode
+								
+								uCurrent_Status_buf8[7] = 0x00; //Reboot Off
+								uCurrent_Status_buf8[8] = 0x00; //Factory Reset Off
+								uCurrent_Status_buf8[9] = 0x42;
+								uCurrent_Status_buf8[10] = 0x41;
+								uCurrent_Status_buf8[11] = 0x50;
+								uCurrent_Status_buf8[12] = 0x2D;
+								uCurrent_Status_buf8[13] = 0x30;
+								uCurrent_Status_buf8[14] = 0x32;
 
 								if(IsBT_OUTSwitch_On()) //BT_OUT ON
-									uCurrent_Status_buf8[13] = 0x00;
+									uCurrent_Status_buf8[15] = 0x00;
 								else
-									uCurrent_Status_buf8[13] = 0x01;
+									uCurrent_Status_buf8[15] = 0x01;
 								
 								if(IsInputSwitch_Aux()) //Input AUX
-									uCurrent_Status_buf8[13] |= 0x10;
+									uCurrent_Status_buf8[15] |= 0x10;
 								else
-									uCurrent_Status_buf8[13] |= 0x00;
+									uCurrent_Status_buf8[15] |= 0x00;
 								
 								//uCurrent_Status_buf8[13] = 0x20;
 
-								uCurrent_Status_buf8[14] = SPP_BLE_COM_Calculate_Checksum(uCurrent_Status_buf8, 14);
+								uCurrent_Status_buf8[16] = SPP_BLE_COM_Calculate_Checksum(uCurrent_Status_buf8, 16);
 
 								bPolling_Get_Data |= BCRF_SEND_SPP_DATA_RESP; //Send SPP Response
 							}
@@ -3810,7 +3817,7 @@ void Do_taskUART(void) //Just check UART receive data from Buffer
 		else if(uCurrent_Status_buf8[1] == 0xBF) //BT FW Version
 			uBuf[5] = 0x0A; //Data Size - Low Byte (Size of Data packet of BT FW version )
 		else
-			uBuf[5] = 0x0F; //Data Size - Low Byte (Size of uCurrent_Status_buf8)
+			uBuf[5] = 0x11; //Data Size 15 -> 17 //0x0F; //Data Size - Low Byte (Size of uCurrent_Status_buf8)
 			
 		for(i=0; i<uBuf[5]; i++)
 			uBuf[i+6] = uCurrent_Status_buf8[i]; //The last byte is uBuf[13]

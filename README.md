@@ -718,3 +718,6 @@
 ## 2025-01-08 (BAP-02)
   - AMP Auto recovery 관련 shutdown port control 변경
   - 기타 수정
+
+## 2025-01-16 (BAP-02)
+  - BAP-02 -> Tablet app data spec 수정 (AREA1, AREA2 volume 추가 및 EQ 관련 수정)
