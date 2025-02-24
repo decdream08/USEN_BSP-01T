@@ -335,7 +335,7 @@ typedef enum {
 }Remote_Power_Key_Action;
 
 //Variable
-char MCU_Version[6] = "250116"; //"230727"; //MCU Version Info
+char MCU_Version[6] = "250221"; //"230727"; //MCU Version Info
 char BT_Version[7]; //MCU Version Info
 
 Bool BBT_Init_OK = FALSE;
@@ -901,10 +901,10 @@ void Send_Cur_Master_Info_To_Tablet(void)
 	uVolume_Level = AD85050_Amp_Get_Cur_Volume_Level();
 
     uVol_Level = (uint8_t)((uVolume_Level & AREA1_VOLUME_MASK) >> 8);
-	uCurrent_Status_buf8[4] = Convert_50Step_to_16Step(uVol_Level);
+	uCurrent_Status_buf8[4] = uVol_Level; //Convert_50Step_to_16Step(uVol_Level);
 
     uVol_Level = (uint8_t)((uVolume_Level & AREA2_VOLUME_MASK) >> 16);
-	uCurrent_Status_buf8[5] = Convert_50Step_to_16Step(uVol_Level);
+	uCurrent_Status_buf8[5] = uVol_Level; //Convert_50Step_to_16Step(uVol_Level);
 
 	uCurrent_Status_buf8[6] = uEQ_Mode; //Sound EQ mode
 
@@ -2141,10 +2141,10 @@ static void MB3021_BT_Module_Remote_Data_Receive(uint8_t source_type, uint8_t da
 								uVolume_Level = AD85050_Amp_Get_Cur_Volume_Level();
 								
 								uVol_buf = (uint8_t)((uVolume_Level & AREA1_VOLUME_MASK) >> 8);
-								uCurrent_Status_buf8[4] = Convert_50Step_to_16Step(uVol_buf);
+								uCurrent_Status_buf8[4] = uVol_buf; //Convert_50Step_to_16Step(uVol_buf);
 								
 								uVol_buf = (uint8_t)((uVolume_Level & AREA2_VOLUME_MASK) >> 16);
-								uCurrent_Status_buf8[5] = Convert_50Step_to_16Step(uVol_buf);
+								uCurrent_Status_buf8[5] = uVol_buf; //Convert_50Step_to_16Step(uVol_buf);
 
 								uCurrent_Status_buf8[6] = uEQ_Mode; //Sound EQ mode
 								
