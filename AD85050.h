@@ -112,11 +112,20 @@ typedef enum {
 #define AD85050_ERROR_REG								(0x84)
 
 #define VOLUME_DEFAULT_LEVEL		            (0x32)
+#ifdef PP_PBA
+#define AUX_MASTER_VOLUME_LEVEL		            (0x03)
+#define BT_MASTER_VOLUME_LEVEL		            (0x0C) //(0x0D)
+#else
 #define AUX_MASTER_VOLUME_LEVEL		            (0x04)//(0x05)
 #define BT_MASTER_VOLUME_LEVEL		            (0x33)//(0x19)
+#endif
 
 #ifdef TP_PBA
+#ifdef PP_PBA
+#define AUX_MASTER_VOLUME_LEVEL_BT_OUT_ON		(0x06)
+#else
 #define AUX_MASTER_VOLUME_LEVEL_BT_OUT_ON		(0x07) //(0x06)
+#endif
 #endif
 
 void AD85050_10ms_timer(void);

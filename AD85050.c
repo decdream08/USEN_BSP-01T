@@ -270,6 +270,15 @@ const uint8_t AD85050_Set_EQ4_LPF[AD85050_RAM_SET_SIZE][2] = {
 // ]
 
 const uint8_t AD85050_Set_Power_Clipping[AD85050_RAM_SINGLE_SIZE][2] = {
+#ifdef PP_PBA
+	{0x1D, 0x55},	/* Coefficient RAM base address */
+		
+	{0x1E, 0x16},	/* Top 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x1F, 0x60},	/* Middle 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x20, 0x00},	/* Bottom 8-bits of coefficient A1 */		/* Power Clipping */
+	
+	{0x2D, 0x01},	/* CfRW : bank0, writing set coefficient to RAM */
+#else
 	{0x1D, 0x55},	/* Coefficient RAM base address */
 		
 	{0x1E, 0x17},	/* Top 8-bits of coefficient A1 */		/* Power Clipping */
@@ -277,9 +286,19 @@ const uint8_t AD85050_Set_Power_Clipping[AD85050_RAM_SINGLE_SIZE][2] = {
 	{0x20, 0x00},	/* Bottom 8-bits of coefficient A1 */		/* Power Clipping */
 	
 	{0x2D, 0x01},	/* CfRW : bank0, writing set coefficient to RAM */
+#endif
 };
 
 const uint8_t AD85050_Set_DRC1_Attack_Threshold[AD85050_RAM_SINGLE_SIZE][2] = {
+#ifdef PP_PBA
+	{0x1D, 0x56},	/* Coefficient RAM base address */
+		
+	{0x1E, 0x0a},	/* Top 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x1F, 0x1e},	/* Middle 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x20, 0x89},	/* Bottom 8-bits of coefficient A1 */		/* Power Clipping */
+	
+	{0x2D, 0x01},	/* CfRW : bank0, writing set coefficient to RAM */
+#else
 	{0x1D, 0x56},	/* Coefficient RAM base address */
 		
 	{0x1E, 0x09},	/* Top 8-bits of coefficient A1 */		/* Power Clipping */
@@ -287,9 +306,19 @@ const uint8_t AD85050_Set_DRC1_Attack_Threshold[AD85050_RAM_SINGLE_SIZE][2] = {
 	{0x20, 0x3c},	/* Bottom 8-bits of coefficient A1 */		/* Power Clipping */
 	
 	{0x2D, 0x01},	/* CfRW : bank0, writing set coefficient to RAM */
+#endif
 };
 
 const uint8_t AD85050_Set_DRC1_Release_Threshold[AD85050_RAM_SINGLE_SIZE][2] = {
+#ifdef PP_PBA
+	{0x1D, 0x57},	/* Coefficient RAM base address */
+		
+	{0x1E, 0x09},	/* Top 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x1F, 0x8d},	/* Middle 8-bits of coefficient A1 */		/* Power Clipping */
+	{0x20, 0xa0},	/* Bottom 8-bits of coefficient A1 */		/* Power Clipping */
+	
+	{0x2D, 0x01},	/* CfRW : bank0, writing set coefficient to RAM */
+#else
 	{0x1D, 0x57},	/* Coefficient RAM base address */
 		
 	{0x1E, 0x08},	/* Top 8-bits of coefficient A1 */		/* Power Clipping */
@@ -297,6 +326,7 @@ const uint8_t AD85050_Set_DRC1_Release_Threshold[AD85050_RAM_SINGLE_SIZE][2] = {
 	{0x20, 0xaa},	/* Bottom 8-bits of coefficient A1 */		/* Power Clipping */
 	
 	{0x2D, 0x01},	/* CfRW : bank0, writing set coefficient to RAM */
+#endif
 };
 
 const uint8_t AD85050_Set_DRC1_Energy_Coefficient[AD85050_RAM_SINGLE_SIZE][2] = {
