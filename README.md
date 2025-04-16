@@ -729,3 +729,6 @@
   - PP품 TP대비 부품 차이로 인한 출력 저하 문제
   -> master gain 0.5dB up, Input BT에서 master gain -13.5dB -> 6dB 변경
   -> DRC 조정
+ 
+## 2025-04-03 (BAP-02)
+  - BT Speaker volume 51단계 -> 16단계 변환 시 관련 수정 (Tablet app과 BAP-02 volume 중앙 불일치)

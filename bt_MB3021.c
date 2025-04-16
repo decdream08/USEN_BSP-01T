@@ -335,7 +335,7 @@ typedef enum {
 }Remote_Power_Key_Action;
 
 //Variable
-char MCU_Version[6] = "250327"; //"230727"; //MCU Version Info
+char MCU_Version[6] = "250403"; //"230727"; //MCU Version Info
 char BT_Version[7]; //MCU Version Info
 
 Bool BBT_Init_OK = FALSE;
@@ -536,6 +536,40 @@ uint8_t Convert_50Step_to_16Step(uint8_t uVol) //2023-02-28_1 : Changed volume t
 	_DBG("\n\rConvert_In_Vol = ");_DBD(uVol);
 #endif
 
+#if 1
+	if(uVol >= 50)
+		uMatching_Vol = 15;
+	else if(uVol >= 46)
+		uMatching_Vol = 14;
+	else if(uVol >= 43)
+		uMatching_Vol = 13;
+	else if(uVol >= 40)
+		uMatching_Vol = 12;
+	else if(uVol >= 37)
+		uMatching_Vol = 11;
+	else if(uVol >= 34)
+		uMatching_Vol = 10;
+	else if(uVol >= 31)
+		uMatching_Vol = 9;
+	else if(uVol >= 28)
+		uMatching_Vol = 8;
+	else if(uVol >= 25)
+		uMatching_Vol = 7;
+	else if(uVol >= 22)
+		uMatching_Vol = 6;
+	else if(uVol >= 19)
+		uMatching_Vol = 5;
+	else if(uVol >= 15)
+		uMatching_Vol = 4;
+	else if(uVol >= 11)
+		uMatching_Vol = 3;
+	else if(uVol >= 6)
+		uMatching_Vol = 2;
+	else if(uVol >= 2)
+		uMatching_Vol = 1;
+	else 
+		uMatching_Vol = 0;
+#else
 	if(uVol >= 49)
 		uMatching_Vol = 15;
 	else if(uVol >= 48)
@@ -568,7 +602,7 @@ uint8_t Convert_50Step_to_16Step(uint8_t uVol) //2023-02-28_1 : Changed volume t
 		uMatching_Vol = 1;
 	else 
 		uMatching_Vol = 0;
-
+#endif
 #ifdef BT_DEBUG_MSG
 	_DBG("\n\ruMatching_Vol = ");_DBD(uMatching_Vol);
 #endif
